@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f47721">
+  <title>Matematyczne miasteczko</title>
+  <style>
+    :root { --ink:#28252f; --muted:#6d6875; --paper:#fffaf2; --orange:#f47721; --orange-dark:#c95016; --yellow:#ffd166; --teal:#3aa7a3; --teal-dark:#187d7c; --purple:#7b61c9; --pink:#ef6b8d; --green:#56a96f; --line:#eadcc9; --shadow:0 18px 50px rgba(116,67,25,.14); }
+    * { box-sizing:border-box; }
+    html { min-width:320px; scroll-behavior:smooth; }
+    body { margin:0; min-height:100vh; color:var(--ink); font-family:"Trebuchet MS","Segoe UI",sans-serif; background:radial-gradient(circle at 7% 5%,rgba(255,209,102,.55) 0 4px,transparent 5px),radial-gradient(circle at 95% 14%,rgba(58,167,163,.2) 0 5px,transparent 6px),linear-gradient(135deg,#fff4dc 0%,#fffaf3 47%,#f2f9f5 100%); }
+    a:focus-visible { outline:4px solid rgba(58,167,163,.38); outline-offset:4px; }
+    .shell { width:min(1120px,calc(100% - 32px)); margin:auto; padding:28px 0 48px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:28px; }
+    .brand { display:inline-flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; }
+    .brand-mark { display:grid; place-items:center; width:48px; height:48px; border-radius:15px; background:var(--orange); color:white; font-size:26px; box-shadow:0 8px 18px rgba(244,119,33,.25); transform:rotate(-4deg); }
+    .brand strong { display:block; font-size:17px; letter-spacing:.02em; }.brand span { color:var(--muted); font-size:13px; }
+    .top-note { padding:9px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.74); color:var(--muted); font-size:14px; font-weight:700; }
+    .hero { display:grid; grid-template-columns:1.08fr .92fr; min-height:360px; overflow:hidden; border-radius:28px; background:var(--paper); box-shadow:var(--shadow); }
+    .hero-copy { display:flex; flex-direction:column; justify-content:center; padding:clamp(30px,5vw,52px); background:linear-gradient(145deg,rgba(255,209,102,.34),transparent 54%),var(--paper); }
+    .eyebrow { margin:0 0 12px; color:var(--orange-dark); font-size:13px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; }
+    h1 { max-width:620px; margin:0 0 18px; font-size:clamp(38px,5vw,62px); line-height:.98; letter-spacing:-.05em; } h1 span { color:var(--orange); }
+    .hero-copy > p { max-width:540px; margin:0; color:var(--muted); font-size:18px; line-height:1.55; }
+    .hero-action { display:inline-flex; align-items:center; justify-content:center; width:max-content; margin-top:26px; padding:13px 20px; border-radius:12px; background:var(--orange); color:white; font-weight:900; text-decoration:none; box-shadow:0 7px 0 rgba(201,80,22,.22); transition:transform .15s ease,filter .15s ease; }.hero-action:hover { transform:translateY(-2px); filter:brightness(1.04); }
+    .hero-art { position:relative; display:grid; place-items:center; overflow:hidden; background:linear-gradient(155deg,#f58a35 0 37%,#ffd166 37% 100%); }.hero-art::before { position:absolute; inset:0; background:linear-gradient(120deg,rgba(255,255,255,.17),transparent 38%); content:""; }.hero-art img { position:relative; z-index:1; width:min(100%,480px); height:100%; object-fit:contain; mix-blend-mode:multiply; }
+    .section-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; margin:40px 0 17px; }.section-heading h2 { margin:0; font-size:clamp(26px,3vw,36px); letter-spacing:-.035em; }.section-heading p { max-width:430px; margin:0; color:var(--muted); line-height:1.42; text-align:right; }
+    .chapter-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .chapter { position:relative; display:flex; flex-direction:column; min-height:252px; padding:19px; overflow:hidden; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.8); color:var(--ink); text-decoration:none; box-shadow:0 8px 22px rgba(116,67,25,.06); transition:transform .2s ease,box-shadow .2s ease; }.chapter:hover { transform:translateY(-5px); box-shadow:0 15px 28px rgba(116,67,25,.13); }.chapter::after { position:absolute; right:-22px; bottom:-33px; width:100px; height:100px; border-radius:50%; background:var(--accent); opacity:.2; content:""; }
+    .chapter-icon { position:relative; z-index:1; display:grid; place-items:center; width:64px; height:64px; margin-bottom:19px; border:4px solid var(--ink); border-radius:19px; background:var(--tint); color:var(--accent-dark); font-family:Arial,sans-serif; font-size:32px; font-weight:900; line-height:1; box-shadow:4px 5px 0 rgba(40,37,47,.14); transform:rotate(-3deg); }
+    .chapter:nth-child(even) .chapter-icon { transform:rotate(3deg); }.chapter h3 { position:relative; z-index:1; margin:0 0 8px; font-size:18px; line-height:1.13; letter-spacing:-.02em; }.chapter p { position:relative; z-index:1; margin:0 0 16px; color:var(--muted); font-size:14px; line-height:1.4; }.chapter .go { position:relative; z-index:1; margin-top:auto; color:var(--accent-dark); font-size:14px; font-weight:900; }.numbers { --accent:var(--orange); --accent-dark:var(--orange-dark); --tint:#fff0db; }.written { --accent:var(--pink); --accent-dark:#b34162; --tint:#ffe8ef; }.geometry { --accent:var(--teal); --accent-dark:var(--teal-dark); --tint:#e1f5f1; }.fractions { --accent:var(--green); --accent-dark:#337947; --tint:#e8f6e9; }.decimals { --accent:var(--purple); --accent-dark:#574787; --tint:#f0eaff; }.areas { --accent:#e1a824; --accent-dark:#92640e; --tint:#fff5d7; }.solids { --accent:#4987d4; --accent-dark:#2860a6; --tint:#e7f1ff; }
+    .icon-bars { font-size:22px; letter-spacing:-8px; }.icon-bars small { display:block; margin-top:4px; font-size:19px; letter-spacing:-5px; }.icon-angle { font-size:40px; transform:rotate(-20deg); }.icon-pie { font-size:39px; }.icon-grid { font-size:27px; letter-spacing:-4px; }.icon-cube { font-size:38px; }
+    .chapter.coming { opacity:.9; }.chapter.coming .go::after { content:"wkrótce"; margin-left:7px; padding:3px 7px; border-radius:99px; background:var(--tint); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }.chapter.coming:hover { transform:translateY(-3px); }
+    footer { margin-top:34px; color:var(--muted); font-size:13px; text-align:center; }
+    @media (max-width:850px) { .hero { grid-template-columns:1fr; }.hero-art { min-height:250px; }.hero-art img { height:290px; }.chapter-grid { grid-template-columns:repeat(2,1fr); }.section-heading { align-items:start; flex-direction:column; }.section-heading p { text-align:left; } }
+    @media (max-width:520px) { .shell { width:min(100% - 24px,1120px); padding-top:18px; }.top-note { display:none; }.hero-copy { padding:31px 27px; }.hero-art { min-height:210px; }.hero-art img { height:245px; }.chapter-grid { grid-template-columns:1fr; }.chapter { min-height:205px; }.chapter-icon { margin-bottom:14px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Strona główna Matematycznego miasteczka"><span class="brand-mark">✦</span><span><strong>Matematyczne miasteczko</strong><span>Graj, odkrywaj, licz!</span></span></a>
+      <span class="top-note">8 matematycznych krain</span>
+    </header>
+    <section class="hero" aria-labelledby="welcome-title">
+      <div class="hero-copy"><p class="eyebrow">Witaj, odkrywco!</p><h1 id="welcome-title">Wybierz swoją <span>matematyczną</span> przygodę.</h1><p>Każdy rozdział to nowa kraina pełna krótkich wyzwań. Zacznij tam, gdzie masz ochotę ćwiczyć!</p><a class="hero-action" href="Chapter1/index.html" data-goatcounter-click="chapter-1" data-goatcounter-referrer="main-page">Zacznij przygodę →</a></div>
+      <div class="hero-art" aria-hidden="true"><img src="assets/math-town-mascot.png" alt=""></div>
+    </section>
+    <section id="chapters" aria-labelledby="chapters-title">
+      <div class="section-heading"><div><p class="eyebrow">Mapa miasteczka</p><h2 id="chapters-title">Wybierz rozdział</h2></div><p>Wszystkie ikony należą do jednej drużyny — kolorowe, zaokrąglone i gotowe do liczenia.</p></div>
+      <div class="chapter-grid">
+        <a class="chapter numbers" href="Chapter1/index.html" data-goatcounter-click="chapter-1" data-goatcounter-referrer="main-page"><span class="chapter-icon">+−</span><h3>Liczby i działania</h3><p>Dodawaj, odejmuj, mnoż i dziel — rozruszaj liczby!</p><span class="go">Wejdź do rozdziału →</span></a>
+        <a class="chapter written coming" href="Chapter2/index.html" data-goatcounter-click="chapter-2" data-goatcounter-referrer="main-page"><span class="chapter-icon icon-bars">≡<small>+−</small></span><h3>Systemy zapisywania liczb</h3><p>Odkryj, jak liczby mogą wyglądać i co znaczą cyfry.</p><span class="go">Rozdział</span></a>
+        <a class="chapter written coming" href="Chapter3/index.html" data-goatcounter-click="chapter-3" data-goatcounter-referrer="main-page"><span class="chapter-icon">↕</span><h3>Działania pisemne</h3><p>Ustaw liczby w słupku i policz krok po kroku.</p><span class="go">Rozdział</span></a>
+        <a class="chapter geometry coming" href="Chapter4/index.html" data-goatcounter-click="chapter-4" data-goatcounter-referrer="main-page"><span class="chapter-icon icon-angle">△</span><h3>Figury geometryczne</h3><p>Proste, kąty, wielokąty i koła czekają na odkrycie.</p><span class="go">Rozdział</span></a>
+        <a class="chapter fractions coming" href="Chapter5/index.html" data-goatcounter-click="chapter-5" data-goatcounter-referrer="main-page"><span class="chapter-icon icon-pie">◔</span><h3>Ułamki zwykłe</h3><p>Podziel całość na równe części i poznaj ułamki.</p><span class="go">Rozdział</span></a>
+        <a class="chapter decimals coming" href="Chapter6/index.html" data-goatcounter-click="chapter-6" data-goatcounter-referrer="main-page"><span class="chapter-icon">0,5</span><h3>Ułamki dziesiętne</h3><p>Dziesiąte, setne i tysiączne — czas na przecinek.</p><span class="go">Rozdział</span></a>
+        <a class="chapter areas coming" href="Chapter7/index.html" data-goatcounter-click="chapter-7" data-goatcounter-referrer="main-page"><span class="chapter-icon icon-grid">▦</span><h3>Pola figur</h3><p>Zmierz, ile miejsca zajmują prostokąty i inne figury.</p><span class="go">Rozdział</span></a>
+        <a class="chapter solids coming" href="Chapter8/index.html" data-goatcounter-click="chapter-8" data-goatcounter-referrer="main-page"><span class="chapter-icon icon-cube">◇</span><h3>Prostopadłościany i sześciany</h3><p>Buduj bryły, oglądaj siatki i licz ich powierzchnie.</p><span class="go">Rozdział</span></a>
+      </div>
+    </section>
+    <footer>Matematyczne miasteczko • małe kroki, wielkie odkrycia</footer>
+  </main>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js"));
+    }
+  </script>
+  <script data-goatcounter="https://matematyka.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>

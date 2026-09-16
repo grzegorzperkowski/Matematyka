@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f47a20">
+  <title>Liczby i działania | Matematyczne miasteczko</title>
+  <style>
+    :root {
+      --ink: #28252f;
+      --muted: #6d6875;
+      --paper: #fffaf2;
+      --white: #ffffff;
+      --orange: #f47721;
+      --orange-dark: #c95016;
+      --yellow: #ffd166;
+      --teal: #3aa7a3;
+      --teal-dark: #187d7c;
+      --purple: #7b61c9;
+      --pink: #ef6b8d;
+      --green: #56a96f;
+      --line: #eadcc9;
+      --shadow: 0 18px 50px rgba(116, 67, 25, .14);
+      --radius-lg: 28px;
+      --radius-md: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-width: 320px; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 7% 5%, rgba(255, 209, 102, .55) 0 4px, transparent 5px),
+        radial-gradient(circle at 95% 14%, rgba(58, 167, 163, .2) 0 5px, transparent 6px),
+        linear-gradient(135deg, #fff4dc 0%, #fffaf3 47%, #f2f9f5 100%);
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+
+    button, input { font: inherit; }
+
+    button { cursor: pointer; }
+
+    button:focus-visible, input:focus-visible {
+      outline: 4px solid rgba(58, 167, 163, .35);
+      outline-offset: 3px;
+    }
+
+    .app-shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 42px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--ink);
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 15px;
+      background: var(--orange);
+      color: var(--white);
+      font-size: 26px;
+      box-shadow: 0 8px 18px rgba(244, 119, 33, .25);
+      transform: rotate(-4deg);
+    }
+
+    .brand-copy { line-height: 1.1; }
+    .brand-copy strong { display: block; font-size: 17px; letter-spacing: .02em; }
+    .brand-copy span { color: var(--muted); font-size: 13px; }
+
+    .best-score {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 15px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .7);
+      color: var(--muted);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .best-score strong { color: var(--orange-dark); font-size: 17px; }
+
+    .screen[hidden] { display: none !important; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(330px, .95fr);
+      align-items: stretch;
+      overflow: hidden;
+      min-height: 360px;
+      border-radius: var(--radius-lg);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 52px;
+      background:
+        linear-gradient(145deg, rgba(255, 209, 102, .34), transparent 54%),
+        var(--paper);
+    }
+
+    .eyebrow, .section-kicker {
+      margin: 0 0 12px;
+      color: var(--orange-dark);
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 620px;
+      margin-bottom: 18px;
+      font-size: clamp(34px, 5vw, 63px);
+      line-height: .98;
+      letter-spacing: -.045em;
+    }
+
+    h1 span { color: var(--orange); }
+
+    .hero-copy > p {
+      max-width: 570px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .hero-art {
+      position: relative;
+      overflow: hidden;
+      min-height: 360px;
+      background: linear-gradient(155deg, #f58a35 0 37%, #ffd166 37% 100%);
+    }
+
+    .hero-art::before {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(255,255,255,.12), transparent 38%);
+      content: "";
+    }
+
+    .cloud { position: absolute; border-radius: 50%; background: rgba(255,255,255,.72); }
+    .cloud.one { width: 110px; height: 44px; top: 45px; left: 32px; box-shadow: 42px 12px 0 4px rgba(255,255,255,.72); }
+    .cloud.two { width: 74px; height: 30px; top: 104px; right: 32px; box-shadow: -27px 8px 0 2px rgba(255,255,255,.72); }
+
+    .park-sign {
+      position: absolute;
+      z-index: 2;
+      top: 34px;
+      left: 50%;
+      padding: 11px 21px 13px;
+      border: 4px solid var(--ink);
+      border-radius: 14px;
+      background: var(--white);
+      color: var(--orange-dark);
+      font-size: 24px;
+      font-weight: 900;
+      transform: translateX(-50%) rotate(-3deg);
+      box-shadow: 4px 7px 0 rgba(40, 37, 47, .18);
+      white-space: nowrap;
+    }
+
+    .wheel {
+      position: absolute;
+      z-index: 2;
+      top: 112px;
+      left: 50%;
+      width: 172px;
+      height: 172px;
+      border: 12px solid var(--teal-dark);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      box-shadow: inset 0 0 0 7px rgba(255,255,255,.65);
+    }
+
+    .wheel::before, .wheel::after {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 7px;
+      height: 146px;
+      border-radius: 99px;
+      background: var(--teal-dark);
+      content: "";
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .wheel::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+    .wheel-hub {
+      position: absolute;
+      z-index: 3;
+      top: 50%;
+      left: 50%;
+      width: 24px;
+      height: 24px;
+      border: 5px solid var(--ink);
+      border-radius: 50%;
+      background: var(--yellow);
+      transform: translate(-50%, -50%);
+    }
+
+    .wheel-stand {
+      position: absolute;
+      z-index: 1;
+      top: 260px;
+      left: 50%;
+      width: 11px;
+      height: 92px;
+      background: var(--ink);
+      transform: translateX(-50%);
+    }
+
+    .wheel-stand::after {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 135px;
+      height: 12px;
+      border-radius: 99px;
+      background: var(--ink);
+      content: "";
+      transform: translateX(-50%);
+    }
+
+    .ride-car {
+      position: absolute;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 34px;
+      border: 4px solid var(--ink);
+      border-radius: 12px 12px 17px 17px;
+      background: var(--pink);
+      font-size: 21px;
+      box-shadow: 0 5px 0 rgba(40,37,47,.16);
+    }
+
+    .ride-car.a { top: 154px; left: 17%; transform: rotate(-12deg); }
+    .ride-car.b { top: 202px; right: 10%; background: var(--purple); transform: rotate(9deg); }
+    .ride-car.c { top: 291px; left: 16%; background: var(--green); transform: rotate(7deg); }
+
+    .ground {
+      position: absolute;
+      bottom: -53px;
+      left: -5%;
+      width: 110%;
+      height: 118px;
+      border-radius: 50% 50% 0 0;
+      background: #77bb75;
+    }
+
+    .tree { position: absolute; z-index: 3; bottom: 41px; font-size: 48px; filter: drop-shadow(3px 5px 0 rgba(40,37,47,.12)); }
+    .tree.a { left: 6%; }
+    .tree.b { right: 5%; font-size: 59px; }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 38px 0 16px;
+    }
+
+    .section-heading h2 { margin: 0; font-size: clamp(24px, 3vw, 35px); letter-spacing: -.03em; }
+    .section-heading p { max-width: 440px; margin: 0; color: var(--muted); line-height: 1.4; text-align: right; }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .mode-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-height: 210px;
+      padding: 20px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,.77);
+      box-shadow: 0 8px 22px rgba(116, 67, 25, .06);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .mode-card:hover { transform: translateY(-4px); box-shadow: 0 14px 28px rgba(116, 67, 25, .12); }
+    .mode-card::after { position: absolute; right: -18px; bottom: -30px; width: 92px; height: 92px; border-radius: 50%; background: var(--card-color, var(--yellow)); opacity: .25; content: ""; }
+    .mode-card.orange { --card-color: var(--orange); }
+    .mode-card.teal { --card-color: var(--teal); }
+    .mode-card.purple { --card-color: var(--purple); }
+    .mode-card.pink { --card-color: var(--pink); }
+
+    .mode-icon { font-size: 31px; margin-bottom: 14px; }
+    .mode-card h3 { margin-bottom: 8px; font-size: 18px; }
+    .mode-card p { min-height: 49px; margin-bottom: 18px; color: var(--muted); font-size: 14px; line-height: 1.4; }
+
+    .primary-button, .secondary-button, .small-button {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 12px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform .15s ease, filter .15s ease;
+    }
+
+    .primary-button:hover, .secondary-button:hover, .small-button:hover { filter: brightness(1.04); transform: translateY(-1px); }
+
+    .primary-button {
+      width: 100%;
+      padding: 13px 18px;
+      background: var(--orange);
+      color: var(--white);
+      box-shadow: 0 7px 0 rgba(201, 80, 22, .22);
+    }
+
+    .mode-card .primary-button { margin-top: auto; }
+
+    .how-to {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 30px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255,255,255,.62);
+    }
+
+    .how-step { display: flex; align-items: center; gap: 11px; padding: 4px 9px; color: var(--muted); font-size: 14px; line-height: 1.35; }
+    .how-step span { display: grid; flex: 0 0 31px; place-items: center; width: 31px; height: 31px; border-radius: 50%; background: var(--teal); color: white; font-weight: 900; }
+
+    .footer-note { margin: 28px 0 0; color: var(--muted); font-size: 12px; text-align: center; }
+
+    .game-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .back-button {
+      border: 0;
+      padding: 8px 0;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .back-button:hover { color: var(--ink); }
+
+    .game-stats { display: flex; flex-wrap: wrap; justify-content: end; gap: 8px; }
+    .stat-pill { padding: 9px 13px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.8); color: var(--muted); font-size: 14px; }
+    .stat-pill strong { color: var(--ink); }
+    .stat-pill.score strong { color: var(--orange-dark); }
+    .stat-pill.streak strong { color: var(--purple); }
+
+    .progress-wrap { margin-bottom: 20px; }
+    .progress-label { display: flex; justify-content: space-between; margin-bottom: 7px; color: var(--muted); font-size: 13px; font-weight: 800; }
+    .progress-track { height: 10px; overflow: hidden; border-radius: 999px; background: #eadfce; }
+    .progress-bar { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--orange), var(--yellow)); transition: width .35s ease; }
+
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(260px, .7fr); gap: 18px; align-items: start; }
+
+    .question-card, .side-card, .result-card { border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgba(255,255,255,.88); box-shadow: var(--shadow); }
+
+    .question-card { padding: clamp(23px, 4vw, 42px); }
+    .question-header { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+    .category { display: inline-flex; align-items: center; gap: 7px; padding: 8px 11px; border-radius: 999px; background: #fff0db; color: var(--orange-dark); font-size: 13px; font-weight: 900; }
+    .category::before { width: 7px; height: 7px; border-radius: 50%; background: currentColor; content: ""; }
+    .question-number { color: var(--muted); font-size: 13px; font-weight: 800; }
+    .question-title { margin: 23px 0 18px; font-size: clamp(23px, 3vw, 33px); line-height: 1.18; letter-spacing: -.035em; }
+
+    .visual-panel { display: flex; align-items: center; justify-content: center; min-height: 108px; margin: 4px 0 26px; padding: 18px; border-radius: 18px; background: #f8f3ea; }
+    .visual-panel.story { justify-content: space-around; gap: 12px; flex-wrap: wrap; }
+    .story-item { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 106px; color: var(--muted); font-size: 13px; font-weight: 800; text-align: center; }
+    .story-item .big-emoji { font-size: 38px; line-height: 1; }
+    .story-item strong { color: var(--ink); font-size: 17px; }
+    .visual-caption { width: 100%; margin: 6px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+    .equation-visual { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--ink); font-size: 25px; font-weight: 900; }
+    .equation-visual small { color: var(--teal-dark); font-size: 13px; }
+    .array-visual { display: grid; gap: 6px; padding: 4px; }
+    .array-row { display: flex; gap: 8px; justify-content: center; }
+    .array-dot { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 10px; background: #ffd166; font-size: 18px; }
+    .sequence-visual { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; color: var(--ink); font-size: 21px; font-weight: 900; }
+    .sequence-number { padding: 9px 11px; border-radius: 10px; background: white; box-shadow: 0 2px 0 #e6d4bd; }
+    .sequence-number.next { background: #e1f4ef; color: var(--teal-dark); }
+    .sequence-arrow { color: var(--orange); }
+    .number-visual { display: flex; align-items: center; gap: 20px; color: var(--ink); font-size: 19px; font-weight: 900; text-align: center; }
+    .number-visual .circle { display: grid; place-items: center; width: 62px; height: 62px; border: 4px solid var(--purple); border-radius: 50%; background: #f3edff; }
+    .number-visual .sign { color: var(--orange); font-size: 26px; }
+    .numberline-visual { width: min(460px, 100%); color: var(--teal-dark); text-align: center; }
+    .numberline-track { position: relative; height: 12px; margin: 18px 8px 8px; border-top: 4px solid var(--ink); }
+    .numberline-track::before { position: absolute; top: -11px; right: -5px; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 11px solid var(--ink); content: ""; }
+    .numberline-dot { position: absolute; top: -10px; width: 12px; height: 20px; border-left: 3px solid var(--ink); }
+    .numberline-dot.start { left: 0; }
+    .numberline-dot.mid { left: 50%; }
+    .numberline-dot.end { right: 0; }
+    .numberline-labels { display: flex; justify-content: space-between; color: var(--ink); font-size: 12px; font-weight: 900; }
+    .numberline-visual small { display: block; margin-top: 14px; color: var(--muted); font-size: 13px; }
+
+    .answer-label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 14px; font-weight: 800; }
+    .answer-row { display: flex; gap: 10px; }
+    .answer-input { min-width: 0; flex: 1; padding: 13px 15px; border: 2px solid #ded1c2; border-radius: 12px; background: white; color: var(--ink); font-size: 20px; font-weight: 800; }
+    .answer-input:focus { border-color: var(--teal); }
+    .check-button { flex: 0 0 auto; padding: 13px 20px; border: 0; border-radius: 12px; background: var(--teal); color: white; font-weight: 900; box-shadow: 0 7px 0 rgba(24,125,124,.18); }
+    .check-button:hover { background: var(--teal-dark); }
+    .choice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .choice-button { padding: 15px 10px; border: 2px solid #ded1c2; border-radius: 12px; background: white; color: var(--ink); font-size: 18px; font-weight: 900; }
+    .choice-button:hover { border-color: var(--teal); background: #f2fbf9; }
+    .choice-button.selected { border-color: var(--teal); background: #dff5ef; }
+
+    .help-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
+    .hint-button { border: 0; padding: 0; background: transparent; color: var(--purple); font-size: 14px; font-weight: 900; }
+    .hint-button:hover { color: var(--orange-dark); }
+    .hint-box { flex: 1; padding: 10px 13px; border-left: 4px solid var(--yellow); border-radius: 0 10px 10px 0; background: #fff8db; color: #67532d; font-size: 13px; line-height: 1.4; }
+    .hint-box[hidden], .feedback[hidden] { display: none; }
+
+    .feedback { margin-top: 21px; padding: 15px 17px; border-radius: 14px; line-height: 1.45; }
+    .feedback.correct { background: #e5f6e8; color: #276c40; }
+    .feedback.wrong { background: #fff0e5; color: #98451f; }
+    .feedback h3 { margin: 0 0 5px; font-size: 17px; }
+    .feedback p { margin: 0; font-size: 14px; }
+    .next-button { flex: 0 0 auto; padding: 13px 20px; border: 0; border-radius: 12px; color: #276c40; background: #c8ecd2; font-weight: 900; }
+    .next-button:focus-visible { outline: 3px solid rgba(58, 167, 163, .45); outline-offset: 0; }
+    .next-button.wrong { color: #98451f; background: #ffd9c2; }
+    .choice-action { width: 100%; margin-top: 10px; }
+
+    .side-card { padding: 24px; box-shadow: 0 10px 28px rgba(116, 67, 25, .09); }
+    .side-card h2 { margin-bottom: 9px; font-size: 22px; letter-spacing: -.03em; }
+    .side-card > p { margin-bottom: 18px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .lesson-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+    .lesson-list li { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 14px; }
+    .lesson-list li::before { content: "✓"; display: grid; place-items: center; width: 23px; height: 23px; border-radius: 7px; background: #e7f5ef; color: var(--teal-dark); font-weight: 900; }
+    .coach-note { margin-top: 20px; padding: 13px; border-radius: 13px; background: #f6edff; color: #574787; font-size: 13px; line-height: 1.4; }
+    .coach-note strong { display: block; margin-bottom: 3px; color: var(--purple); }
+
+    .result-wrap { display: grid; place-items: center; min-height: 68vh; }
+    .result-card { width: min(610px, 100%); padding: clamp(28px, 5vw, 55px); text-align: center; }
+    .result-confetti { font-size: 52px; line-height: 1; }
+    .result-card h1 { margin: 18px auto 10px; font-size: clamp(30px, 5vw, 48px); }
+    .result-card > p { max-width: 480px; margin: 0 auto 25px; color: var(--muted); line-height: 1.5; }
+    .result-score { display: inline-flex; align-items: baseline; gap: 7px; margin-bottom: 20px; padding: 11px 18px; border-radius: 15px; background: #fff4d8; color: var(--orange-dark); }
+    .result-score strong { font-size: 36px; }
+    .result-stars { margin-bottom: 22px; color: var(--yellow); font-size: 34px; letter-spacing: 4px; text-shadow: 1px 2px 0 #c78f27; }
+    .result-details { display: flex; justify-content: center; gap: 22px; margin-bottom: 27px; color: var(--muted); font-size: 14px; }
+    .result-details strong { display: block; color: var(--ink); font-size: 20px; }
+    .result-actions { display: flex; gap: 10px; justify-content: center; }
+    .result-actions .primary-button { width: auto; padding-inline: 22px; }
+    .secondary-button { padding: 13px 18px; border: 2px solid #ded1c2; background: white; color: var(--ink); }
+
+    .toast { position: fixed; right: 18px; bottom: 18px; z-index: 20; max-width: 300px; padding: 13px 16px; border-radius: 12px; background: var(--ink); color: white; box-shadow: var(--shadow); font-size: 14px; font-weight: 800; transform: translateY(130%); transition: transform .2s ease; }
+    .toast.visible { transform: translateY(0); }
+
+    @media (max-width: 850px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-copy { padding: 38px 30px; }
+      .hero-art { min-height: 310px; }
+      .mode-grid { grid-template-columns: repeat(2, 1fr); }
+      .game-layout { grid-template-columns: 1fr; }
+      .side-card { order: -1; }
+      .side-card > p { margin-bottom: 10px; }
+      .lesson-list { display: flex; flex-wrap: wrap; gap: 7px 16px; }
+      .coach-note { display: none; }
+    }
+
+    @media (max-width: 560px) {
+      .app-shell { width: min(100% - 20px, 1120px); padding-top: 18px; }
+      .topbar { margin-bottom: 18px; }
+      .brand-copy span, .best-score span { display: none; }
+      .best-score { padding: 8px 11px; }
+      .hero-copy { padding: 31px 23px; }
+      .hero-art { min-height: 260px; }
+      .park-sign { top: 22px; font-size: 18px; }
+      .wheel { top: 83px; width: 135px; height: 135px; border-width: 9px; }
+      .wheel::before, .wheel::after { height: 112px; width: 5px; }
+      .wheel-stand { top: 205px; height: 62px; }
+      .wheel-stand::after { width: 108px; }
+      .ride-car.a { top: 125px; }
+      .ride-car.b { top: 159px; }
+      .ride-car.c { top: 224px; }
+      .tree { bottom: 25px; font-size: 34px; }
+      .tree.b { font-size: 42px; }
+      .section-heading { display: block; margin-top: 28px; }
+      .section-heading p { margin-top: 6px; text-align: left; }
+      .mode-grid, .how-to { grid-template-columns: 1fr; }
+      .mode-card { min-height: 184px; }
+      .how-to { padding: 13px; }
+      .game-topbar { display: block; }
+      .game-stats { justify-content: start; margin-top: 9px; }
+      .question-card { padding: 22px 18px; }
+      .answer-row { flex-direction: column; }
+      .check-button, .next-button { width: 100%; }
+      .choice-grid { grid-template-columns: 1fr; }
+      .help-row { display: block; }
+      .hint-box { margin-top: 12px; }
+      .result-actions { flex-direction: column; }
+      .result-actions .primary-button, .secondary-button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="../index.html" aria-label="Wróć do strony głównej Matematycznego miasteczka">
+        <span class="brand-mark">π</span>
+        <span class="brand-copy"><strong>Matematyczne miasteczko</strong><span>Rozdział 1 • Liczby i działania</span></span>
+      </a>
+      <div class="best-score" aria-live="polite"><span>Najlepszy wynik</span><strong id="bestScore">0 pkt</strong>🏆</div>
+    </header>
+
+    <section id="startScreen" class="screen">
+      <div class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Wsiadaj, liczymy!</p>
+          <h1>Przygoda w <span>miasteczku liczb</span></h1>
+          <p>Rozwiąż zadania z dodawania, odejmowania, mnożenia i dzielenia. Po drodze czekają zagadki „o ile więcej”, sprytne rachunki i liczby ukryte pod literami.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="cloud one"></div><div class="cloud two"></div>
+          <div class="park-sign">WESOŁE<br>MIASTECZKO</div>
+          <div class="wheel"><div class="wheel-hub"></div></div>
+          <div class="wheel-stand"></div>
+          <div class="ride-car a">➕</div><div class="ride-car b">➗</div><div class="ride-car c">×</div>
+          <div class="ground"></div><div class="tree a">🌳</div><div class="tree b">🌳</div>
+        </div>
+      </div>
+
+      <div class="section-heading">
+        <div><p class="section-kicker">Wybierz trasę</p><h2>Dokąd dziś jedziemy?</h2></div>
+        <p>Każda trasa ma 10 wyzwań. Możesz poprosić o podpowiedź, a na końcu zobaczysz swój wynik.</p>
+      </div>
+
+      <div class="mode-grid">
+        <article class="mode-card orange">
+          <div class="mode-icon">🎠</div><h3>Wesołe miasteczko</h3>
+          <p>Bilety, godziny otwarcia i zadania z obrazka.</p>
+          <a class="primary-button" href="?exercise=park">Wybieram trasę</a>
+        </article>
+        <article class="mode-card teal">
+          <div class="mode-icon">🧠</div><h3>Sprytne rachunki</h3>
+          <p>Dodawaj i odejmuj w pamięci, łącząc wygodne liczby.</p>
+          <a class="primary-button" href="?exercise=plusminus">Wybieram trasę</a>
+        </article>
+        <article class="mode-card purple">
+          <div class="mode-icon">🔎</div><h3>O ile więcej?</h3>
+          <p>Ćwicz różnicę, liczby pod literami i ciągi liczbowe.</p>
+          <a class="primary-button" href="?exercise=moreless">Wybieram trasę</a>
+        </article>
+        <article class="mode-card pink">
+          <div class="mode-icon">🍭</div><h3>Mnożenie i dzielenie</h3>
+          <p>Tabliczka mnożenia, dzielenie i grupowanie czynników.</p>
+          <a class="primary-button" href="?exercise=multdiv">Wybieram trasę</a>
+        </article>
+        <article class="mode-card orange">
+          <div class="mode-icon">🔟</div><h3>Przez 10, 100, ...</h3>
+          <p>Dopisywanie i skreślanie zer oraz sprytne dzielenie.</p>
+          <a class="primary-button" href="?exercise=by10">Wybieram trasę</a>
+        </article>
+        <article class="mode-card orange">
+          <div class="mode-icon">↗️</div><h3>Razy więcej, razy mniej</h3>
+          <p>Porównuj liczby za pomocą mnożenia i dzielenia.</p>
+          <a class="primary-button" href="?exercise=timesmore">Wybieram trasę</a>
+        </article>
+        <article class="mode-card teal">
+          <div class="mode-icon">🍪</div><h3>Dzielenie z resztą</h3>
+          <p>Dziel słodycze, sprawdzaj reszty i liczby podzielne.</p>
+          <a class="primary-button" href="?exercise=remainder">Wybieram trasę</a>
+        </article>
+        <article class="mode-card purple">
+          <div class="mode-icon">²³</div><h3>Kwadraty i sześciany</h3>
+          <p>Odkrywaj potęgi, równe czynniki i proste kombinacje.</p>
+          <a class="primary-button" href="?exercise=powers">Wybieram trasę</a>
+        </article>
+        <article class="mode-card pink">
+          <div class="mode-icon">📚</div><h3>Zadania tekstowe</h3>
+          <p>Czytaj informacje, wybieraj działania i rozwiązuj historie.</p>
+          <a class="primary-button" href="?exercise=word">Wybieram trasę</a>
+        </article>
+        <article class="mode-card orange">
+          <div class="mode-icon">🧮</div><h3>Kolejność działań</h3>
+          <p>Nawiasy, potęgi, mnożenie i dzielenie krok po kroku.</p>
+          <a class="primary-button" href="?exercise=order">Wybieram trasę</a>
+        </article>
+        <article class="mode-card teal">
+          <div class="mode-icon">📏</div><h3>Oś liczbowa i łamigłówki</h3>
+          <p>Odczytuj współrzędne i rozwiąż zagadki logiczne.</p>
+          <a class="primary-button" href="?exercise=numberline">Wybieram trasę</a>
+        </article>
+      </div>
+
+      <div class="section-heading"><div><p class="section-kicker">Dla chętnych</p><h2>Wielka przejażdżka</h2></div><p>Losowa mieszanka wszystkich tematów z całego rozdziału.</p></div>
+      <div class="mode-card orange" style="min-height: 0; flex-direction: row; align-items: center; gap: 18px;">
+        <div class="mode-icon" style="margin: 0;">🎟️</div><div style="flex:1; position:relative; z-index:1;"><h3 style="margin-bottom: 4px;">Runda mieszana</h3><p style="min-height:0; margin:0;">Sprawdź, jak radzisz sobie ze wszystkimi stacjami.</p></div>
+        <a class="primary-button" href="?exercise=mix" style="width:auto; padding-inline:22px;">Start rundy</a>
+      </div>
+
+      <div class="how-to" aria-label="Jak grać">
+        <div class="how-step"><span>1</span><div>Wybierz trasę i przeczytaj zadanie.</div></div>
+        <div class="how-step"><span>2</span><div>Wpisz wynik albo wybierz odpowiedź.</div></div>
+        <div class="how-step"><span>3</span><div>Zbieraj punkty i ucz się z wyjaśnień.</div></div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen" hidden>
+      <div class="game-topbar">
+        <a class="back-button" id="backToMenu" href="index.html">← Wróć do wyboru trasy</a>
+        <div class="game-stats">
+          <div class="stat-pill score">Punkty <strong id="score">0</strong></div>
+          <div class="stat-pill streak">Seria <strong id="streak">0</strong> 🔥</div>
+          <div class="stat-pill">Dobrze <strong id="correctCount">0</strong></div>
+        </div>
+      </div>
+      <div class="progress-wrap" aria-label="Postęp rundy">
+        <div class="progress-label"><span id="routeName">Runda mieszana</span><span id="progressText">Wyzwanie 1 z 10</span></div>
+        <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+
+      <div class="game-layout">
+        <article class="question-card">
+          <div class="question-header"><span class="category" id="category">Dodawanie</span><span class="question-number" id="questionNumber">01 / 10</span></div>
+          <h1 class="question-title" id="questionTitle">Zadanie</h1>
+          <div class="visual-panel" id="visualPanel"></div>
+          <form id="answerForm" novalidate>
+            <div id="answerArea"></div>
+          </form>
+          <div class="help-row">
+            <button class="hint-button" id="hintButton" type="button">💡 Pokaż podpowiedź</button>
+            <div class="hint-box" id="hintBox" hidden></div>
+          </div>
+          <div class="feedback" id="feedback" hidden>
+            <h3 id="feedbackTitle"></h3><p id="feedbackText"></p>
+          </div>
+        </article>
+
+        <aside class="side-card">
+          <p class="section-kicker">Mała ściąga</p><h2>Jak myśleć?</h2>
+          <p>Najpierw zaznacz w głowie, jakie działanie pasuje do treści.</p>
+          <ul class="lesson-list">
+            <li>„razem” oznacza dodawanie</li>
+            <li>„o ile” oznacza różnicę</li>
+            <li>„po tyle samo” oznacza mnożenie</li>
+            <li>dzielenie sprawdzaj mnożeniem</li>
+            <li>reszta jest mniejsza od dzielnika</li>
+            <li>przez 10 dopisz lub skreśl jedno zero</li>
+            <li>nawiasy i potęgi liczymy pierwsze</li>
+          </ul>
+          <div class="coach-note"><strong>Wskazówka</strong>Nie spiesz się. Dobra metoda jest ważniejsza niż szybka odpowiedź.</div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen" hidden>
+      <div class="result-wrap"><article class="result-card">
+        <div class="result-confetti" id="resultEmoji">🎉</div>
+        <h1 id="resultTitle">Świetna jazda!</h1>
+        <p id="resultMessage">Runda zakończona.</p>
+        <div class="result-score"><strong id="resultScore">0</strong><span>punktów</span></div>
+        <div class="result-stars" id="resultStars" aria-label="Ocena">★★★</div>
+        <div class="result-details"><div><strong id="resultCorrect">0/10</strong>poprawnych</div><div><strong id="resultBest">0</strong>najlepszy wynik</div></div>
+        <div class="result-actions"><button class="primary-button" id="playAgain">Jeszcze raz</button><a class="secondary-button" id="resultMenu" href="index.html">Wybierz inną trasę</a></div>
+      </article></div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="game.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js"));
+    }
+  </script>
+  <script data-goatcounter="https://matematyka.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
