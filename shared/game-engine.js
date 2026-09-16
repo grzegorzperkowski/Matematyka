@@ -196,6 +196,178 @@
       return node;
     }
 
+    const SVG_NS = "http://www.w3.org/2000/svg";
+
+    function addSvg(parent, tag, attributes = {}, text = null) {
+      const node = document.createElementNS(SVG_NS, tag);
+      Object.entries(attributes).forEach(([name, value]) => node.setAttribute(name, String(value)));
+      if (text !== null) node.textContent = String(text);
+      parent.append(node);
+      return node;
+    }
+
+    function regularPoints(count, centerX = 120, centerY = 70, radius = 52) {
+      return Array.from({ length: count }, (_, index) => {
+        const angle = -Math.PI / 2 + index * 2 * Math.PI / count;
+        return [centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius];
+      });
+    }
+
+    function addArrow(svg, x, y, direction) {
+      const size = 7;
+      const points = direction === "left"
+        ? `${x},${y} ${x + size * 1.5},${y - size} ${x + size * 1.5},${y + size}`
+        : `${x},${y} ${x - size * 1.5},${y - size} ${x - size * 1.5},${y + size}`;
+      addSvg(svg, "polygon", { points, class: "geometry-arrow" });
+    }
+
+    function renderGeometryVisual(visual, panel) {
+      const shape = visual.shape || visual.subtype || visual.kind;
+      const box = document.createElement("div");
+      box.className = "geometry-visual";
+      const relationNames = { parallel: "równoległe", perpendicular: "prostopadłe", intersecting: "przecinające się, ale nie prostopadłe", "double-perpendicular": "dwie proste prostopadłe do tej samej prostej" };
+      const featureNames = { radius: "promień", diameter: "średnica", circumference: "okrąg", disk: "koło z wnętrzem", center: "środek", chord: "cięciwa", point: `punkt ${visual.pointPosition === "inside" ? "wewnątrz koła" : visual.pointPosition === "outside" ? "na zewnątrz koła" : "na okręgu"}` };
+      const descriptions = {
+        point: `Punkt ${visual.name || "A"}.`,
+        line: `${visual.extent === "ray" ? "Półprosta" : visual.extent === "infinite" ? "Prosta" : "Odcinek"}${visual.pointNames ? ` przez punkty ${visual.pointNames.join(", ")}` : ""}.`,
+        polyline: `Łamana ${visual.closed ? "zamknięta" : "otwarta"} złożona z ${visual.segments || visual.lengths?.length || 3} odcinków.`,
+        lines: `Proste ${relationNames[visual.relation || visual.lineRelation] || "przecinające się"}.`,
+        angle: `Kąt o mierze ${visual.degrees ?? visual.angle ?? 90} stopni${visual.split ? `, podzielony ramieniem przy ${visual.split} stopniach` : ""}.`,
+        polygon: `Wielokąt o ${visual.sides || 3} bokach.`,
+        rectangle: `${visual.square || visual.width === visual.height ? "Kwadrat" : "Prostokąt"} o bokach ${visual.width} i ${visual.height}.`,
+        perimeter: `Wielokąt o bokach ${(visual.sides || visual.lengths || []).map((value) => value ?? "nieznana długość").join(", ")}${visual.unit ? ` ${visual.unit}` : ""}.`,
+        circle: `Diagram koła: zaznaczony element to ${featureNames[visual.feature] || "okrąg"}.`
+      };
+      const svg = addSvg(box, "svg", { viewBox: "0 0 240 145", role: "img", "aria-label": visual.alt || descriptions[shape] || visual.caption || "Diagram geometryczny", focusable: "false" });
+      const line = (x1, y1, x2, y2, className = "geometry-stroke") => addSvg(svg, "line", { x1, y1, x2, y2, class: className });
+      const label = (x, y, value, className = "geometry-label") => addSvg(svg, "text", { x, y, class: className }, value);
+      const dot = (x, y, className = "geometry-dot") => addSvg(svg, "circle", { cx: x, cy: y, r: 4, class: className });
+
+      if (shape === "point") {
+        dot(120, 65); label(130, 58, visual.name || "A");
+      } else if (shape === "line") {
+        const extent = visual.extent || "segment";
+        line(35, 75, 205, 75);
+        if (extent === "infinite") { addArrow(svg, 28, 75, "left"); addArrow(svg, 212, 75, "right"); }
+        if (extent === "ray") { dot(42, 75); addArrow(svg, 212, 75, "right"); }
+        if (extent === "segment") { dot(42, 75); dot(198, 75); }
+        const names = visual.pointNames || (visual.points === 2 ? ["A", "B"] : []);
+        names.forEach((name, index) => {
+          const x = names.length === 3 ? 45 + index * 75 : 48 + index * 144;
+          dot(x, 75); label(x - 5, 98, name);
+        });
+      } else if (shape === "polyline") {
+        const segments = Math.max(1, Math.min(10, Number(visual.segments) || (visual.lengths?.length) || 3));
+        const points = visual.closed
+          ? regularPoints(Math.max(3, segments), 120, 70, 52)
+          : Array.from({ length: segments + 1 }, (_, index) => [24 + index * 192 / segments, index % 2 ? 38 + (index % 3) * 12 : 104 - (index % 3) * 9]);
+        const sequence = visual.closed ? [...points, points[0]] : points;
+        addSvg(svg, "polyline", { points: sequence.map((point) => point.join(",")).join(" "), class: "geometry-stroke", fill: visual.closed ? "rgba(58,167,163,.12)" : "none" });
+        if (visual.endpoints && !visual.closed) { dot(points[0][0], points[0][1]); dot(points.at(-1)[0], points.at(-1)[1]); }
+        if (Array.isArray(visual.lengths)) visual.lengths.forEach((value, index) => {
+          const first = sequence[index], second = sequence[index + 1];
+          const deltaX = second[0] - first[0], deltaY = second[1] - first[1];
+          const segmentLength = Math.hypot(deltaX, deltaY) || 1;
+          let normalX = -deltaY / segmentLength, normalY = deltaX / segmentLength;
+          const placeAbove = index % 2 === 0;
+          if ((placeAbove && normalY > 0) || (!placeAbove && normalY < 0)) {
+            normalX *= -1;
+            normalY *= -1;
+          }
+          const offset = 16;
+          label(
+            (first[0] + second[0]) / 2 + normalX * offset,
+            (first[1] + second[1]) / 2 + normalY * offset,
+            value,
+            "geometry-measure-label"
+          );
+        });
+      } else if (shape === "lines") {
+        const relation = visual.relation || visual.lineRelation || "intersecting";
+        const names = visual.names || ["a", "b"];
+        if (relation === "parallel") {
+          line(35, 50, 205, 35); line(35, 105, 205, 90); label(207, 34, names[0] || "a"); label(207, 89, names[1] || "b");
+        } else if (relation === "perpendicular") {
+          line(28, 74, 212, 74); line(120, 12, 120, 136); label(205, 66, names[0] || "a"); label(128, 22, names[1] || "b");
+          addSvg(svg, "polyline", { points: "120,74 120,58 136,58 136,74", class: "geometry-right-mark" });
+          if (visual.rightMarks) {
+            addSvg(svg, "polyline", { points: "120,74 104,74 104,58 120,58", class: "geometry-right-mark" });
+            addSvg(svg, "polyline", { points: "120,74 120,90 136,90 136,74", class: "geometry-right-mark" });
+            addSvg(svg, "polyline", { points: "120,74 104,74 104,90 120,90", class: "geometry-right-mark" });
+          }
+        } else if (relation === "double-perpendicular") {
+          line(25, 73, 215, 73); line(75, 18, 75, 130); line(170, 18, 170, 130);
+          label(78, 25, names[0] || "a"); label(203, 65, names[1] || "b"); label(174, 25, names[2] || "c");
+          addSvg(svg, "polyline", { points: "75,73 75,58 90,58 90,73", class: "geometry-right-mark" });
+          addSvg(svg, "polyline", { points: "170,73 170,58 185,58 185,73", class: "geometry-right-mark" });
+        } else {
+          line(25, 102, 215, 48); line(45, 25, 195, 122); label(204, 44, names[0] || "a"); label(197, 126, names[1] || "b");
+        }
+        if (visual.segments) { dot(55, 94); dot(190, 56); dot(76, 45); dot(177, 110); }
+      } else if (shape === "angle") {
+        const degrees = Math.max(0, Math.min(360, Number(visual.degrees ?? visual.angle ?? 90)));
+        const center = [70, 102], radius = 46;
+        const pointAt = (value, length = 105) => [center[0] + Math.cos(value * Math.PI / 180) * length, center[1] - Math.sin(value * Math.PI / 180) * length];
+        const endpoint = pointAt(degrees);
+        line(center[0], center[1], 210, center[1], "geometry-angle-ray");
+        line(center[0], center[1], endpoint[0], endpoint[1], "geometry-angle-ray");
+        dot(center[0], center[1], "geometry-vertex");
+        if (degrees === 360) {
+          addSvg(svg, "circle", { cx: center[0], cy: center[1], r: radius, class: "geometry-arc" });
+        } else if (degrees > 0) {
+          const arcEnd = pointAt(degrees, radius);
+          addSvg(svg, "path", { d: `M ${center[0] + radius} ${center[1]} A ${radius} ${radius} 0 ${degrees > 180 ? 1 : 0} 0 ${arcEnd[0]} ${arcEnd[1]}`, class: "geometry-arc" });
+        }
+        if (Number.isFinite(Number(visual.split))) {
+          const splitPoint = pointAt(Number(visual.split));
+          line(center[0], center[1], splitPoint[0], splitPoint[1], "geometry-split-ray");
+        }
+        if (visual.showReflex) addSvg(svg, "path", { d: `M ${endpoint[0]} ${endpoint[1]} A 72 72 0 1 1 190 102`, class: "geometry-reflex-arc" });
+        if (visual.markVertex) label(center[0] - 18, center[1] + 22, "wierzchołek", "geometry-small-label");
+      } else if (shape === "polygon") {
+        const sides = Math.max(3, Math.min(12, Number(visual.sides) || 3));
+        const points = regularPoints(sides);
+        addSvg(svg, "polygon", { points: points.map((point) => point.join(",")).join(" "), class: "geometry-polygon" });
+        if (visual.markVertices) points.forEach((point, index) => { dot(point[0], point[1]); label(point[0] + 6, point[1] - 4, String.fromCharCode(65 + index)); });
+      } else if (shape === "rectangle") {
+        const isSquare = visual.square || Number(visual.width) === Number(visual.height);
+        const width = isSquare ? 94 : 140, height = isSquare ? 94 : 76;
+        const x = 120 - width / 2, y = 70 - height / 2;
+        addSvg(svg, "rect", { x, y, width, height, class: "geometry-polygon" });
+        if (visual.rightMarks) [[x, y], [x + width, y], [x + width, y + height], [x, y + height]].forEach(([cornerX, cornerY], index) => label(cornerX + (index === 1 || index === 2 ? -18 : 6), cornerY + (index >= 2 ? -6 : 16), "∟", "geometry-right-label"));
+        if (visual.showDimensions) { label(120, y - 8, visual.width); label(x + width + 8, 73, visual.height); }
+        if (visual.markOpposites) { label(120, y - 7, "•"); label(120, y + height + 18, "•"); label(x - 13, 73, "×"); label(x + width + 10, 73, "×"); }
+      } else if (shape === "perimeter") {
+        const sides = Array.isArray(visual.sides) ? visual.sides : (visual.lengths || [1, 1, 1, 1]);
+        const points = regularPoints(Math.max(3, sides.length), 120, 68, 50);
+        addSvg(svg, "polygon", { points: points.map((point) => point.join(",")).join(" "), class: "geometry-polygon" });
+        sides.forEach((value, index) => {
+          const next = points[(index + 1) % points.length];
+          const current = points[index];
+          label((current[0] + next[0]) / 2, (current[1] + next[1]) / 2 - 5, `${value ?? "?"}${visual.unit ? ` ${visual.unit}` : ""}`, "geometry-small-label");
+        });
+        if (visual.total) label(120, 137, `obwód: ${visual.total}`, "geometry-total-label");
+      } else if (shape === "circle") {
+        const center = [120, 68], radius = 50, feature = visual.feature || "circumference";
+        addSvg(svg, "circle", { cx: center[0], cy: center[1], r: radius, class: feature === "disk" ? "geometry-disk" : "geometry-circle" });
+        if (["center", "radius", "diameter", "chord", "point"].includes(feature)) { dot(center[0], center[1]); label(center[0] + 7, center[1] - 7, "S"); }
+        if (feature === "radius") line(center[0], center[1], center[0] + radius, center[1], "geometry-feature");
+        if (feature === "diameter") line(center[0] - radius, center[1], center[0] + radius, center[1], "geometry-feature");
+        if (feature === "chord") line(center[0] - 40, center[1] - 30, center[0] + 40, center[1] - 30, "geometry-feature");
+        if (feature === "point") {
+          const distance = visual.pointPosition === "inside" ? 27 : visual.pointPosition === "outside" ? 72 : radius;
+          dot(center[0] + distance, center[1], "geometry-point-p"); label(center[0] + distance + 6, center[1] - 7, "P");
+        }
+      } else {
+        panel.hidden = true;
+        return;
+      }
+
+      box.append(svg);
+      addText(box, "p", visual.caption || "Diagram geometryczny.", "visual-caption");
+      panel.append(box);
+    }
+
     function renderVisual(visual) {
       const panel = document.createElement("div");
       panel.id = "visualPanel";
@@ -206,7 +378,9 @@
       }
       const legacyColumn = visual.type === "equation" && typeof visual.expression === "string" && /^\s*[\d\s ]+\n[+−×]\s*[\d\s ]+\n─+\s*$/.test(visual.expression);
       const legacyDivision = visual.type === "equation" && typeof visual.expression === "string" && /^(.+)\s⟌\s(.+)$/.test(visual.expression);
-      if (visual.type === "story") {
+      if (visual.type === "geometry") {
+        renderGeometryVisual(visual, panel);
+      } else if (visual.type === "story") {
         panel.classList.add("story");
         visual.items.forEach(([emoji, text]) => {
           const item = document.createElement("div"); item.className = "story-item";

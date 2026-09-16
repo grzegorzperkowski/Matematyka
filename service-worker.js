@@ -1,10 +1,10 @@
 /*
  * Network-first keeps a GitHub Pages deployment fresh, while the cached app
- * shell makes the homepage, Chapter 1 and its shareable exercise URLs usable
+ * shell makes the homepage, published chapters and their shareable exercise URLs usable
  * after the site has been opened online once.
  */
 const CACHE_PREFIX = "matematyczne-miasteczko-";
-const CACHE_NAME = `${CACHE_PREFIX}v10`;
+const CACHE_NAME = `${CACHE_PREFIX}v11`;
 const NETWORK_TIMEOUT_MS = 3000;
 const APP_SHELL_URL = new URL("./", self.registration.scope).href;
 const INDEX_URL = new URL("index.html", self.registration.scope).href;
@@ -23,6 +23,11 @@ const PUBLISHED_CHAPTERS = [
     directory: new URL("Chapter3/", self.registration.scope).href,
     document: new URL("Chapter3/index.html", self.registration.scope).href,
     assets: ["Chapter3/game.js"]
+  },
+  {
+    directory: new URL("Chapter4/", self.registration.scope).href,
+    document: new URL("Chapter4/index.html", self.registration.scope).href,
+    assets: ["Chapter4/game.js"]
   }
 ];
 const APP_SHELL = [

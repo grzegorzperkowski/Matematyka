@@ -39,6 +39,27 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .numberline-labels { display: grid !important; grid-template-columns: repeat(var(--ticks), 1fr); }
 .numberline-labels span { text-align: left; transform: translateX(-.35em); }
 .numberline-labels span:last-child { text-align: right; transform: translateX(.35em); }
+.geometry-visual { display: flex; flex-direction: column; align-items: center; width: min(100%, 520px); min-width: 0; }
+.geometry-visual svg { display: block; width: min(100%, 360px); height: auto; max-height: 210px; overflow: visible; }
+.geometry-visual .visual-caption { max-width: 100%; margin: 6px 0 0; text-align: center; overflow-wrap: anywhere; }
+.geometry-stroke, .geometry-angle-ray, .geometry-split-ray, .geometry-feature { fill: none; stroke: #28252f; stroke-linecap: round; stroke-linejoin: round; stroke-width: 4; }
+.geometry-angle-ray { stroke: #187d7c; stroke-width: 5; }
+.geometry-split-ray { stroke: #ef6b8d; stroke-dasharray: 5 4; }
+.geometry-feature { stroke: #ef6b8d; stroke-width: 5; }
+.geometry-arrow, .geometry-dot, .geometry-vertex { fill: #28252f; }
+.geometry-vertex { fill: #f47721; }
+.geometry-label, .geometry-small-label, .geometry-total-label { fill: #28252f; font: 800 14px "Trebuchet MS", "Segoe UI", sans-serif; }
+.geometry-measure-label { fill: #574787; stroke: #fffaf2; stroke-width: 6px; stroke-linejoin: round; paint-order: stroke fill; font: 900 16px "Trebuchet MS", "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; text-anchor: middle; dominant-baseline: central; }
+.geometry-small-label { font-size: 12px; }
+.geometry-total-label { fill: #574787; font-size: 13px; text-anchor: middle; }
+.geometry-right-label { fill: #f47721; font: 900 19px Arial, sans-serif; }
+.geometry-right-mark { fill: none; stroke: #f47721; stroke-linejoin: round; stroke-width: 3; }
+.geometry-arc, .geometry-reflex-arc { fill: none; stroke: #f47721; stroke-linecap: round; stroke-width: 5; }
+.geometry-reflex-arc { stroke: #7b61c9; stroke-dasharray: 6 5; stroke-width: 3; }
+.geometry-polygon { fill: rgba(58, 167, 163, .14); stroke: #187d7c; stroke-linejoin: round; stroke-width: 4; }
+.geometry-circle { fill: none; stroke: #187d7c; stroke-width: 5; }
+.geometry-disk { fill: rgba(255, 209, 102, .48); stroke: #187d7c; stroke-width: 5; }
+.geometry-point-p { fill: #7b61c9; }
 @media (max-width: 850px) {
   .game-layout .question-card { order: 1; }
   .game-layout .side-card { order: 2; }
