@@ -3,19 +3,29 @@
  * shell makes the homepage, Chapter 1 and its shareable exercise URLs usable
  * after the site has been opened online once.
  */
-const CACHE_NAME = "matematyczne-miasteczko-v1";
+const CACHE_PREFIX = "matematyczne-miasteczko-";
+const CACHE_NAME = `${CACHE_PREFIX}v2`;
 const NETWORK_TIMEOUT_MS = 3000;
 const APP_SHELL_URL = new URL("./", self.registration.scope).href;
 const INDEX_URL = new URL("index.html", self.registration.scope).href;
-const CHAPTER_URL = new URL("Chapter1/", self.registration.scope).href;
-const CHAPTER_INDEX_URL = new URL("Chapter1/index.html", self.registration.scope).href;
+const PUBLISHED_CHAPTERS = [
+  {
+    directory: new URL("Chapter1/", self.registration.scope).href,
+    document: new URL("Chapter1/index.html", self.registration.scope).href,
+    assets: ["Chapter1/game.js"]
+  }
+];
 const APP_SHELL = [
   APP_SHELL_URL,
   INDEX_URL,
   new URL("assets/math-town-mascot.png", self.registration.scope).href,
-  CHAPTER_URL,
-  CHAPTER_INDEX_URL,
-  new URL("Chapter1/game.js", self.registration.scope).href,
+  new URL("shared/game-engine.js", self.registration.scope).href,
+  new URL("shared/game.css", self.registration.scope).href,
+  ...PUBLISHED_CHAPTERS.flatMap((chapter) => [
+    chapter.directory,
+    chapter.document,
+    ...chapter.assets.map((asset) => new URL(asset, self.registration.scope).href)
+  ])
 ];
 
 async function cacheAppShell() {
@@ -50,16 +60,26 @@ async function cachedFallback(request) {
 
   if (request.mode === "navigate") {
     const requestUrl = new URL(request.url);
-    const chapterUrl = new URL(CHAPTER_URL);
-    if (requestUrl.pathname === chapterUrl.pathname) {
-      const chapterPage = (await cache.match(CHAPTER_URL)) || (await cache.match(CHAPTER_INDEX_URL));
+    const chapter = PUBLISHED_CHAPTERS.find((item) => {
+      const directoryPath = new URL(item.directory).pathname;
+      const documentPath = new URL(item.document).pathname;
+      return requestUrl.pathname === directoryPath || requestUrl.pathname === documentPath;
+    });
+    if (chapter) {
+      const chapterPage = (await cache.match(chapter.document)) || (await cache.match(chapter.directory));
       if (chapterPage) return chapterPage;
     }
-    const homePage = (await cache.match(APP_SHELL_URL)) || (await cache.match(INDEX_URL));
-    if (homePage) return homePage;
+    if (requestUrl.pathname === new URL(APP_SHELL_URL).pathname || requestUrl.pathname === new URL(INDEX_URL).pathname) {
+      const homePage = (await cache.match(INDEX_URL)) || (await cache.match(APP_SHELL_URL));
+      if (homePage) return homePage;
+    }
+    return new Response(`<!doctype html><html lang="pl"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Rozdział niedostępny offline</title><body><main><h1>Ten rozdział nie jest dostępny offline</h1><p>Połącz się z internetem i otwórz opublikowany rozdział przynajmniej raz.</p><p><a href="${INDEX_URL}">Wróć do mapy miasteczka</a></p></main></body></html>`, {
+      status: 503,
+      headers: { "Content-Type": "text/html; charset=utf-8" }
+    });
   }
 
-  return new Response("The app is unavailable offline until it has been opened once online.", {
+  return new Response("Aplikacja będzie dostępna offline po pierwszym otwarciu online.", {
     status: 503,
     headers: { "Content-Type": "text/plain; charset=utf-8" },
   });
@@ -73,7 +93,11 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil((async () => {
+    const names = await caches.keys();
+    await Promise.all(names.filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME).map((name) => caches.delete(name)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener("fetch", (event) => {

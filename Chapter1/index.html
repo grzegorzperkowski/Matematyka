@@ -535,6 +535,7 @@
       .result-actions .primary-button, .secondary-button { width: 100%; }
     }
   </style>
+  <link rel="stylesheet" href="../shared/game.css">
 </head>
 <body>
   <main class="app-shell">
@@ -543,7 +544,7 @@
         <span class="brand-mark">π</span>
         <span class="brand-copy"><strong>Matematyczne miasteczko</strong><span>Rozdział 1 • Liczby i działania</span></span>
       </a>
-      <div class="best-score" aria-live="polite"><span>Najlepszy wynik</span><strong id="bestScore">0 pkt</strong>🏆</div>
+      <div class="best-score" aria-live="polite"><span>Rekord tej trasy</span><strong id="bestScore">—</strong>🏆</div>
     </header>
 
     <section id="startScreen" class="screen">
@@ -562,6 +563,12 @@
           <div class="ground"></div><div class="tree a">🌳</div><div class="tree b">🌳</div>
         </div>
       </div>
+
+      <section class="saved-rounds" id="savedRounds" aria-labelledby="saved-rounds-title" hidden>
+        <h2 id="saved-rounds-title" tabindex="-1">Dokończ rozpoczętą rundę</h2>
+        <p>Każda trasa jest zapisana osobno. Możesz ją kontynuować albo zacząć od początku.</p>
+        <div class="saved-rounds-list" id="savedRoundsList"></div>
+      </section>
 
       <div class="section-heading">
         <div><p class="section-kicker">Wybierz trasę</p><h2>Dokąd dziś jedziemy?</h2></div>
@@ -656,16 +663,16 @@
       <div class="game-layout">
         <article class="question-card">
           <div class="question-header"><span class="category" id="category">Dodawanie</span><span class="question-number" id="questionNumber">01 / 10</span></div>
-          <h1 class="question-title" id="questionTitle">Zadanie</h1>
+          <h1 class="question-title" id="questionTitle" tabindex="-1">Zadanie</h1>
           <div class="visual-panel" id="visualPanel"></div>
           <form id="answerForm" novalidate>
             <div id="answerArea"></div>
           </form>
           <div class="help-row">
             <button class="hint-button" id="hintButton" type="button">💡 Pokaż podpowiedź</button>
-            <div class="hint-box" id="hintBox" hidden></div>
+            <div class="hint-box" id="hintBox" role="status" aria-live="polite" tabindex="-1" hidden></div>
           </div>
-          <div class="feedback" id="feedback" hidden>
+          <div class="feedback" id="feedback" role="status" aria-live="polite" hidden>
             <h3 id="feedbackTitle"></h3><p id="feedbackText"></p>
           </div>
         </article>
@@ -690,7 +697,7 @@
     <section id="resultScreen" class="screen" hidden>
       <div class="result-wrap"><article class="result-card">
         <div class="result-confetti" id="resultEmoji">🎉</div>
-        <h1 id="resultTitle">Świetna jazda!</h1>
+        <h1 id="resultTitle" tabindex="-1">Świetna jazda!</h1>
         <p id="resultMessage">Runda zakończona.</p>
         <div class="result-score"><strong id="resultScore">0</strong><span>punktów</span></div>
         <div class="result-stars" id="resultStars" aria-label="Ocena">★★★</div>
@@ -700,10 +707,11 @@
     </section>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="../shared/game-engine.js"></script>
   <script src="game.js"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js"));
+      window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js").catch(() => {}));
     }
   </script>
   <script data-goatcounter="https://matematyka.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

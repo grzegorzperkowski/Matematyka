@@ -31,35 +31,35 @@ must remain in Polish.
 index.html                    Main chapter-selection page
 assets/math-town-mascot.png   Homepage illustration
 Chapter1/index.html           Finished first chapter; CSS, markup and UI state
-Chapter1/game.js              Exercise generators and game behaviour
+Chapter1/game.js              Chapter 1 configuration and question generators
 Chapter1/tests/*.test.cjs     Node tests for exercise-generator correctness
+shared/game-engine.js         Shared rounds, scoring, storage, rendering and controls
+shared/game.css               Shared controls, answer states and responsive rules
+CHAPTER_TEMPLATE.md           Minimum scaffold and release checklist
 pages-3079/                   Reference pages / table of contents only
 README.md                     Documentation for downloading reference pages
 ```
 
-`Chapter1/index.html` is deliberately self-contained: its styles and game UI
-are in that file, while the question generators are in `Chapter1/game.js`.
-Keep this arrangement unless a deliberate project-wide architecture change is
-requested.
+Chapter HTML owns its semantic screen structure and artwork. Chapter JavaScript
+owns route labels and question generation. Shared round behavior lives in
+`shared/game-engine.js`; do not copy it into a chapter. Common control and
+answer-state styles live in `shared/game.css`, while chapter artwork stays local.
 
 ### File-structure decision for new chapters
 
-Follow the existing self-contained chapter pattern when a chapter is small or
-its styles are chapter-specific. If several chapters begin sharing substantial
-logic, make a deliberate, small refactor to local shared files rather than
-copying a large game engine. A suitable future structure would be:
+Use the shared engine with this chapter structure:
 
 ```text
 ChapterN/
   index.html          Semantic screen structure
-  game.js             Question rules, state and interaction handling
+  game.js             Route labels, question rules and engine configuration
   tests/*.test.cjs    Only tests for non-trivial generated rules
-assets/               Shared local artwork only
+shared/               Shared engine and common control styles
 ```
 
-Use HTML for semantic structure, CSS for appearance and JavaScript for game
-logic. Do not add a framework, bundler or package manager merely for a single
-chapter.
+Read `CHAPTER_TEMPLATE.md` for the question contract and checklist. Use HTML
+for semantic structure, CSS for appearance and JavaScript for game logic. Do
+not add a framework, bundler or package manager merely for a single chapter.
 
 ## Chapter map and routes
 
@@ -102,13 +102,12 @@ works when the application is opened directly with the `file:` protocol.
 
 ## Offline availability
 
-`service-worker.js` caches the homepage, its mascot, Chapter 1 and its game
-script on the first successful online visit. It uses a network-first strategy
-with a short timeout, so a new GitHub Pages deployment is preferred whenever
-available, while the cached version remains usable offline. Keep the app-shell
-list current whenever adding a locally required page, script, stylesheet or
-image. The worker is registered by both available HTML pages so a visitor who
-opens a shared Chapter 1 exercise link first can still use it offline later.
+`service-worker.js` caches shared files and every entry in `PUBLISHED_CHAPTERS`.
+Add a chapter document and all required local assets to that registry when it
+is published. Increase `CACHE_NAME` for a release that changes compatible HTML,
+scripts or styles. Activation removes only old caches with this application's
+prefix. Query exercise URLs resolve to the cached chapter document without
+changing the address. Unknown chapters show an explicit Polish offline page.
 
 ## Visual system
 
@@ -148,11 +147,12 @@ asset without an explicit request.
   static markup. Do not interpolate untrusted text into `innerHTML`.
 - Keep progress/best-score data local to the browser. Do not add accounts,
   analytics, network calls or third-party scripts unless specifically asked.
-- Chapter 1 stores its in-progress round in `localStorage`, including the
-  generated questions, current answer, hint state and score statistics. Keep
-  this data under the existing `matematyczneMiasteczkoProgress` key, and clear
-  it only when the round is finished. The best score remains a separate,
-  persistent local value.
+- The engine stores version 2 data under `matematyczneMiasteczkoState:v2`.
+  Rounds and best scores use stable `chapterId:exerciseId` keys. Each round
+  includes its generated questions, current answer, hint state, position and
+  score statistics. Clear only the completed or explicitly restarted round.
+  The engine migrates the old Chapter 1 slot and preserves an unidentified old
+  best score as a separate Chapter 1 legacy record. Keep storage optional.
 
 ### Implementation conventions
 
@@ -212,6 +212,10 @@ range boundaries and any special rules. Also manually check:
 3. Hint, progress, results and restart behave correctly.
 4. Page remains legible and touch-friendly at a narrow viewport.
 5. The main page still has exactly eight top-level chapter cards.
+
+Use the keyboard and screen-reader checklist in `CHAPTER_TEMPLATE.md` for every
+new chapter. At 320 px, verify the question appears before the help sidebar and
+that diagrams and controls do not cause horizontal scrolling.
 
 ### Test policy: minimal and purposeful
 

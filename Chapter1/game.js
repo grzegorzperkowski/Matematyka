@@ -1,9 +1,6 @@
 (() => {
   "use strict";
 
-  const $ = (selector) => document.querySelector(selector);
-  const PROGRESS_STORAGE_KEY = "matematyczneMiasteczkoProgress";
-  const screens = { start: $("#startScreen"), game: $("#gameScreen"), result: $("#resultScreen") };
   const routeLabels = {
     park: "Wesołe miasteczko",
     plusminus: "Sprytne rachunki",
@@ -18,94 +15,6 @@
     numberline: "Oś liczbowa i łamigłówki",
     mix: "Wielka przejażdżka"
   };
-
-  function exerciseFromAddress() {
-    const exercise = new URLSearchParams(window.location.search).get("exercise");
-    return Object.hasOwn(routeLabels, exercise) ? exercise : null;
-  }
-
-  const state = {
-    mode: "mix",
-    questions: [],
-    index: 0,
-    score: 0,
-    streak: 0,
-    correct: 0,
-    answered: false,
-    hintUsed: false,
-    currentAnswer: "",
-    best: readBest()
-  };
-
-  const el = {
-    bestScore: $("#bestScore"),
-    score: $("#score"),
-    streak: $("#streak"),
-    correctCount: $("#correctCount"),
-    routeName: $("#routeName"),
-    progressText: $("#progressText"),
-    progressBar: $("#progressBar"),
-    category: $("#category"),
-    questionNumber: $("#questionNumber"),
-    questionTitle: $("#questionTitle"),
-    visualPanel: $("#visualPanel"),
-    answerForm: $("#answerForm"),
-    answerArea: $("#answerArea"),
-    hintButton: $("#hintButton"),
-    hintBox: $("#hintBox"),
-    feedback: $("#feedback"),
-    feedbackTitle: $("#feedbackTitle"),
-    feedbackText: $("#feedbackText"),
-    get nextButton() { return $("#nextButton"); },
-    resultEmoji: $("#resultEmoji"),
-    resultTitle: $("#resultTitle"),
-    resultMessage: $("#resultMessage"),
-    resultScore: $("#resultScore"),
-    resultStars: $("#resultStars"),
-    resultCorrect: $("#resultCorrect"),
-    resultBest: $("#resultBest"),
-    toast: $("#toast")
-  };
-
-  function readBest() {
-    try { return Number(localStorage.getItem("matematyczneMiasteczkoBest")) || 0; }
-    catch { return 0; }
-  }
-
-  function saveBest(value) {
-    state.best = Math.max(state.best, value);
-    try { localStorage.setItem("matematyczneMiasteczkoBest", String(state.best)); } catch { /* localStorage may be blocked */ }
-    el.bestScore.textContent = `${state.best} pkt`;
-  }
-
-  function readProgress() {
-    try {
-      const saved = JSON.parse(localStorage.getItem(PROGRESS_STORAGE_KEY));
-      if (!saved || !Object.hasOwn(routeLabels, saved.mode) || !Array.isArray(saved.questions) || !saved.questions.length) return null;
-      if (!Number.isInteger(saved.index) || saved.index < 0 || saved.index >= saved.questions.length) return null;
-      if (![saved.score, saved.streak, saved.correct].every(Number.isFinite)) return null;
-      return saved;
-    } catch { return null; }
-  }
-
-  function saveProgress() {
-    const progress = {
-      mode: state.mode,
-      questions: state.questions,
-      index: state.index,
-      score: state.score,
-      streak: state.streak,
-      correct: state.correct,
-      answered: state.answered,
-      hintUsed: state.hintUsed,
-      currentAnswer: state.currentAnswer
-    };
-    try { localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress)); } catch { /* Storage is optional. */ }
-  }
-
-  function clearProgress() {
-    try { localStorage.removeItem(PROGRESS_STORAGE_KEY); } catch { /* Storage is optional. */ }
-  }
 
   function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
   function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
@@ -221,8 +130,8 @@
       ["36 : 9", 4, "Ile razy 9 mieści się w 36?", "36 : 9 = 4."]
     ];
     return shuffle(fixed).slice(0, 10).map(([prompt, answer, hint, explanation]) => {
-      const hasEqualGroups = ["4 · 5", "8 · 8", "6 · 7", "9 · 8", "4 · 2 · 3"].includes(prompt);
-      return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${prompt} = ?`, answer, hint, explanation, visual: { type: hasEqualGroups ? "array" : "equation", expression: prompt, caption: hasEqualGroups ? "Równe grupy mają tyle samo elementów." : "Dzielenie sprawdzaj mnożeniem." } });
+      const groupData = { "4 · 5": [4, 5], "8 · 8": [8, 8], "6 · 7": [6, 7], "9 · 8": [9, 8], "4 · 2 · 3": [8, 3] }[prompt];
+      return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${prompt} = ?`, answer, hint, explanation, visual: groupData ? { type: "array", groups: groupData[0], itemsPerGroup: groupData[1], caption: `${groupData[0]} równych grup po ${groupData[1]} elementów.` } : { type: "equation", expression: prompt, caption: "Dzielenie sprawdzaj mnożeniem." } });
     });
   }
 
@@ -439,21 +348,21 @@
 
   function numberLineQuestions() {
     const fixed = [
-      ["Na osi liczbowej każda kreska oznacza 1. Punkt jest na siódmej kresce za zerem. Jaka to liczba?", 7, "Policz siedem równych odcinków od 0.", "Siódma kreska ma współrzędną 7."],
-      ["Na osi każda kreska oznacza 5. Punkt C jest na trzeciej kresce za zerem. Jaka jest jego współrzędna?", 15, "3 · 5 = ?", "3 · 5 = 15."],
-      ["Na osi każda kreska oznacza 5. Punkt D jest na szóstej kresce za zerem. Jaka jest jego współrzędna?", 30, "6 · 5 = ?", "6 · 5 = 30."],
-      ["Między 30 i 40 zaznaczono punkt dokładnie pośrodku. Jaka jest jego współrzędna?", 35, "Znajdź liczbę w połowie odcinka 30–40.", "Połowa między 30 a 40 to 35."],
+      ["Na osi liczbowej każda kreska oznacza 1. Punkt jest na siódmej kresce za zerem. Jaka to liczba?", 7, "Policz siedem równych odcinków od 0.", "Siódma kreska ma współrzędną 7.", { min: 0, max: 10, step: 1, marked: 7 }],
+      ["Na osi każda kreska oznacza 5. Punkt C jest na trzeciej kresce za zerem. Jaka jest jego współrzędna?", 15, "3 · 5 = ?", "3 · 5 = 15.", { min: 0, max: 25, step: 5, marked: 15 }],
+      ["Na osi każda kreska oznacza 5. Punkt D jest na szóstej kresce za zerem. Jaka jest jego współrzędna?", 30, "6 · 5 = ?", "6 · 5 = 30.", { min: 0, max: 35, step: 5, marked: 30 }],
+      ["Między 30 i 40 zaznaczono punkt dokładnie pośrodku. Jaka jest jego współrzędna?", 35, "Znajdź liczbę w połowie odcinka 30–40.", "Połowa między 30 a 40 to 35.", { min: 30, max: 40, step: 5, marked: 35 }],
       ["Rafał wyrzucił: 1 i 3, 4 i 6, 3 i 5, 6 i 5. Jaki wynik ma po czterech rzutach?", 33, "Dodaj sumy par: 4 + 10 + 8 + 11.", "4 + 10 + 8 + 11 = 33."],
       ["Andrzej wyrzucił: 2 i 4, 6 i 6, 3 i 2, 1 i 6. Jaki wynik ma po czterech rzutach?", 30, "Dodaj: 6 + 12 + 5 + 7.", "6 + 12 + 5 + 7 = 30."],
       ["Kto jest bliżej mety 50: Rafał ma 33 punkty, a Andrzej 30? Wybierz 1 = RAFAŁ, 2 = ANDRZEJ.", 1, "Rafałowi brakuje 17, a Andrzejowi 20 punktów.", "Rafał jest bliżej, bo 17 < 20."],
       ["Na wadze: koło + kwadrat = trójkąt, a koło + koło = trójkąt. Ile kół waży tyle co jeden trójkąt?", 2, "Skoro dwa koła ważą tyle co trójkąt, odpowiedź jest w drugim obrazku.", "Trójkąt waży tyle co 2 koła."],
       ["W łamigłówce 4 × 4 w każdym wierszu i kolumnie mają być liczby 1, 2, 3, 4. W drugim wierszu są 4, ?, 2, 1. Jaka liczba pasuje?", 3, "W wierszu brakuje liczby, której jeszcze nie ma.", "Brakuje liczby 3."],
       ["Miarka ma po obu stronach liczby, które w tym samym miejscu dają razem 151. Po jednej stronie widzisz 67. Co jest po drugiej stronie?", 84, "Oblicz 151 − 67.", "151 − 67 = 84."],
-      ["Na osi liczbowej każda kreska oznacza 10. Jaka liczba jest na dziewiątej kresce za zerem?", 90, "9 · 10 = ?", "9 · 10 = 90."]
+      ["Na osi liczbowej każda kreska oznacza 10. Jaka liczba jest na dziewiątej kresce za zerem?", 90, "9 · 10 = ?", "9 · 10 = 90.", { min: 0, max: 100, step: 10, marked: 90 }]
     ];
-    return shuffle(fixed).slice(0, 10).map(([prompt, answer, hint, explanation]) => {
+    return shuffle(fixed).slice(0, 10).map(([prompt, answer, hint, explanation, numberline]) => {
       const isChoice = prompt.includes("Wybierz");
-      return question({ kind: isChoice ? "choice" : "input", label: "Oś liczbowa i łamigłówki", prompt, answer, options: isChoice ? [{ value: 1, label: "RAFAŁ" }, { value: 2, label: "ANDRZEJ" }] : undefined, hint, explanation, visual: { type: "numberline", caption: "Równe kreski oznaczają równe odległości." } });
+      return question({ kind: isChoice ? "choice" : "input", label: "Oś liczbowa i łamigłówki", prompt, answer, options: isChoice ? [{ value: 1, label: "RAFAŁ" }, { value: 2, label: "ANDRZEJ" }] : undefined, hint, explanation, visual: numberline ? { type: "numberline", ...numberline, caption: "Równe kreski oznaczają równe odległości." } : null });
     });
   }
 
@@ -496,227 +405,13 @@
       by10Questions(), timesMoreQuestions(), remainderQuestions(), powersQuestions(), wordProblemQuestions(),
       orderQuestions(), numberLineQuestions()
     ];
-    return shuffle(pools.map((pool) => pick(pool)));
+    return shuffle(pools.map((pool) => pick(pool))).slice(0, 10);
   }
 
-  function showScreen(name) {
-    Object.entries(screens).forEach(([key, screen]) => { screen.hidden = key !== name; });
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function startGame(mode, savedProgress = null) {
-    if (savedProgress) {
-      state.mode = savedProgress.mode;
-      state.questions = savedProgress.questions;
-      state.index = savedProgress.index;
-      state.score = savedProgress.score;
-      state.streak = savedProgress.streak;
-      state.correct = savedProgress.correct;
-      state.answered = Boolean(savedProgress.answered);
-      state.hintUsed = Boolean(savedProgress.hintUsed);
-      state.currentAnswer = String(savedProgress.currentAnswer ?? "");
-    } else {
-      state.mode = mode;
-      state.questions = buildQuestions(mode);
-      state.index = 0;
-      state.score = 0;
-      state.streak = 0;
-      state.correct = 0;
-      state.answered = false;
-      state.hintUsed = false;
-      state.currentAnswer = "";
-    }
-    el.routeName.textContent = routeLabels[mode];
-    showScreen("game");
-    updateStats();
-    renderQuestion(Boolean(savedProgress));
-    if (savedProgress) showToast("Przywrócono zapisaną rundę.");
-  }
-
-  function updateStats() {
-    el.score.textContent = state.score;
-    el.streak.textContent = state.streak;
-    el.correctCount.textContent = state.correct;
-    const total = state.questions.length || 10;
-    el.progressText.textContent = `Wyzwanie ${Math.min(state.index + 1, total)} z ${total}`;
-    el.progressBar.style.width = `${(state.index / total) * 100}%`;
-  }
-
-  function renderVisual(visual) {
-    if (!visual) return "";
-    if (visual.type === "story") {
-      return `<div class="visual-panel story">${visual.items.map(([emoji, text]) => `<div class="story-item"><span class="big-emoji">${emoji}</span><strong>${text}</strong></div>`).join("")}<p class="visual-caption">${visual.caption}</p></div>`;
-    }
-    if (visual.type === "equation") {
-      return `<div class="visual-panel"><div class="equation-visual"><span>${visual.expression}</span><small>${visual.caption}</small></div></div>`;
-    }
-    if (visual.type === "array") {
-      const rows = visual.expression.includes("8 · 8") ? 2 : visual.expression.includes("4 · 2 · 3") ? 2 : 2;
-      const cols = visual.expression.includes("8 · 8") ? 8 : visual.expression.includes("4 · 2 · 3") ? 4 : 5;
-      return `<div class="visual-panel"><div class="array-visual">${Array.from({length: rows}, () => `<div class="array-row">${Array.from({length: cols}, () => `<span class="array-dot">🍬</span>`).join("")}</div>`).join("")}<p class="visual-caption">${visual.caption}</p></div>`;
-    }
-    if (visual.type === "sequence") {
-      return `<div class="visual-panel"><div class="sequence-visual">${visual.values.map((value) => `<span class="sequence-number">${value}</span><span class="sequence-arrow">→</span>`).join("")}<span class="sequence-number next">?</span></div></div>`;
-    }
-    if (visual.type === "difference") {
-      return `<div class="visual-panel"><div class="number-visual"><span class="circle">A</span><span class="sign">↔</span><span class="circle">B</span><small class="visual-caption">Znajdź odległość między liczbami.</small></div></div>`;
-    }
-    if (visual.type === "number") {
-      return `<div class="visual-panel"><div class="number-visual"><span>${visual.left}</span><span class="sign">=</span><span class="circle">${visual.right}</span></div></div>`;
-    }
-    if (visual.type === "numberline") {
-      return `<div class="visual-panel"><div class="numberline-visual"><div class="numberline-track"><span class="numberline-dot start"></span><span class="numberline-dot mid"></span><span class="numberline-dot end"></span></div><div class="numberline-labels"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span></div><small>${visual.caption}</small></div></div>`;
-    }
-    return "";
-  }
-
-  function renderQuestion(restoringProgress = false) {
-    const q = state.questions[state.index];
-    if (!q) return finishGame();
-    if (!restoringProgress) {
-      state.answered = false;
-      state.hintUsed = false;
-      state.currentAnswer = "";
-    }
-    el.category.textContent = q.label;
-    el.questionNumber.textContent = `${String(state.index + 1).padStart(2, "0")} / ${String(state.questions.length).padStart(2, "0")}`;
-    el.questionTitle.textContent = q.prompt;
-    const visualHolder = document.createElement("div");
-    visualHolder.innerHTML = renderVisual(q.visual);
-    const nextVisual = visualHolder.firstElementChild || document.createElement("div");
-    nextVisual.id = "visualPanel";
-    if (!nextVisual.className) nextVisual.className = "visual-panel";
-    el.visualPanel.replaceWith(nextVisual);
-    el.visualPanel = nextVisual;
-    el.feedback.hidden = !state.answered;
-    el.feedback.className = "feedback";
-    el.hintBox.hidden = !state.hintUsed;
-    el.hintBox.textContent = q.hint;
-    el.hintButton.disabled = state.hintUsed || state.answered;
-    el.hintButton.textContent = state.hintUsed ? "💡 Podpowiedź pokazana" : "💡 Pokaż podpowiedź";
-    if (q.kind === "choice") {
-      el.answerArea.innerHTML = `<span class="answer-label">Wybierz odpowiedź</span><div class="choice-grid">${shuffle(q.options).map((option) => { const value = typeof option === "object" ? option.value : option; const label = typeof option === "object" ? option.label : option; return `<button class="choice-button" type="button" data-choice="${value}">${label}</button>`; }).join("")}</div><button class="check-button choice-action" id="nextButton" type="submit">Sprawdź</button>`;
-      document.querySelectorAll(".choice-button").forEach((button) => {
-        if (button.dataset.choice === state.currentAnswer) button.classList.add("selected");
-      });
-    } else {
-      el.answerArea.innerHTML = `<label class="answer-label" for="answerInput">Twoja odpowiedź</label><div class="answer-row"><input class="answer-input" id="answerInput" inputmode="numeric" autocomplete="off" aria-label="Wpisz odpowiedź" placeholder="Wpisz liczbę" required><button class="check-button" id="nextButton" type="submit">Sprawdź</button></div>`;
-      const input = $("#answerInput");
-      input.value = state.currentAnswer;
-      if (state.answered) input.setAttribute("disabled", "disabled");
-      else window.setTimeout(() => input?.focus(), 80);
-    }
-    if (state.answered) showAnsweredQuestion(q, Number(state.currentAnswer) === q.answer);
-    updateStats();
-    if (!restoringProgress) saveProgress();
-  }
-
-  function showToast(message) {
-    el.toast.textContent = message;
-    el.toast.classList.add("visible");
-    window.clearTimeout(showToast.timer);
-    showToast.timer = window.setTimeout(() => el.toast.classList.remove("visible"), 2200);
-  }
-
-  function getRawAnswer() {
-    const input = $("#answerInput");
-    if (input) return input.value.trim();
-    const selected = $(".choice-button.selected");
-    return selected?.dataset.choice || "";
-  }
-
-  function checkAnswer(rawAnswer) {
-    if (state.answered) return;
-    const q = state.questions[state.index];
-    const raw = String(rawAnswer ?? "").trim().replace(",", ".");
-    if (!raw) { showToast("Najpierw wpisz albo wybierz odpowiedź."); return; }
-    const numericAnswer = Number(raw);
-    if (!Number.isFinite(numericAnswer)) { showToast("Wpisz liczbę, na przykład 24."); return; }
-
-    state.answered = true;
-    state.currentAnswer = raw;
-    const correct = numericAnswer === q.answer;
-    if (correct) {
-      state.correct += 1;
-      state.streak += 1;
-      state.score += state.hintUsed ? 5 : 10;
-      state.score += Math.max(0, state.streak - 1);
-    } else {
-      state.streak = 0;
-    }
-    updateStats();
-    showAnsweredQuestion(q, correct);
-    saveProgress();
-  }
-
-  function showAnsweredQuestion(q, correct) {
-    $("#answerInput")?.setAttribute("disabled", "disabled");
-    document.querySelectorAll(".choice-button").forEach((button) => {
-      button.disabled = true;
-      if (Number(button.dataset.choice) === q.answer) button.classList.add("selected");
-    });
-    el.feedback.hidden = false;
-    el.feedback.className = `feedback ${correct ? "correct" : "wrong"}`;
-    el.feedbackTitle.textContent = correct ? (state.hintUsed ? "Dobrze! Podpowiedź pomogła." : "Brawo, dobrze policzone!") : "Jeszcze raz przeanalizuj zadanie.";
-    el.feedbackText.textContent = correct ? q.explanation : `Prawidłowa odpowiedź to ${q.answer}. ${q.explanation}`;
-    el.nextButton.className = `next-button${q.kind === "choice" ? " choice-action" : ""}${correct ? "" : " wrong"}`;
-    el.nextButton.textContent = state.index === state.questions.length - 1 ? "Zobacz wynik →" : "Następne wyzwanie →";
-    if (document.hasFocus()) el.nextButton.focus();
-  }
-
-  function finishGame() {
-    const total = state.questions.length;
-    const isNewBest = state.score > state.best;
-    saveBest(state.score);
-    clearProgress();
-    el.resultEmoji.textContent = state.correct >= 8 ? "🎉" : state.correct >= 5 ? "🌟" : "💪";
-    el.resultTitle.textContent = state.correct === total ? "Mistrzowska jazda!" : state.correct >= 7 ? "Świetna jazda!" : state.correct >= 4 ? "Dobra próba!" : "Każdy trening pomaga!";
-    el.resultMessage.textContent = isNewBest ? "Ustanawiasz nowy najlepszy wynik. Miasteczko bije brawo!" : "Zobacz, które stacje już znasz, a które warto przećwiczyć jeszcze raz.";
-    el.resultScore.textContent = state.score;
-    el.resultCorrect.textContent = `${state.correct}/${total}`;
-    el.resultBest.textContent = state.best;
-    el.resultStars.textContent = state.correct >= 9 ? "★★★" : state.correct >= 6 ? "★★☆" : "★☆☆";
-    showScreen("result");
-  }
-
-  function advanceQuestion() {
-    state.index += 1;
-    if (state.index >= state.questions.length) finishGame();
-    else renderQuestion();
-  }
-
-  el.answerForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (state.answered) advanceQuestion();
-    else checkAnswer(getRawAnswer());
+  MathTownGame.start({
+    chapterId: "chapter1",
+    chapterTitle: "Liczby i działania",
+    routeLabels,
+    buildQuestions
   });
-  el.answerArea.addEventListener("click", (event) => {
-    const choice = event.target.closest(".choice-button");
-    if (!choice || state.answered) return;
-    document.querySelectorAll(".choice-button").forEach((button) => button.classList.remove("selected"));
-    choice.classList.add("selected");
-    state.currentAnswer = choice.dataset.choice;
-    saveProgress();
-  });
-  el.answerArea.addEventListener("input", (event) => {
-    if (event.target.id !== "answerInput" || state.answered) return;
-    state.currentAnswer = event.target.value;
-    saveProgress();
-  });
-  el.hintButton.addEventListener("click", () => {
-    if (state.answered) return;
-    state.hintUsed = true;
-    el.hintBox.hidden = false;
-    el.hintButton.disabled = true;
-    el.hintButton.textContent = "💡 Podpowiedź pokazana";
-    saveProgress();
-  });
-  $("#backToMenu").addEventListener("click", () => showScreen("start"));
-  $("#resultMenu").addEventListener("click", () => showScreen("start"));
-  $("#playAgain").addEventListener("click", () => startGame(state.mode));
-
-  el.bestScore.textContent = `${state.best} pkt`;
-  const sharedExercise = exerciseFromAddress();
-  const savedProgress = readProgress();
-  if (sharedExercise) startGame(sharedExercise, savedProgress?.mode === sharedExercise ? savedProgress : null);
 })();
