@@ -26,30 +26,24 @@
 
   function parkQuestions() {
     const templates = [
-      () => question({ label: "Wesołe miasteczko", prompt: "Wesołe miasteczko jest czynne od godziny 9:00 do 20:00. Przez ile godzin dziennie działa?", answer: 11, hint: "Policz, ile godzin mija od 9 do 20: 9 → 20.", explanation: "20 − 9 = 11, więc miasteczko działa 11 godzin.", visual: { type: "story", items: [["🎡", "od 9:00"], ["⏰", "do 20:00"]], caption: "Ile godzin trwa zabawa?" } }),
-      () => question({ label: "Wesołe miasteczko", prompt: "Na karuzeli jedzie 18 osób, a kolejką górską 36 osób. O ile więcej osób jedzie kolejką?", answer: 18, hint: "„O ile więcej” podpowiada odejmowanie: większa liczba − mniejsza liczba.", explanation: "36 − 18 = 18. Kolejką jedzie o 18 osób więcej.", visual: { type: "story", items: [["🎠", "18 osób"], ["🚂", "36 osób"]], caption: "Porównaj liczby osób." } }),
-      () => question({ label: "Wesołe miasteczko", prompt: "Jedna gałka lodów kosztuje 4 zł. Ile zapłacisz za 2 gałki?", answer: 8, hint: "Dwie gałki po 4 zł to 4 + 4 albo 2 · 4.", explanation: "2 · 4 = 8, więc za lody zapłacisz 8 zł.", visual: { type: "story", items: [["🍦", "4 zł"], ["🍦🍦", "2 gałki"]], caption: "Ta sama cena powtarza się dwa razy." } }),
-      () => question({ label: "Wesołe miasteczko", prompt: "Jeden żeton kosztuje 8 zł. Ile żetonów można kupić za 40 zł?", answer: 5, hint: "Podziel 40 zł na paczki po 8 zł.", explanation: "40 : 8 = 5, więc można kupić 5 żetonów.", visual: { type: "story", items: [["💰", "40 zł"], ["🎟️", "8 zł za 1"]], caption: "Ile razy 8 mieści się w 40?" } }),
-      () => question({ label: "Wesołe miasteczko", prompt: "Bilet na jedną atrakcję kosztuje 6 zł. Ile kosztują 3 bilety?", answer: 18, hint: "Trzy bilety to trzy razy po 6 zł.", explanation: "3 · 6 = 18, więc trzy bilety kosztują 18 zł.", visual: { type: "story", items: [["🎟️", "6 zł"], ["🎟️🎟️🎟️", "3 bilety"]], caption: "Pomnóż cenę jednego biletu przez 3." } }),
-      () => question({ label: "Wesołe miasteczko", prompt: "Za 60 zł kupujesz żetony po 8 zł. Ile żetonów kupisz i ile pieniędzy zostanie? Wpisz kwotę, która zostanie.", answer: 4, hint: "7 żetonów kosztuje 7 · 8 = 56 zł. Sprawdź, ile brakuje do 60 zł.", explanation: "60 − 56 = 4, więc po kupieniu 7 żetonów zostaną 4 zł.", visual: { type: "story", items: [["💰", "60 zł"], ["🎟️ × 7", "56 zł"]], caption: "Ile zostanie reszty?" } })
+      () => { const start = rand(8, 12), end = rand(start + 5, 22); return question({ label: "Wesołe miasteczko", prompt: `Wesołe miasteczko jest czynne od godziny ${start}:00 do ${end}:00. Przez ile godzin dziennie działa?`, answer: end - start, hint: `Policz, ile godzin mija od ${start} do ${end}.`, explanation: `${end} − ${start} = ${end - start}, więc miasteczko działa ${end - start} godzin.`, visual: { type: "story", items: [["🎡", `od ${start}:00`], ["⏰", `do ${end}:00`]], caption: "Ile godzin trwa zabawa?" } }); },
+      () => { const smaller = rand(10, 30), difference = rand(2, 15), larger = smaller + difference; return question({ label: "Wesołe miasteczko", prompt: `Na karuzeli jedzie ${smaller} osób, a kolejką górską ${larger} osób. O ile więcej osób jedzie kolejką?`, answer: difference, hint: "„O ile więcej” oznacza odejmowanie.", explanation: `${larger} − ${smaller} = ${difference}.`, visual: { type: "story", items: [["🎠", `${smaller} osób`], ["🚂", `${larger} osób`]], caption: "Porównaj liczby osób." } }); },
+      () => { const price = rand(2, 9), count = rand(2, 8), answer = price * count; return question({ label: "Wesołe miasteczko", prompt: `Jedna gałka lodów kosztuje ${price} zł. Ile zapłacisz za ${count} gałki?`, answer, hint: `Pomnóż ${price} przez ${count}.`, explanation: `${count} · ${price} = ${answer} zł.`, visual: { type: "story", items: [["🍦", `${price} zł`], ["🍦", `${count} gałek`]], caption: "Ta sama cena powtarza się." } }); },
+      () => { const price = rand(2, 9), count = rand(2, 9), total = price * count; return question({ label: "Wesołe miasteczko", prompt: `Jeden żeton kosztuje ${price} zł. Ile żetonów można kupić za ${total} zł?`, answer: count, hint: `Podziel ${total} zł na paczki po ${price} zł.`, explanation: `${total} : ${price} = ${count}.`, visual: { type: "story", items: [["💰", `${total} zł`], ["🎟️", `${price} zł za 1`]], caption: "Ile razy cena mieści się w kwocie?" } }); },
+      () => { const price = rand(3, 9), count = rand(3, 8), remainder = rand(1, price - 1), paid = price * count + remainder; return question({ label: "Wesołe miasteczko", prompt: `Za ${paid} zł kupujesz żetony po ${price} zł. Ile pieniędzy zostanie po kupieniu maksymalnej liczby żetonów?`, answer: remainder, hint: `Najpierw kup ${count} żetonów za ${count * price} zł.`, explanation: `${paid} − ${count * price} = ${remainder} zł.`, visual: { type: "story", items: [["💰", `${paid} zł`], ["🎟️", `${price} zł za 1`]], caption: "Ile zostanie reszty?" } }); }
     ];
-    return templates.map((make) => make());
+    const price = rand(3, 12), count = rand(2, 8), answer = price * count;
+    return templates.map((make) => make()).concat(question({ label: "Wesołe miasteczko", prompt: `Bilet na jedną atrakcję kosztuje ${price} zł. Ile kosztuje ${count} biletów?`, answer, hint: "Pomnóż cenę jednego biletu przez ich liczbę.", explanation: `${count} · ${price} = ${answer} zł.`, visual: { type: "story", items: [["🎟️", `${price} zł`], ["🎟️", `${count} biletów`]], caption: "Pomnóż cenę przez liczbę biletów." } }));
   }
 
   function plusMinusQuestions() {
-    const fixed = [
-      ["86 + 97 + 3", 186, "Połącz 97 i 3, aby otrzymać pełną setkę.", "86 + 97 + 3 = 86 + 100 = 186."],
-      ["99 + 27 + 1", 127, "Najpierw połącz 99 i 1.", "99 + 27 + 1 = 100 + 27 = 127."],
-      ["6 + 78 + 94 + 2", 180, "Połącz 6 i 94 oraz 78 i 2.", "6 + 94 = 100, a 78 + 2 = 80. Razem 180."],
-      ["91 − 86", 5, "Ile brakuje od 86 do 91?", "91 − 86 = 5."],
-      ["102 − 98", 4, "Doprowadź 98 do 100, a potem skoryguj wynik.", "102 − 98 = 102 − 100 + 2 = 4."],
-      ["510 − 490", 20, "Zaokrąglij obie liczby do setek.", "510 − 490 = 510 − 500 + 10 = 20."],
-      ["910 − 850", 60, "Odejmij najpierw 800, a potem 50.", "910 − 850 = 60."],
-      ["75 + 8", 83, "Dodaj 5 do 75, a potem jeszcze 3.", "75 + 8 = 80 + 3 = 83."],
-      ["330 − 8", 322, "Odejmij 10 i dodaj 2.", "330 − 8 = 330 − 10 + 2 = 322."],
-      ["220 − 188", 32, "Od 188 do 200 brakuje 12, a do 220 jeszcze 20.", "12 + 20 = 32, więc 220 − 188 = 32."]
-    ];
-    return shuffle(fixed).map(([prompt, answer, hint, explanation]) => question({ label: "Dodawanie i odejmowanie", prompt: `Oblicz sprytnie: ${prompt} = ?`, answer, hint, explanation, visual: { type: "equation", expression: prompt, caption: "Znajdź wygodną parę liczb." } }));
+    return Array.from({ length: 10 }, (_, index) => {
+      let prompt, answer, hint, explanation;
+      if (index % 3 === 0) { const a = rand(10, 99), b = rand(10, 99), complement = 100 - b; answer = a + 100; prompt = `${a} + ${b} + ${complement}`; hint = `Połącz ${b} i ${complement}, aby otrzymać 100.`; explanation = `${a} + ${b} + ${complement} = ${a} + 100 = ${answer}.`; }
+      else if (index % 3 === 1) { const base = rand(2, 9) * 100, difference = rand(1, 99), smaller = base - difference, larger = base + rand(1, 99); answer = larger - smaller; prompt = `${larger} − ${smaller}`; hint = `Dojdź od ${smaller} do ${base}, a potem do ${larger}.`; explanation = `${larger} − ${smaller} = ${answer}.`; }
+      else { const tens = rand(2, 90) * 10, subtract = rand(1, 9); answer = tens - subtract; prompt = `${tens} − ${subtract}`; hint = `Odejmij 10, a potem dodaj ${10 - subtract}.`; explanation = `${tens} − ${subtract} = ${answer}.`; }
+      return question({ label: "Dodawanie i odejmowanie", prompt: `Oblicz sprytnie: ${prompt} = ?`, answer, hint, explanation, visual: { type: "equation", expression: prompt, caption: "Znajdź wygodną parę liczb." } });
+    });
   }
 
   function moreLessQuestions() {
@@ -117,21 +111,13 @@
   }
 
   function multDivQuestions() {
-    const fixed = [
-      ["4 · 5", 20, "To 5 + 5 + 5 + 5.", "4 · 5 = 20."],
-      ["8 · 8", 64, "Pomyśl o 8 grupach po 8.", "8 · 8 = 64."],
-      ["6 · 0", 0, "Każda liczba pomnożona przez zero daje zero.", "6 · 0 = 0."],
-      ["6 · 7", 42, "6 · 7 to 6 grup po 7.", "6 · 7 = 42."],
-      ["9 · 8", 72, "8 · 9 = 72, a kolejność czynników nie zmienia wyniku.", "9 · 8 = 72."],
-      ["24 : 6", 4, "Pytanie brzmi: ile szóstek mieści się w 24?", "24 : 6 = 4."],
-      ["49 : 7", 7, "Pomyśl: 7 · ? = 49.", "49 : 7 = 7."],
-      ["56 : 8", 7, "Sprawdź działaniem 8 · 7.", "56 : 8 = 7, bo 8 · 7 = 56."],
-      ["4 · 2 · 3", 24, "Najpierw policz 4 · 2 albo 2 · 3.", "4 · 2 · 3 = 8 · 3 = 24."],
-      ["36 : 9", 4, "Ile razy 9 mieści się w 36?", "36 : 9 = 4."]
-    ];
-    return shuffle(fixed).slice(0, 10).map(([prompt, answer, hint, explanation]) => {
-      const groupData = { "4 · 5": [4, 5], "8 · 8": [8, 8], "6 · 7": [6, 7], "9 · 8": [9, 8], "4 · 2 · 3": [8, 3] }[prompt];
-      return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${prompt} = ?`, answer, hint, explanation, visual: groupData ? { type: "array", groups: groupData[0], itemsPerGroup: groupData[1], caption: `${groupData[0]} równych grup po ${groupData[1]} elementów.` } : { type: "equation", expression: prompt, caption: "Dzielenie sprawdzaj mnożeniem." } });
+    return Array.from({ length: 10 }, (_, index) => {
+      const a = rand(2, 9), b = rand(2, 9);
+      if (index === 0) return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${a} · 0 = ?`, answer: 0, hint: "Każda liczba pomnożona przez zero daje zero.", explanation: `${a} · 0 = 0.`, visual: { type: "equation", expression: `${a} · 0`, caption: "Mnożenie przez zero." } });
+      if (index % 3 === 0) { const c = rand(2, 5), answer = a * b * c; return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${a} · ${b} · ${c} = ?`, answer, hint: "Pomnóż kolejno dwa czynniki, a potem trzeci.", explanation: `${a} · ${b} · ${c} = ${answer}.`, visual: { type: "equation", expression: `${a} · ${b} · ${c}`, caption: "Grupuj czynniki wygodnie." } }); }
+      if (index % 2) { const answer = a * b; return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${a} · ${b} = ?`, answer, hint: `To ${a} grup po ${b}.`, explanation: `${a} · ${b} = ${answer}.`, visual: { type: "array", groups: a, itemsPerGroup: b, caption: `${a} równych grup po ${b} elementów.` } }); }
+      const answer = a, dividend = a * b;
+      return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${dividend} : ${b} = ?`, answer, hint: `Pomyśl: ${b} · ? = ${dividend}.`, explanation: `${dividend} : ${b} = ${answer}, bo ${b} · ${answer} = ${dividend}.`, visual: { type: "equation", expression: `${dividend} : ${b}`, caption: "Dzielenie sprawdzaj mnożeniem." } });
     });
   }
 
@@ -218,21 +204,13 @@
   }
 
   function timesMoreQuestions() {
-    const fixed = [
-      ["Jaka liczba jest 3 razy większa niż 45?", 135, "Pomnóż 45 przez 3.", "3 · 45 = 135."],
-      ["Jaka liczba jest 4 razy mniejsza niż 12?", 3, "Podziel 12 przez 4.", "12 : 4 = 3."],
-      ["Jaka liczba jest 5 razy większa niż 16?", 80, "Pomnóż 16 przez 5.", "5 · 16 = 80."],
-      ["Jaka liczba jest 8 razy mniejsza niż 120?", 15, "Podziel 120 przez 8.", "120 : 8 = 15."],
-      ["Ile razy liczba 51 jest większa niż 17?", 3, "Sprawdź, ile siedemnastek mieści się w 51.", "51 : 17 = 3."],
-      ["Ile razy liczba 14 jest mniejsza niż 28?", 2, "Podziel 28 przez 14.", "28 : 14 = 2."],
-      ["Ile razy liczba 25 jest mniejsza niż 200?", 8, "Podziel 200 przez 25.", "200 : 25 = 8."],
-      ["Ile razy liczba 160 jest większa niż 4?", 40, "Podziel 160 przez 4.", "160 : 4 = 40."],
-      ["W schronisku jest 12 kotów, a psów 4 razy więcej. Ile psów mieszka w schronisku?", 48, "Pomnóż liczbę kotów przez 4.", "4 · 12 = 48 psów."],
-      ["Krzysiek ma 80 zł, czyli 5 razy więcej niż Wojtek. Ile złotych ma Wojtek?", 16, "Pieniądze Wojtka znajdziesz, dzieląc 80 przez 5.", "80 : 5 = 16 zł."],
-      ["Monika zerwała 5 razy mniej jabłek niż tata. Monika ma 40 jabłek. Ile jabłek zerwał tata?", 200, "Tata zerwał 5 takich grup po 40 jabłek.", "5 · 40 = 200 jabłek."],
-      ["Winogrona kosztują dwa razy więcej niż jabłka. Razem kosztują 18 zł. Ile kosztują jabłka?", 6, "Cena jabłek to jedna część, a winogron dwie części.", "3 części kosztują 18 zł, więc jedna część, czyli jabłka, kosztuje 6 zł."]
-    ];
-    return shuffle(fixed).slice(0, 10).map(([prompt, answer, hint, explanation]) => question({ label: "Razy więcej, razy mniej", prompt, answer, hint, explanation, visual: { type: "equation", expression: "× lub :", caption: "„Razy więcej” łączymy z mnożeniem, a „razy mniej” z dzieleniem." } }));
+    return Array.from({ length: 10 }, (_, index) => {
+      const factor = rand(2, 9), base = rand(2, 30); let prompt, answer, hint, explanation;
+      if (index % 3 === 0) { answer = base * factor; prompt = `Jaka liczba jest ${factor} razy większa niż ${base}?`; hint = `Pomnóż ${base} przez ${factor}.`; explanation = `${factor} · ${base} = ${answer}.`; }
+      else if (index % 3 === 1) { answer = base; prompt = `Jaka liczba jest ${factor} razy mniejsza niż ${base * factor}?`; hint = `Podziel ${base * factor} przez ${factor}.`; explanation = `${base * factor} : ${factor} = ${answer}.`; }
+      else { answer = factor; prompt = `Ile razy liczba ${base * factor} jest większa niż ${base}?`; hint = `Podziel ${base * factor} przez ${base}.`; explanation = `${base * factor} : ${base} = ${answer}.`; }
+      return question({ label: "Razy więcej, razy mniej", prompt, answer, hint, explanation, visual: { type: "equation", expression: "× lub :", caption: "„Razy więcej” łączymy z mnożeniem, a „razy mniej” z dzieleniem." } });
+    });
   }
 
   function remainderQuestions() {
@@ -303,24 +281,15 @@
   }
 
   function wordProblemQuestions() {
-    const fixed = [
-      ["Serial ma 150 odcinków. Nadano już 82. Ile odcinków pokaże jeszcze telewizja?", 68, "Od wszystkich odcinków odejmij te już pokazane.", "150 − 82 = 68 odcinków."],
-      ["Jeden los kosztował 2 zł. Uczniowie zebrali 120 zł. Ile losów sprzedali?", 60, "Podziel 120 zł przez cenę jednego losu.", "120 : 2 = 60 losów."],
-      ["Duży plik zajmuje 85 MB, a mały jest o 17 MB mniejszy. Ile zajmuje mały plik?", 68, "„O 17 mniej” oznacza odejmowanie.", "85 − 17 = 68 MB."],
-      ["Opakowanie ma 48 tabletek. Dziecko bierze 3 tabletki dziennie. Na ile dni wystarczy opakowanie?", 16, "Podziel liczbę tabletek przez dzienną dawkę.", "48 : 3 = 16 dni."],
-      ["Kot waży 4 kg, a pies jest o 20 kg cięższy. Ile waży pies?", 24, "Do wagi kota dodaj 20 kg.", "4 + 20 = 24 kg."],
-      ["W pudełku są 4 piłki tenisowe. Ile pudełek trzeba, aby zapakować 30 piłek?", 8, "7 pudełek mieści 28 piłek, więc potrzebne jest jeszcze jedno.", "30 : 4 = 7 r 2, dlatego trzeba 8 pudełek."],
-      ["Wojtek ma 13 lat, a jego siostra Zosia 15 lat. Ile lat miała Zosia, gdy urodził się Wojtek?", 2, "Oblicz różnicę ich wieku.", "15 − 13 = 2 lata."],
-      ["Niebiescy zdobyli 26 punktów, a Czarni 21. O ile więcej punktów zdobyli Niebiescy?", 5, "Porównaj 26 i 21.", "26 − 21 = 5 punktów."],
-      ["W akwarium jest 17 gupików, 7 więcej kirysków, 4 więcej neonów niż kirysków i 1 glonojad. Ile ryb jest razem?", 70, "Najpierw znajdź 24 kiryski i 28 neonów, potem dodaj wszystkie ryby.", "17 + 24 + 28 + 1 = 70 ryb."],
-      ["W kolejce jest 17 osób przed Wojtkiem, 8 osób między Jolą i Wojtkiem, a za Jolą stanęło jeszcze 26 osób. Ile osób jest w całej kolejce?", 35, "Najpierw policz osoby za Wojtkiem: 26 − 8 = 18, potem dodaj 17.", "17 + 18 = 35 osób."],
-      ["W pudełku są 24 zielone baloniki, czerwonych jest 2 razy mniej, a żółtych 3 razy więcej niż zielonych. Ile baloników jest razem?", 108, "Czerwonych jest 12, a żółtych 72.", "24 + 12 + 72 = 108 baloników."],
-      ["W kwiaciarni jest 5 róż po 10 zł i jedna wstążka za 2 zł. Ile kosztuje bukiet?", 52, "Pomnóż cenę róży przez 5 i dodaj wstążkę.", "5 · 10 + 2 = 52 zł."],
-      ["Na parterze wymieniono 3 okna, na pierwszym piętrze 4 razy więcej, a na drugim o 2 mniej niż na pierwszym. Ile okien wymieniono razem?", 25, "Na pierwszym piętrze są 12 okna, na drugim 10.", "3 + 12 + 10 = 25 okien."],
-      ["W autobusie jechało 17 pasażerów. Wysiedli wszyscy oprócz 5, a na kolejnym przystanku wsiadło 10 osób. Ilu pasażerów jedzie teraz?", 15, "Po pierwszym przystanku zostało 5 osób.", "5 + 10 = 15 pasażerów."],
-      ["Czysta koszula kosztowałaby 3 razy więcej niż przeceniona do 36 zł. Ile kosztowałaby czysta koszula?", 108, "Pomnóż 36 zł przez 3.", "3 · 36 = 108 zł."]
-    ];
-    return shuffle(fixed).slice(0, 10).map(([prompt, answer, hint, explanation]) => question({ label: "Zadania tekstowe", prompt, answer, hint, explanation, visual: { type: "story", items: [["📖", "czytaj"], ["🧩", "połącz informacje"]], caption: "Zapisz w głowie dane i wybierz działania." } }));
+    return Array.from({ length: 10 }, (_, index) => {
+      let prompt, answer, hint, explanation;
+      if (index % 5 === 0) { const remaining = rand(10, 80), shown = rand(20, 120), total = remaining + shown; prompt = `Serial ma ${total} odcinków. Nadano już ${shown}. Ile odcinków pokaże jeszcze telewizja?`; answer = remaining; hint = "Od wszystkich odcinków odejmij te już pokazane."; explanation = `${total} − ${shown} = ${answer} odcinków.`; }
+      else if (index % 5 === 1) { const price = rand(2, 10), sold = rand(10, 60), total = price * sold; prompt = `Jeden los kosztował ${price} zł. Uczniowie zebrali ${total} zł. Ile losów sprzedali?`; answer = sold; hint = "Podziel zebrane pieniądze przez cenę jednego losu."; explanation = `${total} : ${price} = ${answer} losów.`; }
+      else if (index % 5 === 2) { const smaller = rand(20, 90), difference = rand(5, 30), larger = smaller + difference; prompt = `Duży plik zajmuje ${larger} MB, a mały jest o ${difference} MB mniejszy. Ile zajmuje mały plik?`; answer = smaller; hint = "„O mniej” oznacza odejmowanie."; explanation = `${larger} − ${difference} = ${answer} MB.`; }
+      else if (index % 5 === 3) { const daily = rand(2, 9), days = rand(4, 20), total = daily * days; prompt = `Opakowanie ma ${total} tabletek. Dziecko bierze ${daily} tabletki dziennie. Na ile dni wystarczy opakowanie?`; answer = days; hint = "Podziel liczbę tabletek przez dzienną dawkę."; explanation = `${total} : ${daily} = ${answer} dni.`; }
+      else { const count = rand(2, 9), price = rand(3, 20), extra = rand(1, 10); answer = count * price + extra; prompt = `W kwiaciarni jest ${count} róż po ${price} zł i jedna wstążka za ${extra} zł. Ile kosztuje bukiet?`; hint = "Pomnóż cenę róży przez ich liczbę i dodaj wstążkę."; explanation = `${count} · ${price} + ${extra} = ${answer} zł.`; }
+      return question({ label: "Zadania tekstowe", prompt, answer, hint, explanation, visual: { type: "story", items: [["📖", "czytaj"], ["🧩", "połącz informacje"]], caption: "Zapisz w głowie dane i wybierz działania." } });
+    });
   }
 
   function orderQuestions() {
@@ -343,10 +312,31 @@
       ["Oblicz: 10 − 4³ : 8 = ?", 2, "Najpierw potęga, potem dzielenie.", "10 − 64 : 8 = 10 − 8 = 2."],
       ["Oblicz: 5 · (6 + 9 : 3) = ?", 45, "Najpierw dzielenie w nawiasie, potem dodawanie.", "5 · (6 + 3) = 5 · 9 = 45."]
     ];
-    return shuffle(fixed).slice(0, 10).map(([prompt, answer, hint, explanation]) => question({ label: "Kolejność działań", prompt, answer, hint, explanation, visual: { type: "equation", expression: "( )  →  potęgi  →  · :  →  + −", caption: "Kolejność pomaga uniknąć pomyłek." } }));
+    const generated = Array.from({ length: 10 }, (_, index) => {
+      const a = rand(2, 9), b = rand(2, 9), c = rand(2, 9); let prompt, answer, hint, explanation;
+      if (index % 4 === 0) { answer = a * (b + c); prompt = `${a} · (${b} + ${c})`; hint = "Najpierw policz działanie w nawiasie."; explanation = `${b} + ${c} = ${b + c}, a ${a} · ${b + c} = ${answer}.`; }
+      else if (index % 4 === 1) { answer = a + b * c; prompt = `${a} + ${b} · ${c}`; hint = "Mnożenie wykonujemy przed dodawaniem."; explanation = `${b} · ${c} = ${b * c}, a ${a} + ${b * c} = ${answer}.`; }
+      else if (index % 4 === 2) { const quotient = rand(2, 9), divisor = rand(2, 9), add = rand(1, 20), dividend = quotient * divisor; answer = quotient + add; prompt = `${dividend} : ${divisor} + ${add}`; hint = "Najpierw wykonaj dzielenie."; explanation = `${dividend} : ${divisor} = ${quotient}, a ${quotient} + ${add} = ${answer}.`; }
+      else { const base = rand(2, 9), subtract = rand(1, base * base - 1); answer = base * base - subtract; prompt = `${base}² − ${subtract}`; hint = "Najpierw oblicz potęgę."; explanation = `${base}² = ${base * base}, więc ${base * base} − ${subtract} = ${answer}.`; }
+      return [prompt, answer, hint, explanation];
+    });
+    return generated.map(([prompt, answer, hint, explanation]) => question({ label: "Kolejność działań", prompt: `Oblicz: ${prompt} = ?`, answer, hint, explanation, visual: { type: "equation", expression: "( )  →  potęgi  →  · :  →  + −", caption: "Kolejność pomaga uniknąć pomyłek." } }));
   }
 
   function numberLineQuestions() {
+    return Array.from({ length: 10 }, (_, index) => {
+      if (index % 3 === 0) {
+        const step = pick([1, 2, 5, 10]), tick = rand(2, 9), answer = step * tick;
+        return question({ label: "Oś liczbowa i łamigłówki", prompt: `Na osi liczbowej każda kreska oznacza ${step}. Punkt jest na ${tick}. kresce za zerem. Jaka to liczba?`, answer, hint: `${tick} · ${step} = ?`, explanation: `${tick} · ${step} = ${answer}.`, visual: { type: "numberline", min: 0, max: step * (tick + 2), step, marked: answer, caption: "Równe kreski oznaczają równe odległości." } });
+      }
+      if (index % 3 === 1) {
+        const lower = rand(2, 40) * 5, gap = rand(2, 20) * 2, upper = lower + gap, answer = lower + gap / 2;
+        return question({ label: "Oś liczbowa i łamigłówki", prompt: `Między ${lower} i ${upper} zaznaczono punkt dokładnie pośrodku. Jaka jest jego współrzędna?`, answer, hint: "Znajdź liczbę w połowie odcinka.", explanation: `Połowa między ${lower} i ${upper} to ${answer}.`, visual: { type: "numberline", min: lower, max: upper, step: gap / 2, marked: answer, caption: "Równe kreski oznaczają równe odległości." } });
+      }
+      const total = rand(100, 300), left = rand(10, total - 10), answer = total - left;
+      return question({ label: "Oś liczbowa i łamigłówki", prompt: `Miarka ma po obu stronach liczby, które w tym samym miejscu dają razem ${total}. Po jednej stronie widzisz ${left}. Co jest po drugiej stronie?`, answer, hint: `Oblicz ${total} − ${left}.`, explanation: `${total} − ${left} = ${answer}.`, visual: { type: "equation", expression: `${left} + ? = ${total}`, caption: "Dwie liczby dają stałą sumę." } });
+    });
+
     const fixed = [
       ["Na osi liczbowej każda kreska oznacza 1. Punkt jest na siódmej kresce za zerem. Jaka to liczba?", 7, "Policz siedem równych odcinków od 0.", "Siódma kreska ma współrzędną 7.", { min: 0, max: 10, step: 1, marked: 7 }],
       ["Na osi każda kreska oznacza 5. Punkt C jest na trzeciej kresce za zerem. Jaka jest jego współrzędna?", 15, "3 · 5 = ?", "3 · 5 = 15.", { min: 0, max: 25, step: 5, marked: 15 }],
@@ -367,6 +357,13 @@
   }
 
   function patternQuestions() {
+    const step = pick([2, 5, 10, 15, 20]) * pick([-1, 1]);
+    const start = step < 0 ? rand(100, 500) : rand(20, 300);
+    const values = Array.from({ length: 4 }, (_, index) => start + step * index);
+    const answer = values[3] + step;
+    const options = shuffle([answer, answer + Math.abs(step), answer - Math.abs(step)]);
+    return question({ kind: "choice", label: "Ciąg liczb", prompt: `Jaka liczba będzie następna? ${values.join(", ")}, ...`, answer, options, hint: "Sprawdź, o ile zmieniają się kolejne liczby.", explanation: `${step > 0 ? "Dodajemy" : "Odejmujemy"} ${Math.abs(step)}: ${values[3]} ${step > 0 ? "+" : "−"} ${Math.abs(step)} = ${answer}.`, values, visual: { type: "sequence", values } });
+
     const patterns = [
       { prompt: "Jaka liczba będzie następna? 157, 167, 177, 187, ...", answer: 197, options: [197, 198, 207], hint: "Każda kolejna liczba jest większa o 10.", explanation: "Dodajemy 10: 187 + 10 = 197.", values: [157, 167, 177, 187] },
       { prompt: "Jaka liczba będzie następna? 450, 465, 480, 495, ...", answer: 510, options: [500, 505, 510], hint: "Sprawdź, o ile rosną kolejne liczby.", explanation: "Każda liczba rośnie o 15, więc 495 + 15 = 510.", values: [450, 465, 480, 495] },
@@ -378,6 +375,19 @@
   }
 
   function extraChallengeQuestions() {
+    return Array.from({ length: 5 }, (_, index) => {
+      if (index % 3 === 0) {
+        const answer = rand(10, 80), addend = rand(10, 80), total = answer + addend;
+        return question({ label: "Zagadki liczbowe", prompt: `W równaniu x + ${addend} = ${total} jaka liczba kryje się pod x?`, answer, hint: `Od ${total} odejmij ${addend}.`, explanation: `x = ${total} − ${addend} = ${answer}.`, visual: { type: "number", left: `x + ${addend}`, right: String(total) } });
+      }
+      if (index % 3 === 1) {
+        const start = rand(10, 50), end = rand(start + 10, 150), answer = end - start - 1;
+        return question({ label: "Zagadki liczbowe", prompt: `Ile jest liczb większych od ${start} i jednocześnie mniejszych od ${end}?`, answer, hint: `Policz liczby od ${start + 1} do ${end - 1}.`, explanation: `Od ${start + 1} do ${end - 1} jest ${answer} liczb.`, visual: { type: "number", left: `${start + 1} … ${end - 1}`, right: "?" } });
+      }
+      const n = rand(4, 9), answer = n * (n + 1) / 2, values = Array.from({ length: n - 1 }, (_, i) => (i + 1) * (i + 2) / 2);
+      return question({ label: "Zagadki liczbowe", prompt: `Jaka jest ${n}. liczba trójkątna? ${values.join(", ")}, ...`, answer, hint: `Dodaj kolejną liczbę, czyli ${n}.`, explanation: `${values[values.length - 1]} + ${n} = ${answer}.`, visual: { type: "sequence", values } });
+    });
+
     const fixed = [
       ["W równaniu x + 27 = 50 jaka liczba kryje się pod x?", 23, "Od 50 odejmij 27.", "x = 50 − 27 = 23.", { type: "number", left: "x + 27", right: "50" }],
       ["W równaniu 35 + y = 72 jaka liczba kryje się pod y?", 37, "Od 72 odejmij 35.", "y = 72 − 35 = 37.", { type: "number", left: "35 + y", right: "72" }],
