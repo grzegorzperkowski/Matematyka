@@ -313,6 +313,8 @@
       border-radius: var(--radius-md);
       background: rgba(255,255,255,.77);
       box-shadow: 0 8px 22px rgba(116, 67, 25, .06);
+      color: var(--ink);
+      text-decoration: none;
       transition: transform .2s ease, box-shadow .2s ease;
     }
 
@@ -576,68 +578,68 @@
       </div>
 
       <div class="mode-grid">
-        <article class="mode-card orange">
+        <a class="mode-card orange" href="?exercise=park">
           <div class="mode-icon">🎠</div><h3>Wesołe miasteczko</h3>
           <p>Bilety, godziny otwarcia i zadania z obrazka.</p>
-          <a class="primary-button" href="?exercise=park">Wybieram trasę</a>
-        </article>
-        <article class="mode-card teal">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card teal" href="?exercise=plusminus">
           <div class="mode-icon">🧠</div><h3>Sprytne rachunki</h3>
           <p>Dodawaj i odejmuj w pamięci, łącząc wygodne liczby.</p>
-          <a class="primary-button" href="?exercise=plusminus">Wybieram trasę</a>
-        </article>
-        <article class="mode-card purple">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card purple" href="?exercise=moreless">
           <div class="mode-icon">🔎</div><h3>O ile więcej?</h3>
           <p>Ćwicz różnicę, liczby pod literami i ciągi liczbowe.</p>
-          <a class="primary-button" href="?exercise=moreless">Wybieram trasę</a>
-        </article>
-        <article class="mode-card pink">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card pink" href="?exercise=multdiv">
           <div class="mode-icon">🍭</div><h3>Mnożenie i dzielenie</h3>
           <p>Tabliczka mnożenia, dzielenie i grupowanie czynników.</p>
-          <a class="primary-button" href="?exercise=multdiv">Wybieram trasę</a>
-        </article>
-        <article class="mode-card orange">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card orange" href="?exercise=by10">
           <div class="mode-icon">🔟</div><h3>Przez 10, 100, ...</h3>
           <p>Dopisywanie i skreślanie zer oraz sprytne dzielenie.</p>
-          <a class="primary-button" href="?exercise=by10">Wybieram trasę</a>
-        </article>
-        <article class="mode-card orange">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card orange" href="?exercise=timesmore">
           <div class="mode-icon">↗️</div><h3>Razy więcej, razy mniej</h3>
           <p>Porównuj liczby za pomocą mnożenia i dzielenia.</p>
-          <a class="primary-button" href="?exercise=timesmore">Wybieram trasę</a>
-        </article>
-        <article class="mode-card teal">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card teal" href="?exercise=remainder">
           <div class="mode-icon">🍪</div><h3>Dzielenie z resztą</h3>
           <p>Dziel słodycze, sprawdzaj reszty i liczby podzielne.</p>
-          <a class="primary-button" href="?exercise=remainder">Wybieram trasę</a>
-        </article>
-        <article class="mode-card purple">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card purple" href="?exercise=powers">
           <div class="mode-icon">²³</div><h3>Kwadraty i sześciany</h3>
           <p>Odkrywaj potęgi, równe czynniki i proste kombinacje.</p>
-          <a class="primary-button" href="?exercise=powers">Wybieram trasę</a>
-        </article>
-        <article class="mode-card pink">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card pink" href="?exercise=word">
           <div class="mode-icon">📚</div><h3>Zadania tekstowe</h3>
           <p>Czytaj informacje, wybieraj działania i rozwiązuj historie.</p>
-          <a class="primary-button" href="?exercise=word">Wybieram trasę</a>
-        </article>
-        <article class="mode-card orange">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card orange" href="?exercise=order">
           <div class="mode-icon">🧮</div><h3>Kolejność działań</h3>
           <p>Nawiasy, potęgi, mnożenie i dzielenie krok po kroku.</p>
-          <a class="primary-button" href="?exercise=order">Wybieram trasę</a>
-        </article>
-        <article class="mode-card teal">
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
+        <a class="mode-card teal" href="?exercise=numberline">
           <div class="mode-icon">📏</div><h3>Oś liczbowa i łamigłówki</h3>
           <p>Odczytuj współrzędne i rozwiąż zagadki logiczne.</p>
-          <a class="primary-button" href="?exercise=numberline">Wybieram trasę</a>
-        </article>
+          <span class="primary-button">Wybieram trasę</span>
+        </a>
       </div>
 
       <div class="section-heading"><div><p class="section-kicker">Dla chętnych</p><h2>Wielka przejażdżka</h2></div><p>Losowa mieszanka wszystkich tematów z całego rozdziału.</p></div>
-      <div class="mode-card orange" style="min-height: 0; flex-direction: row; align-items: center; gap: 18px;">
+      <a class="mode-card orange" href="?exercise=mix" style="min-height: 0; flex-direction: row; align-items: center; gap: 18px;">
         <div class="mode-icon" style="margin: 0;">🎟️</div><div style="flex:1; position:relative; z-index:1;"><h3 style="margin-bottom: 4px;">Runda mieszana</h3><p style="min-height:0; margin:0;">Sprawdź, jak radzisz sobie ze wszystkimi stacjami.</p></div>
-        <a class="primary-button" href="?exercise=mix" style="width:auto; padding-inline:22px;">Start rundy</a>
-      </div>
+        <span class="primary-button" style="width:auto; padding-inline:22px;">Start rundy</span>
+      </a>
 
       <div class="how-to" aria-label="Jak grać">
         <div class="how-step"><span>1</span><div>Wybierz trasę i przeczytaj zadanie.</div></div>

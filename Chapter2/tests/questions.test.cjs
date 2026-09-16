@@ -1,0 +1,27 @@
+const test = require("node:test");
+const assert = require("node:assert/strict");
+
+let config;
+global.MathTownGame = { start(value) { config = value; } };
+require("../game.js");
+
+test("each Chapter 2 station produces a complete ten-question round", () => {
+  for (const route of Object.keys(config.routeLabels)) {
+    const questions = config.buildQuestions(route);
+    assert.equal(questions.length, 10, `${route} should contain 10 questions`);
+    for (const question of questions) {
+      assert.ok(["input", "choice"].includes(question.kind));
+      assert.ok(question.prompt.length > 0);
+      assert.ok(question.hint.length > 0);
+      assert.ok(question.explanation.length > 0);
+      assert.ok(typeof question.answer === "number" || typeof question.answer === "string");
+      if (question.kind === "choice") assert.ok(question.options.length >= 2);
+    }
+  }
+});
+
+test("Roman-numeral answers accept lowercase input and reject a different value", () => {
+  const checker = config.answerCheckers.roman;
+  assert.equal(checker(" xiv ", "XIV"), true);
+  assert.equal(checker("XVI", "XIV"), false);
+});

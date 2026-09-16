@@ -4,7 +4,7 @@
  * after the site has been opened online once.
  */
 const CACHE_PREFIX = "matematyczne-miasteczko-";
-const CACHE_NAME = `${CACHE_PREFIX}v2`;
+const CACHE_NAME = `${CACHE_PREFIX}v3`;
 const NETWORK_TIMEOUT_MS = 3000;
 const APP_SHELL_URL = new URL("./", self.registration.scope).href;
 const INDEX_URL = new URL("index.html", self.registration.scope).href;
@@ -13,6 +13,11 @@ const PUBLISHED_CHAPTERS = [
     directory: new URL("Chapter1/", self.registration.scope).href,
     document: new URL("Chapter1/index.html", self.registration.scope).href,
     assets: ["Chapter1/game.js"]
+  },
+  {
+    directory: new URL("Chapter2/", self.registration.scope).href,
+    document: new URL("Chapter2/index.html", self.registration.scope).href,
+    assets: ["Chapter2/game.js"]
   }
 ];
 const APP_SHELL = [

@@ -299,7 +299,8 @@
       } else {
         const label = addText(el.answerArea, "label", "Twoja odpowiedź", "answer-label"); label.htmlFor = "answerInput";
         const row = document.createElement("div"); row.className = "answer-row";
-        const input = document.createElement("input"); input.className = "answer-input"; input.id = "answerInput"; input.inputMode = "decimal"; input.autocomplete = "off"; input.placeholder = "Wpisz liczbę"; input.required = true; input.value = state.currentAnswer;
+        const customTextInput = question.checker && question.checker !== "numeric";
+        const input = document.createElement("input"); input.className = "answer-input"; input.id = "answerInput"; input.inputMode = customTextInput ? "text" : "decimal"; input.autocomplete = "off"; input.placeholder = customTextInput ? "Wpisz odpowiedź" : "Wpisz liczbę"; input.required = true; input.value = state.currentAnswer;
         const submit = addText(row, "button", "Sprawdź", "check-button"); submit.id = "nextButton"; submit.type = "submit";
         row.prepend(input); el.answerArea.append(row);
         if (state.answered) input.disabled = true;
@@ -360,7 +361,7 @@
       if (state.answered) return;
       const question = state.questions[state.index];
       if (!String(raw).trim()) { showToast("Najpierw wpisz albo wybierz odpowiedź."); return; }
-      if (question.kind === "input" && !Number.isFinite(Number(String(raw).replace(",", ".")))) { showToast("Wpisz liczbę, na przykład 24."); return; }
+      if (question.kind === "input" && (!question.checker || question.checker === "numeric") && !Number.isFinite(Number(String(raw).replace(",", ".")))) { showToast("Wpisz liczbę, na przykład 24."); return; }
       state.answered = true; state.currentAnswer = String(raw).trim();
       const correct = answerIsCorrect(question, state.currentAnswer);
       if (correct) { state.correct += 1; state.streak += 1; state.score += (state.hintUsed ? 5 : 10) + Math.max(0, state.streak - 1); } else state.streak = 0;

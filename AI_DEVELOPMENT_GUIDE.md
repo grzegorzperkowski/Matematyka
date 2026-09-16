@@ -57,9 +57,11 @@ ChapterN/
 shared/               Shared engine and common control styles
 ```
 
-Read `CHAPTER_TEMPLATE.md` for the question contract and checklist. Use HTML
-for semantic structure, CSS for appearance and JavaScript for game logic. Do
-not add a framework, bundler or package manager merely for a single chapter.
+Before implementing or modifying any chapter, read and follow
+`CHAPTER_TEMPLATE.md` for the required structure, question contract, release
+checklist and whole-card route-link pattern. Use HTML for semantic structure,
+CSS for appearance and JavaScript for game logic. Do not add a framework,
+bundler or package manager merely for a single chapter.
 
 ## Chapter map and routes
 
