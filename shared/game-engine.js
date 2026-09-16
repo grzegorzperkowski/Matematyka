@@ -204,6 +204,8 @@
         panel.hidden = true;
         return panel;
       }
+      const legacyColumn = visual.type === "equation" && typeof visual.expression === "string" && /^\s*[\d\s ]+\n[+−×]\s*[\d\s ]+\n─+\s*$/.test(visual.expression);
+      const legacyDivision = visual.type === "equation" && typeof visual.expression === "string" && /^(.+)\s⟌\s(.+)$/.test(visual.expression);
       if (visual.type === "story") {
         panel.classList.add("story");
         visual.items.forEach(([emoji, text]) => {
@@ -211,6 +213,30 @@
           addText(item, "span", emoji, "big-emoji"); addText(item, "strong", text); panel.append(item);
         });
         addText(panel, "p", visual.caption, "visual-caption");
+      } else if (visual.type === "column" || legacyColumn) {
+        const legacyLines = legacyColumn ? visual.expression.trim().split("\n") : null;
+        const legacyRow = legacyLines ? legacyLines[1].trim().match(/^([+−×])\s*(.+)$/) : null;
+        const topValue = legacyLines ? legacyLines[0].trim() : visual.top;
+        const bottomValue = legacyRow ? legacyRow[2] : visual.bottom;
+        const operator = legacyRow ? legacyRow[1] : visual.operator;
+        const box = document.createElement("div"); box.className = "column-visual";
+        box.style.setProperty("--column-width", `${Math.max(String(topValue).length, String(bottomValue).length) + 2}ch`);
+        const top = addText(box, "div", topValue, "column-number");
+        top.setAttribute("aria-label", `Liczba u góry: ${topValue}`);
+        const row = document.createElement("div"); row.className = "column-row";
+        addText(row, "span", operator, "column-operator"); addText(row, "span", bottomValue, "column-number"); box.append(row);
+        const rule = document.createElement("div"); rule.className = "column-rule"; box.append(rule);
+        addText(box, "p", visual.caption, "visual-caption"); panel.append(box);
+      } else if (visual.type === "division" || legacyDivision) {
+        const legacyValues = legacyDivision ? visual.expression.match(/^(.+)\s⟌\s(.+)$/) : null;
+        const divisor = legacyValues ? legacyValues[1] : visual.divisor;
+        const dividend = legacyValues ? legacyValues[2] : visual.dividend;
+        const box = document.createElement("div"); box.className = "division-visual";
+        const quotient = addText(box, "span", "?", "division-quotient"); quotient.setAttribute("aria-label", "Szukany iloraz");
+        const dividendNode = addText(box, "span", dividend, "division-dividend"); dividendNode.setAttribute("aria-label", `Dzielna: ${dividend}`);
+        addText(box, "span", ":", "division-colon").setAttribute("aria-hidden", "true");
+        const divisorNode = addText(box, "span", divisor, "division-divisor"); divisorNode.setAttribute("aria-label", `Dzielnik: ${divisor}`);
+        addText(box, "p", visual.caption, "visual-caption"); panel.append(box);
       } else if (visual.type === "equation") {
         const box = document.createElement("div"); box.className = "equation-visual";
         addText(box, "span", visual.expression); addText(box, "small", visual.caption); panel.append(box);

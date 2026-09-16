@@ -58,8 +58,9 @@ Every question has these fields:
 
 For `choice`, add `options`, for example
 `[{ value: "XIV", label: "XIV" }, ...]`. Available visuals are `story`,
-`equation`, `array`, `sequence`, `difference`, `number`, and `numberline`.
-A diagram must always receive explicit mathematical data. `array` uses
+`equation`, `column`, `array`, `sequence`, `difference`, `number`, and `numberline`.
+A diagram must always receive explicit mathematical data. `column` uses `top`,
+`bottom` and `operator` to draw a right-aligned written calculation. `array` uses
 `groups` and `itemsPerGroup`; `numberline` uses `min`, `max`, `step`, and
 `marked`. Set `visual: null` when a visual would not help or cannot be drawn
 correctly.
