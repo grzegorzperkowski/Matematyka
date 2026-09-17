@@ -118,3 +118,10 @@ Interfejs Computer Use zwrócił pustą listę przeglądarek i aplikacji; próby
 - Na podstawie zrzutu ekranu z trasy `dlugosci` poprawiono etykiety długości odcinków.
 - Wartości są teraz wyśrodkowane względem swoich odcinków, odsunięte od linii w kierunku prostopadłym i układane naprzemiennie po obu stronach łamanej, dzięki czemu nie zbiegają się przy wierzchołkach.
 - Zastosowano większą, grubszą fioletową czcionkę z jasną obwódką; liczby pozostają czytelne również wtedy, gdy etykieta znajdzie się blisko ciemnej linii.
+
+### 2026-09-17 — uzupełnienie zadania 3 ze strony 140
+
+- Audyt trasy `prostokaty` wykazał, że trzy pierwsze zdania z zadania były obecne tylko w parafrazie, a dwa ostatnie nie występowały.
+- Pierwsze pięć pytań trasy zawiera teraz komplet zdań prawda/fałsz w kolejności ze źródła, z odpowiedziami: fałsz, prawda, prawda, fałsz, fałsz.
+- Dodano jednoznaczny diagram rombu jako kontrprzykład dla czworokąta o czterech równych bokach, który nie ma kątów prostych.
+- Test regresyjny sprawdza obecność, kolejność i odpowiedzi wszystkich pięciu zdań; trasa nadal ma dokładnie 10 pytań.

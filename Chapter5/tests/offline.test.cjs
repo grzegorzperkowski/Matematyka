@@ -8,7 +8,7 @@ const source = readFileSync(join(__dirname, "..", "..", "service-worker.js"), "u
 
 function loadServiceWorker() {
   const cached = new Map([
-    ["https://example.test/repo/Chapter4/index.html", new Response("chapter four")]
+    ["https://example.test/repo/Chapter5/index.html", new Response("chapter five")]
   ]);
   const context = {
     URL, Response, AbortController, setTimeout, clearTimeout,
@@ -23,22 +23,22 @@ function loadServiceWorker() {
   return vm.runInNewContext(`${source}\n({ PUBLISHED_CHAPTERS, CACHE_NAME, APP_SHELL, cachedFallback })`, context);
 }
 
-test("Chapter 4 is published with its local game asset and no reference PNGs", () => {
+test("Chapter 5 is published with its game asset and no reference PNGs", () => {
   const { PUBLISHED_CHAPTERS, CACHE_NAME, APP_SHELL } = loadServiceWorker();
-  const chapter = Array.from(PUBLISHED_CHAPTERS).find((item) => String(item.document).includes("Chapter4/index.html"));
+  const chapter = Array.from(PUBLISHED_CHAPTERS).find((item) => String(item.document).includes("Chapter5/index.html"));
   assert.ok(chapter);
-  assert.deepEqual(Array.from(chapter.assets), ["Chapter4/game.js"]);
+  assert.deepEqual(Array.from(chapter.assets), ["Chapter5/game.js"]);
   assert.equal(CACHE_NAME, "matematyczne-miasteczko-v12");
-  assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter4/index.html")));
-  assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter4/game.js")));
-  assert.equal(Array.from(APP_SHELL).some((url) => /Chapter4\/page_\d+\.png$/.test(String(url))), false);
+  assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter5/index.html")));
+  assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter5/game.js")));
+  assert.equal(Array.from(APP_SHELL).some((url) => /Chapter5\/page_\d+\.png$/.test(String(url))), false);
 });
 
-test("an offline direct Chapter 4 exercise URL resolves to the cached document", async () => {
+test("an offline direct Chapter 5 exercise URL resolves to the cached document", async () => {
   const { cachedFallback } = loadServiceWorker();
   const response = await cachedFallback({
-    url: "https://example.test/repo/Chapter4/index.html?exercise=katy",
+    url: "https://example.test/repo/Chapter5/index.html?exercise=os-ulamkowa",
     mode: "navigate"
   });
-  assert.equal(await response.text(), "chapter four");
+  assert.equal(await response.text(), "chapter five");
 });

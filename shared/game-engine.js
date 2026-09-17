@@ -233,7 +233,7 @@
         polyline: `Łamana ${visual.closed ? "zamknięta" : "otwarta"} złożona z ${visual.segments || visual.lengths?.length || 3} odcinków.`,
         lines: `Proste ${relationNames[visual.relation || visual.lineRelation] || "przecinające się"}.`,
         angle: `Kąt o mierze ${visual.degrees ?? visual.angle ?? 90} stopni${visual.split ? `, podzielony ramieniem przy ${visual.split} stopniach` : ""}.`,
-        polygon: `Wielokąt o ${visual.sides || 3} bokach.`,
+        polygon: visual.variant === "rhombus" ? "Romb o czterech równych bokach i kątach, które nie są proste." : `Wielokąt o ${visual.sides || 3} bokach.`,
         rectangle: `${visual.square || visual.width === visual.height ? "Kwadrat" : "Prostokąt"} o bokach ${visual.width} i ${visual.height}.`,
         perimeter: `Wielokąt o bokach ${(visual.sides || visual.lengths || []).map((value) => value ?? "nieznana długość").join(", ")}${visual.unit ? ` ${visual.unit}` : ""}.`,
         circle: `Diagram koła: zaznaczony element to ${featureNames[visual.feature] || "okrąg"}.`
@@ -326,15 +326,32 @@
         if (visual.markVertex) label(center[0] - 18, center[1] + 22, "wierzchołek", "geometry-small-label");
       } else if (shape === "polygon") {
         const sides = Math.max(3, Math.min(12, Number(visual.sides) || 3));
-        const points = regularPoints(sides);
+        const points = visual.variant === "rhombus" && sides === 4
+          ? [[75, 42], [140, 42], [165, 102], [100, 102]]
+          : regularPoints(sides);
         addSvg(svg, "polygon", { points: points.map((point) => point.join(",")).join(" "), class: "geometry-polygon" });
         if (visual.markVertices) points.forEach((point, index) => { dot(point[0], point[1]); label(point[0] + 6, point[1] - 4, String.fromCharCode(65 + index)); });
+        if (visual.markEqualSides) points.forEach((point, index) => {
+          const next = points[(index + 1) % points.length];
+          label((point[0] + next[0]) / 2, (point[1] + next[1]) / 2 + 4, "•", "geometry-small-label");
+        });
       } else if (shape === "rectangle") {
         const isSquare = visual.square || Number(visual.width) === Number(visual.height);
         const width = isSquare ? 94 : 140, height = isSquare ? 94 : 76;
         const x = 120 - width / 2, y = 70 - height / 2;
         addSvg(svg, "rect", { x, y, width, height, class: "geometry-polygon" });
-        if (visual.rightMarks) [[x, y], [x + width, y], [x + width, y + height], [x, y + height]].forEach(([cornerX, cornerY], index) => label(cornerX + (index === 1 || index === 2 ? -18 : 6), cornerY + (index >= 2 ? -6 : 16), "∟", "geometry-right-label"));
+        if (visual.rightMarks) {
+          const markSize = 14;
+          [
+            [[x, y + markSize], [x + markSize, y + markSize], [x + markSize, y]],
+            [[x + width - markSize, y], [x + width - markSize, y + markSize], [x + width, y + markSize]],
+            [[x + width, y + height - markSize], [x + width - markSize, y + height - markSize], [x + width - markSize, y + height]],
+            [[x + markSize, y + height], [x + markSize, y + height - markSize], [x, y + height - markSize]]
+          ].forEach((points) => addSvg(svg, "polyline", {
+            points: points.map((point) => point.join(",")).join(" "),
+            class: "geometry-right-mark"
+          }));
+        }
         if (visual.showDimensions) { label(120, y - 8, visual.width); label(x + width + 8, 73, visual.height); }
         if (visual.markOpposites) { label(120, y - 7, "•"); label(120, y + height + 18, "•"); label(x - 13, 73, "×"); label(x + width + 10, 73, "×"); }
       } else if (shape === "perimeter") {
@@ -368,6 +385,117 @@
       panel.append(box);
     }
 
+    function fractionName(numerator, denominator) {
+      if (numerator % denominator === 0) return String(numerator / denominator);
+      if (numerator > denominator) {
+        const whole = Math.floor(numerator / denominator);
+        return `${whole} ${numerator % denominator}/${denominator}`;
+      }
+      return `${numerator}/${denominator}`;
+    }
+
+    function renderFractionModel(visual, panel) {
+      const numerator = Number(visual.numerator);
+      const denominator = Number(visual.denominator);
+      if (!Number.isInteger(numerator) || numerator < 0 || !Number.isInteger(denominator) || denominator < 1 || denominator > 24) {
+        panel.hidden = true;
+        return;
+      }
+      const shape = ["bar", "circle", "grid", "collection"].includes(visual.shape) ? visual.shape : "bar";
+      const box = document.createElement("div");
+      box.className = `fraction-model fraction-${shape}`;
+      box.setAttribute("role", "img");
+      box.setAttribute("aria-label", visual.alt || `Model ułamka ${fractionName(numerator, denominator)}. ${visual.caption || ""}`.trim());
+
+      if (shape === "collection") {
+        const collection = document.createElement("div");
+        collection.className = "fraction-collection";
+        collection.style.setProperty("--collection-columns", Math.min(6, Math.ceil(Math.sqrt(denominator))));
+        for (let index = 0; index < denominator; index += 1) {
+          const item = document.createElement("span");
+          item.className = `fraction-object${index < numerator ? " shaded" : ""}`;
+          item.setAttribute("aria-hidden", "true");
+          collection.append(item);
+        }
+        box.append(collection);
+      } else {
+        const groups = Math.max(1, Math.min(6, Number(visual.groups) || Math.ceil(Math.max(1, numerator) / denominator)));
+        let remaining = numerator;
+        const shapes = document.createElement("div");
+        shapes.className = "fraction-shapes";
+        for (let group = 0; group < groups; group += 1) {
+          const shaded = Math.max(0, Math.min(denominator, remaining));
+          remaining -= shaded;
+          const svg = addSvg(shapes, "svg", { viewBox: "0 0 100 100", "aria-hidden": "true", focusable: "false" });
+          if (shape === "circle") {
+            if (denominator === 1) {
+              addSvg(svg, "circle", { cx: 50, cy: 50, r: 39, class: `fraction-part${shaded ? " shaded" : ""}` });
+            } else {
+              for (let part = 0; part < denominator; part += 1) {
+                const start = -Math.PI / 2 + part * 2 * Math.PI / denominator;
+                const end = -Math.PI / 2 + (part + 1) * 2 * Math.PI / denominator;
+                const x1 = 50 + Math.cos(start) * 39, y1 = 50 + Math.sin(start) * 39;
+                const x2 = 50 + Math.cos(end) * 39, y2 = 50 + Math.sin(end) * 39;
+                const path = `M 50 50 L ${x1} ${y1} A 39 39 0 ${end - start > Math.PI ? 1 : 0} 1 ${x2} ${y2} Z`;
+                addSvg(svg, "path", { d: path, class: `fraction-part${part < shaded ? " shaded" : ""}` });
+              }
+            }
+          } else if (shape === "grid") {
+            const rows = Math.max(1, Math.min(6, Number(visual.rows) || 1));
+            const columns = Math.max(1, Math.min(12, Number(visual.columns) || denominator));
+            const cellWidth = 84 / columns, cellHeight = 76 / rows;
+            for (let part = 0; part < denominator; part += 1) {
+              const row = Math.floor(part / columns), column = part % columns;
+              addSvg(svg, "rect", { x: 8 + column * cellWidth, y: 12 + row * cellHeight, width: cellWidth, height: cellHeight, class: `fraction-part${part < shaded ? " shaded" : ""}` });
+            }
+          } else {
+            const partWidth = 84 / denominator;
+            for (let part = 0; part < denominator; part += 1) {
+              addSvg(svg, "rect", { x: 8 + part * partWidth, y: 27, width: partWidth, height: 46, class: `fraction-part${part < shaded ? " shaded" : ""}` });
+            }
+          }
+        }
+        box.append(shapes);
+      }
+      addText(box, "p", visual.caption || `Zaznaczono ${numerator} z ${denominator} równych części.`, "visual-caption");
+      panel.append(box);
+    }
+
+    function renderFractionNumberline(visual, panel) {
+      const denominator = Number(visual.denominator);
+      const min = Number(visual.minNumerator);
+      const max = Number(visual.maxNumerator);
+      const marked = Array.isArray(visual.markedNumerators) ? visual.markedNumerators.map(Number) : [];
+      if (!Number.isInteger(denominator) || denominator < 1 || !Number.isInteger(min) || !Number.isInteger(max) || max <= min || max - min > 24 || marked.some((value) => !Number.isInteger(value) || value < min || value > max)) {
+        panel.hidden = true;
+        return;
+      }
+      const box = document.createElement("div");
+      box.className = "fraction-numberline";
+      box.setAttribute("role", "img");
+      box.setAttribute("aria-label", visual.alt || `Oś od ${fractionName(min, denominator)} do ${fractionName(max, denominator)}; zaznaczono ${marked.map((value) => fractionName(value, denominator)).join(", ")}.`);
+      box.style.setProperty("--fraction-ticks", max - min + 1);
+      const track = document.createElement("div");
+      track.className = "fraction-numberline-track";
+      const labels = document.createElement("div");
+      labels.className = "fraction-numberline-labels";
+      for (let value = min; value <= max; value += 1) {
+        const isMarked = marked.includes(value);
+        const tick = document.createElement("span");
+        tick.className = `fraction-numberline-tick${isMarked ? " marked" : ""}`;
+        tick.setAttribute("aria-hidden", "true");
+        track.append(tick);
+        let label = "";
+        if (isMarked && visual.unknownLabel) label = visual.unknownLabel;
+        else if (isMarked && visual.showMarkedValues) label = fractionName(value, denominator);
+        else if (visual.labelEveryWhole !== false && value % denominator === 0) label = String(value / denominator);
+        addText(labels, "span", label, isMarked ? "marked-label" : "");
+      }
+      box.append(track, labels);
+      addText(box, "p", visual.caption || `Jednostka jest podzielona na ${denominator} równych części.`, "visual-caption");
+      panel.append(box);
+    }
+
     function renderVisual(visual) {
       const panel = document.createElement("div");
       panel.id = "visualPanel";
@@ -378,7 +506,11 @@
       }
       const legacyColumn = visual.type === "equation" && typeof visual.expression === "string" && /^\s*[\d\s ]+\n[+−×]\s*[\d\s ]+\n─+\s*$/.test(visual.expression);
       const legacyDivision = visual.type === "equation" && typeof visual.expression === "string" && /^(.+)\s⟌\s(.+)$/.test(visual.expression);
-      if (visual.type === "geometry") {
+      if (visual.type === "fraction-model") {
+        renderFractionModel(visual, panel);
+      } else if (visual.type === "fraction-numberline") {
+        renderFractionNumberline(visual, panel);
+      } else if (visual.type === "geometry") {
         renderGeometryVisual(visual, panel);
       } else if (visual.type === "story") {
         panel.classList.add("story");

@@ -60,6 +60,25 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .geometry-circle { fill: none; stroke: #187d7c; stroke-width: 5; }
 .geometry-disk { fill: rgba(255, 209, 102, .48); stroke: #187d7c; stroke-width: 5; }
 .geometry-point-p { fill: #7b61c9; }
+.fraction-model { display: flex; flex-direction: column; align-items: center; width: min(100%, 560px); min-width: 0; }
+.fraction-shapes { display: flex; align-items: center; justify-content: center; width: 100%; gap: 10px; flex-wrap: wrap; }
+.fraction-shapes svg { display: block; flex: 0 1 108px; width: min(108px, 27vw); height: auto; }
+.fraction-part { fill: #fffaf2; stroke: #28252f; stroke-width: 2.4; vector-effect: non-scaling-stroke; }
+.fraction-part.shaded { fill: #ffd166; stroke: #28252f; }
+.fraction-grid .fraction-part.shaded { fill: #72c6b2; }
+.fraction-circle .fraction-part.shaded { fill: #ef8da8; }
+.fraction-collection { display: grid; grid-template-columns: repeat(var(--collection-columns), 34px); justify-content: center; gap: 9px; }
+.fraction-object { width: 31px; height: 31px; border: 3px solid #28252f; border-radius: 50%; background: #fffaf2; box-shadow: 2px 2px 0 rgba(40,37,47,.13); }
+.fraction-object.shaded { background: repeating-linear-gradient(135deg,#ffd166 0 7px,#f3b735 7px 10px); }
+.fraction-model .visual-caption, .fraction-numberline .visual-caption { max-width: 100%; margin: 10px 0 0; text-align: center; overflow-wrap: anywhere; }
+.fraction-numberline { width: min(100%, 620px); min-width: 0; padding: 20px 10px 0; }
+.fraction-numberline-track, .fraction-numberline-labels { display: grid; grid-template-columns: repeat(var(--fraction-ticks), minmax(0,1fr)); }
+.fraction-numberline-track { position: relative; align-items: start; border-top: 4px solid #28252f; }
+.fraction-numberline-track::after { position: absolute; top: -9px; right: -3px; width: 0; height: 0; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-left: 11px solid #28252f; content: ""; }
+.fraction-numberline-tick { position: relative; height: 17px; border-left: 2px solid #28252f; transform: translateY(-4px); }
+.fraction-numberline-tick.marked::before { position: absolute; top: -10px; left: -8px; width: 12px; height: 12px; border: 3px solid white; border-radius: 50%; background: #c95016; box-shadow: 0 0 0 2px #c95016; content: ""; }
+.fraction-numberline-labels span { min-width: 0; color: #28252f; font-size: 13px; font-weight: 800; text-align: left; transform: translateX(-.35em); }
+.fraction-numberline-labels .marked-label { color: #98451f; font-size: 16px; font-weight: 900; }
 @media (max-width: 850px) {
   .game-layout .question-card { order: 1; }
   .game-layout .side-card { order: 2; }
@@ -75,4 +94,9 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
   .lesson-list li { min-width: 0; }
   .visual-panel { padding-inline: 8px; overflow: hidden; }
   .array-dot { width: 20px; height: 20px; font-size: 12px; }
+  .fraction-shapes { gap: 4px; }
+  .fraction-collection { grid-template-columns: repeat(var(--collection-columns), 28px); gap: 6px; }
+  .fraction-object { width: 26px; height: 26px; }
+  .fraction-numberline { padding-inline: 3px; }
+  .fraction-numberline-labels span { font-size: 11px; }
 }

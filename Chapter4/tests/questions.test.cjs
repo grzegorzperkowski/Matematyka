@@ -134,6 +134,26 @@ test("angle classes obey exact degree boundaries", () => {
   }
 });
 
+test("page 140 task 3 is complete and keeps the five truth values", () => {
+  const questions = loadConfig(25).buildQuestions("prostokaty").slice(0, 5);
+  const expected = [
+    ["Każdy prostokąt jest kwadratem.", "fałsz"],
+    ["Każdy kwadrat jest prostokątem.", "prawda"],
+    ["Każdy prostokąt ma dwie pary boków równoległych.", "prawda"],
+    ["Każdy czworokąt o bokach równej długości to kwadrat.", "fałsz"],
+    ["Każdy czworokąt o jednakowych kątach to kwadrat.", "fałsz"]
+  ];
+
+  assert.equal(questions.length, expected.length);
+  questions.forEach((question, index) => {
+    assert.ok(question.prompt.includes(expected[index][0]));
+    assert.equal(question.answer, expected[index][1]);
+    assert.deepEqual(plain(question.options.map((option) => option.value)), ["prawda", "fałsz"]);
+  });
+  assert.equal(questions[3].visual.variant, "rhombus");
+  assert.equal(questions[3].visual.markEqualSides, true);
+});
+
 test("perimeters equal side sums and reverse rules stay exact", () => {
   const config = loadConfig(31);
   for (let round = 0; round < 300; round += 1) {

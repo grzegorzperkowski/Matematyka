@@ -108,7 +108,8 @@ incomplete.
 ## 4. Visual data contract
 
 Available visual types are `story`, `equation`, `column`, `division`, `array`,
-`sequence`, `difference`, `number`, `numberline` and `geometry`.
+`sequence`, `difference`, `number`, `numberline`, `geometry`, `fraction-model`
+and `fraction-numberline`.
 
 Always pass explicit mathematical data:
 
@@ -117,6 +118,12 @@ Always pass explicit mathematical data:
 - `array`: `groups`, `itemsPerGroup`;
 - `numberline`: `min`, `max`, `step`, `marked`;
 - `geometry`: a required `shape` and its specific values.
+- `fraction-model`: `shape` (`bar`, `circle`, `grid` or `collection`), integer
+  `numerator` and positive integer `denominator`; optional `groups`, and for a
+  grid explicit `rows` and `columns` whose product matches the denominator;
+- `fraction-numberline`: positive integer `denominator`, integer
+  `minNumerator`, `maxNumerator` and a `markedNumerators` array. Positions are
+  numerator steps over the shared denominator, never floating-point values.
 
 Geometry shapes currently include:
 
@@ -125,7 +132,8 @@ Geometry shapes currently include:
 - `polyline`: segments or lengths, and whether it is closed;
 - `lines`: `relation`;
 - `angle`: `degrees`;
-- `polygon`: `sides`;
+- `polygon`: `sides`; optional `variant: "rhombus"` and `markEqualSides: true`
+  draw a four-sided equal-length counterexample without implying right angles;
 - `rectangle`: numeric `width` and `height`;
 - `perimeter`: a `sides` array;
 - `circle`: `feature`.
