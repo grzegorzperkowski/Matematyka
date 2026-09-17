@@ -28,7 +28,7 @@ test("Chapter 5 is published with its game asset and no reference PNGs", () => {
   const chapter = Array.from(PUBLISHED_CHAPTERS).find((item) => String(item.document).includes("Chapter5/index.html"));
   assert.ok(chapter);
   assert.deepEqual(Array.from(chapter.assets), ["Chapter5/game.js"]);
-  assert.equal(CACHE_NAME, "matematyczne-miasteczko-v12");
+  assert.equal(CACHE_NAME, "matematyczne-miasteczko-v13");
   assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter5/index.html")));
   assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter5/game.js")));
   assert.equal(Array.from(APP_SHELL).some((url) => /Chapter5\/page_\d+\.png$/.test(String(url))), false);
