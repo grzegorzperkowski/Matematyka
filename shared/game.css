@@ -13,6 +13,12 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .saved-round strong, .saved-round span { display: block; }
 .saved-round span { margin-top: 3px; color: #6d6875; font-size: 13px; }
 .saved-round-actions { display: flex; gap: 8px; }
+.round-choice-dialog { box-sizing: border-box; width: min(92vw, 520px); padding: 26px; border: 3px solid #ffd166; border-radius: 20px; background: #fffaf2; color: #28252f; box-shadow: 0 22px 70px rgba(40,37,47,.32); }
+.round-choice-dialog::backdrop { background: rgba(40,37,47,.58); backdrop-filter: blur(2px); }
+.round-choice-dialog h2 { margin: 0 0 10px; font-size: clamp(24px, 5vw, 32px); }
+.round-choice-dialog p { margin: 0; line-height: 1.55; }
+.round-choice-dialog .round-choice-hint { margin-top: 8px; color: #6d6875; }
+.round-choice-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px; }
 .answer-input { border-color: #b8aa99; }
 .check-button { background: #187d7c; }
 .choice-button { border-color: #b8aa99; }
@@ -52,6 +58,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .geometry-measure-label { fill: #574787; stroke: #fffaf2; stroke-width: 6px; stroke-linejoin: round; paint-order: stroke fill; font: 900 16px "Trebuchet MS", "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; text-anchor: middle; dominant-baseline: central; }
 .geometry-small-label { font-size: 12px; }
 .geometry-total-label { fill: #574787; font-size: 13px; text-anchor: middle; }
+.geometry-area-label { fill: #805700; stroke: #fffaf2; stroke-width: 5px; paint-order: stroke fill; font: 900 15px "Trebuchet MS", "Segoe UI", sans-serif; text-anchor: middle; dominant-baseline: central; }
 .geometry-right-label { fill: #f47721; font: 900 19px Arial, sans-serif; }
 .geometry-right-mark { fill: none; stroke: #f47721; stroke-linejoin: round; stroke-width: 3; }
 .geometry-arc, .geometry-reflex-arc { fill: none; stroke: #f47721; stroke-linecap: round; stroke-width: 5; }
@@ -60,6 +67,18 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .geometry-circle { fill: none; stroke: #187d7c; stroke-width: 5; }
 .geometry-disk { fill: rgba(255, 209, 102, .48); stroke: #187d7c; stroke-width: 5; }
 .geometry-point-p { fill: #7b61c9; }
+.area-model { display: flex; flex-direction: column; align-items: center; width: min(100%, 560px); min-width: 0; }
+.area-model svg { display: block; width: min(100%, 390px); height: auto; max-height: 260px; }
+.area-cell { fill: #fffaf2; stroke: #8f8173; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.area-cell.filled { fill: #ffd166; stroke: #725314; }
+.area-cell.outline { fill: none; }
+.area-half { fill: #72c6b2; stroke: none; }
+.area-diagonal-half { fill: #72c6b2; stroke: none; }
+.area-diagonal-cut { stroke: #187d7c; stroke-linecap: round; stroke-width: 3; vector-effect: non-scaling-stroke; }
+.area-shape-outline { stroke: #c95016; stroke-linecap: round; stroke-width: 3.4; vector-effect: non-scaling-stroke; }
+.area-dimension { fill: #574787; font: 900 14px "Trebuchet MS", "Segoe UI", sans-serif; text-anchor: middle; }
+.area-dimension.vertical { dominant-baseline: central; }
+.area-model .visual-caption { max-width: 100%; margin: 8px 0 0; text-align: center; overflow-wrap: anywhere; }
 .fraction-model { display: flex; flex-direction: column; align-items: center; width: min(100%, 560px); min-width: 0; }
 .fraction-shapes { display: flex; align-items: center; justify-content: center; width: 100%; gap: 10px; flex-wrap: wrap; }
 .fraction-shapes svg { display: block; flex: 0 1 108px; width: min(108px, 27vw); height: auto; }
@@ -88,7 +107,8 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
   .best-score { margin-left: auto; }
   .saved-round { align-items: stretch; flex-direction: column; }
   .saved-round-actions, .answer-row { flex-direction: column; }
-  .saved-round-actions > *, .check-button, .next-button { width: 100%; }
+  .saved-round-actions > *, .round-choice-actions > *, .check-button, .next-button { width: 100%; }
+  .round-choice-actions { flex-direction: column; }
   .choice-grid { grid-template-columns: 1fr; }
   .lesson-list { display: grid; }
   .lesson-list li { min-width: 0; }

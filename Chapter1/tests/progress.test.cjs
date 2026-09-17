@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const source = readFileSync(join(__dirname, "..", "..", "shared", "game-engine.js"), "utf8");
 const context = {};
 vm.runInNewContext(source, context);
-const { createStore, resultLevel } = context.MathTownGame;
+const { createStore, resultLevel, roundHasProgress, roundLaunchDecision } = context.MathTownGame;
 
 function memoryStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -60,4 +60,24 @@ test("result thresholds use the proportion correct", () => {
   assert.equal(resultLevel(6, 10).stars, 2);
   assert.equal(resultLevel(3, 5).stars, 2);
   assert.equal(resultLevel(2, 10).tone, "practice");
+});
+
+test("only a saved round for the requested game requires a start choice", () => {
+  const savedRounds = [round("moreless"), round("mix")];
+  assert.equal(roundLaunchDecision(null, savedRounds), "idle");
+  assert.equal(roundLaunchDecision("park", savedRounds), "start");
+  assert.equal(roundLaunchDecision("moreless", savedRounds), "choose");
+});
+
+test("an untouched first question is not offered as an unfinished round", () => {
+  const store = createStore(memoryStorage(), "chapter1", ["moreless"]);
+  const untouched = { ...round("moreless"), hintUsed: false };
+  assert.equal(roundHasProgress(untouched), false);
+  assert.equal(store.saveRound(untouched), true);
+  assert.equal(store.listRounds().length, 0);
+
+  untouched.currentAnswer = "1";
+  assert.equal(roundHasProgress(untouched), true);
+  assert.equal(store.saveRound(untouched), true);
+  assert.equal(store.listRounds().length, 1);
 });

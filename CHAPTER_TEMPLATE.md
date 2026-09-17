@@ -70,6 +70,13 @@ MathTownGame.start({
 Do not rename published chapter or route IDs. Each advertised route, including
 `mix`, returns exactly 10 original questions.
 
+When a published generator change makes already serialized questions visually
+or mathematically incompatible, keep the route ID stable and set a larger
+positive integer in `roundRevisions`, for example
+`roundRevisions: { wycinanki: 2 }`. Only that route's older unfinished round is
+then ignored and replaced on its next start; other routes and best scores stay
+intact. Do not bump a revision for wording-only or backward-compatible changes.
+
 ## 3. Question contract
 
 Every question has:
@@ -108,8 +115,8 @@ incomplete.
 ## 4. Visual data contract
 
 Available visual types are `story`, `equation`, `column`, `division`, `array`,
-`sequence`, `difference`, `number`, `numberline`, `geometry`, `fraction-model`
-and `fraction-numberline`.
+`sequence`, `difference`, `number`, `numberline`, `geometry`, `area-model`,
+`fraction-model` and `fraction-numberline`.
 
 Always pass explicit mathematical data:
 
@@ -118,6 +125,14 @@ Always pass explicit mathematical data:
 - `array`: `groups`, `itemsPerGroup`;
 - `numberline`: `min`, `max`, `step`, `marked`;
 - `geometry`: a required `shape` and its specific values.
+- `area-model`: integer `rows` and `columns` from 1 to 12, plus a row-major
+  `cells` array of exactly `rows * columns` values. Every value is `0` (empty),
+  `0.5` (one triangular half) or `1` (one full square unit). Optional
+  `showDimensions` adds side counts, with `unit` used only as their length unit;
+  `outlineShape` traces the boundary of connected full cells. When every cell
+  is `0.5`, `diagonalHalf` renders one diagonal across the complete grid and
+  shades one of the two equal large triangles instead of shading every cell
+  separately. `alt` and `caption` describe the mathematical purpose.
 - `fraction-model`: `shape` (`bar`, `circle`, `grid` or `collection`), integer
   `numerator` and positive integer `denominator`; optional `groups`, and for a
   grid explicit `rows` and `columns` whose product matches the denominator;
@@ -137,6 +152,12 @@ Geometry shapes currently include:
 - `rectangle`: numeric `width` and `height`;
 - `perimeter`: a `sides` array;
 - `circle`: `feature`.
+
+Rectangle visuals may use `widthLabel` and `heightLabel` to show pedagogical
+labels such as `9 m` and `? m` without deriving them from prompt text,
+`areaLabel` to place a known area inside the figure, and `proportional: true`
+to reflect the supplied side ratio within readable size limits. Supply `alt`
+whenever a visible label intentionally hides an unknown value.
 
 Do not infer visual values from prompt text. If a genuinely reusable teaching
 visual is missing, add a backward-compatible renderer to

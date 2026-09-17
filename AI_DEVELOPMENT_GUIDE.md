@@ -35,7 +35,7 @@ Published chapters:
 | 4 | Figury geometryczne | `Chapter4/index.html` | published |
 | 5 | Ułamki zwykłe | `Chapter5/index.html` | published |
 | 6 | Ułamki dziesiętne | `Chapter6/index.html` | published |
-| 7 | Pola figur | `Chapter7/index.html` | planned |
+| 7 | Pola figur | `Chapter7/index.html` | published |
 | 8 | Prostopadłościany i sześciany | `Chapter8/index.html` | planned |
 
 The homepage always has exactly eight top-level chapter cards. Unpublished

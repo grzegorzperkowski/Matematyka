@@ -27,9 +27,18 @@
     return typeof value.currentAnswer === "string" && typeof value.answered === "boolean" && typeof value.hintUsed === "boolean";
   }
 
-  function createStore(storage, chapterId, validModes) {
+  function roundHasProgress(round) {
+    return Boolean(round && (round.index > 0 || round.score > 0 || round.correct > 0 || round.answered || round.hintUsed || String(round.currentAnswer || "").trim()));
+  }
+
+  function createStore(storage, chapterId, validModes, roundRevisions = {}) {
     let data = emptyData();
     let available = Boolean(storage);
+    const revisionFor = (mode) => {
+      const value = Number(roundRevisions[mode]);
+      return Number.isInteger(value) && value > 0 ? value : 1;
+    };
+    const savedRevision = (round) => Number.isInteger(round?.revision) && round.revision > 0 ? round.revision : 1;
 
     function persist() {
       if (!available) return false;
@@ -84,13 +93,13 @@
     return {
       getRound(mode) {
         const round = data.rounds[keyFor(mode)];
-        return isRound(round, validModes) && round.mode === mode ? round : null;
+        return isRound(round, validModes) && round.mode === mode && savedRevision(round) === revisionFor(mode) ? round : null;
       },
       listRounds() {
-        return validModes.map((mode) => this.getRound(mode)).filter(Boolean);
+        return validModes.map((mode) => this.getRound(mode)).filter(roundHasProgress);
       },
       saveRound(round) {
-        if (!isRound(round, validModes)) return false;
+        if (!isRound(round, validModes) || savedRevision(round) !== revisionFor(round.mode)) return false;
         data.rounds[keyFor(round.mode)] = round;
         return persist();
       },
@@ -110,6 +119,7 @@
       getLegacyBest() {
         return Number(data.legacyBestScores[chapterId]) || 0;
       },
+      getRevision(mode) { return revisionFor(mode); },
       isAvailable() { return available; }
     };
   }
@@ -123,12 +133,17 @@
     };
   }
 
+  function roundLaunchDecision(requestedMode, savedRounds) {
+    if (!requestedMode) return "idle";
+    return savedRounds.some((round) => round.mode === requestedMode) ? "choose" : "start";
+  }
+
   function start(config) {
     const $ = (selector) => document.querySelector(selector);
     const validModes = Object.keys(config.routeLabels);
     let browserStorage = null;
     try { browserStorage = global.localStorage; } catch { /* Some file: contexts block storage access. */ }
-    const store = createStore(browserStorage, config.chapterId, validModes);
+    const store = createStore(browserStorage, config.chapterId, validModes, config.roundRevisions);
     const screens = { start: $("#startScreen"), game: $("#gameScreen"), result: $("#resultScreen") };
     const state = { mode: "mix", questions: [], index: 0, score: 0, streak: 0, correct: 0, answered: false, hintUsed: false, currentAnswer: "", best: 0 };
     const el = {
@@ -165,10 +180,13 @@
     }
 
     function saveProgress() {
-      store.saveRound({
+      const round = {
         mode: state.mode, questions: state.questions, index: state.index, score: state.score, streak: state.streak,
-        correct: state.correct, answered: state.answered, hintUsed: state.hintUsed, currentAnswer: state.currentAnswer
-      });
+        correct: state.correct, answered: state.answered, hintUsed: state.hintUsed, currentAnswer: state.currentAnswer,
+        revision: store.getRevision(state.mode)
+      };
+      if (roundHasProgress(round)) store.saveRound(round);
+      else store.clearRound(round.mode);
     }
 
     function showToast(message) {
@@ -337,7 +355,11 @@
         });
       } else if (shape === "rectangle") {
         const isSquare = visual.square || Number(visual.width) === Number(visual.height);
-        const width = isSquare ? 94 : 140, height = isSquare ? 94 : 76;
+        const numericWidth = Math.max(1, Number(visual.width) || 1);
+        const numericHeight = Math.max(1, Number(visual.height) || 1);
+        const scale = visual.proportional ? Math.min(150 / numericWidth, 90 / numericHeight) : 1;
+        const width = visual.proportional ? Math.max(36, numericWidth * scale) : isSquare ? 94 : 140;
+        const height = visual.proportional ? Math.max(36, numericHeight * scale) : isSquare ? 94 : 76;
         const x = 120 - width / 2, y = 70 - height / 2;
         addSvg(svg, "rect", { x, y, width, height, class: "geometry-polygon" });
         if (visual.rightMarks) {
@@ -352,7 +374,11 @@
             class: "geometry-right-mark"
           }));
         }
-        if (visual.showDimensions) { label(120, y - 8, visual.width); label(x + width + 8, 73, visual.height); }
+        if (visual.showDimensions) {
+          label(120, y - 10, visual.widthLabel ?? visual.width, "geometry-measure-label");
+          label(x + width + 18, 70, visual.heightLabel ?? visual.height, "geometry-measure-label");
+        }
+        if (visual.areaLabel) label(120, 72, visual.areaLabel, "geometry-area-label");
         if (visual.markOpposites) { label(120, y - 7, "•"); label(120, y + height + 18, "•"); label(x - 13, 73, "×"); label(x + width + 10, 73, "×"); }
       } else if (shape === "perimeter") {
         const sides = Array.isArray(visual.sides) ? visual.sides : (visual.lengths || [1, 1, 1, 1]);
@@ -496,6 +522,95 @@
       panel.append(box);
     }
 
+    function renderAreaModel(visual, panel) {
+      const rows = Number(visual.rows);
+      const columns = Number(visual.columns);
+      const cells = Array.isArray(visual.cells) ? visual.cells.map(Number) : [];
+      const validCell = (value) => value === 0 || value === 0.5 || value === 1;
+      if (!Number.isInteger(rows) || rows < 1 || rows > 12 || !Number.isInteger(columns) || columns < 1 || columns > 12 || cells.length !== rows * columns || !cells.every(validCell) || (visual.diagonalHalf && !cells.every((value) => value === 0.5))) {
+        panel.hidden = true;
+        return;
+      }
+
+      const total = cells.reduce((sum, value) => sum + value, 0);
+      const cellSize = 24;
+      const margin = visual.showDimensions ? 30 : 12;
+      const width = columns * cellSize;
+      const height = rows * cellSize;
+      const box = document.createElement("div");
+      box.className = "area-model";
+      const svg = addSvg(box, "svg", {
+        viewBox: `0 0 ${width + margin * 2} ${height + margin * 2}`,
+        role: "img",
+        "aria-label": visual.alt || `Model pola złożony z ${total} jednostek kwadratowych.`,
+        focusable: "false"
+      });
+
+      cells.forEach((value, index) => {
+        const row = Math.floor(index / columns);
+        const column = index % columns;
+        const x = margin + column * cellSize;
+        const y = margin + row * cellSize;
+        addSvg(svg, "rect", {
+          x, y, width: cellSize, height: cellSize,
+          class: `area-cell${value === 1 ? " filled" : ""}`
+        });
+        if (value === 0.5 && !visual.diagonalHalf) {
+          addSvg(svg, "polygon", {
+            points: `${x},${y + cellSize} ${x},${y} ${x + cellSize},${y + cellSize}`,
+            class: "area-half"
+          });
+          addSvg(svg, "rect", { x, y, width: cellSize, height: cellSize, class: "area-cell outline" });
+        }
+      });
+
+      if (visual.diagonalHalf) {
+        addSvg(svg, "polygon", {
+          points: `${margin},${margin} ${margin},${margin + height} ${margin + width},${margin + height}`,
+          class: "area-diagonal-half"
+        });
+        cells.forEach((value, index) => {
+          const row = Math.floor(index / columns), column = index % columns;
+          addSvg(svg, "rect", {
+            x: margin + column * cellSize,
+            y: margin + row * cellSize,
+            width: cellSize,
+            height: cellSize,
+            class: "area-cell outline"
+          });
+        });
+        addSvg(svg, "line", {
+          x1: margin,
+          y1: margin,
+          x2: margin + width,
+          y2: margin + height,
+          class: "area-diagonal-cut"
+        });
+      }
+
+      if (visual.outlineShape) {
+        cells.forEach((value, index) => {
+          if (value !== 1) return;
+          const row = Math.floor(index / columns), column = index % columns;
+          const x = margin + column * cellSize, y = margin + row * cellSize;
+          const filledAt = (nextRow, nextColumn) => nextRow >= 0 && nextRow < rows && nextColumn >= 0 && nextColumn < columns && cells[nextRow * columns + nextColumn] === 1;
+          if (!filledAt(row - 1, column)) addSvg(svg, "line", { x1: x, y1: y, x2: x + cellSize, y2: y, class: "area-shape-outline" });
+          if (!filledAt(row + 1, column)) addSvg(svg, "line", { x1: x, y1: y + cellSize, x2: x + cellSize, y2: y + cellSize, class: "area-shape-outline" });
+          if (!filledAt(row, column - 1)) addSvg(svg, "line", { x1: x, y1: y, x2: x, y2: y + cellSize, class: "area-shape-outline" });
+          if (!filledAt(row, column + 1)) addSvg(svg, "line", { x1: x + cellSize, y1: y, x2: x + cellSize, y2: y + cellSize, class: "area-shape-outline" });
+        });
+      }
+
+      if (visual.showDimensions) {
+        const unit = visual.unit ? ` ${visual.unit}` : "";
+        addSvg(svg, "text", { x: margin + width / 2, y: margin + height + 22, class: "area-dimension horizontal" }, `${columns}${unit}`);
+        addSvg(svg, "text", { x: 10, y: margin + height / 2, class: "area-dimension vertical", transform: `rotate(-90 10 ${margin + height / 2})` }, `${rows}${unit}`);
+      }
+      box.append(svg);
+      addText(box, "p", visual.caption || `Każda pełna kratka ma pole 1. Razem: ${total}.`, "visual-caption");
+      panel.append(box);
+    }
+
     function renderVisual(visual) {
       const panel = document.createElement("div");
       panel.id = "visualPanel";
@@ -506,7 +621,9 @@
       }
       const legacyColumn = visual.type === "equation" && typeof visual.expression === "string" && /^\s*[\d\s ]+\n[+−×]\s*[\d\s ]+\n─+\s*$/.test(visual.expression);
       const legacyDivision = visual.type === "equation" && typeof visual.expression === "string" && /^(.+)\s⟌\s(.+)$/.test(visual.expression);
-      if (visual.type === "fraction-model") {
+      if (visual.type === "area-model") {
+        renderAreaModel(visual, panel);
+      } else if (visual.type === "fraction-model") {
         renderFractionModel(visual, panel);
       } else if (visual.type === "fraction-numberline") {
         renderFractionNumberline(visual, panel);
@@ -657,6 +774,41 @@
       if (progress) showToast("Przywrócono zapisaną rundę.");
     }
 
+    function askHowToStart(mode, saved) {
+      const dialog = document.createElement("dialog");
+      dialog.className = "round-choice-dialog";
+      dialog.setAttribute("aria-labelledby", "round-choice-title");
+      dialog.setAttribute("aria-describedby", "round-choice-description");
+
+      const title = addText(dialog, "h2", "Dokończyć rozpoczętą grę?");
+      title.id = "round-choice-title";
+      const description = addText(dialog, "p", `W grze „${config.routeLabels[mode]}” czeka zapisana runda: wyzwanie ${saved.index + 1} z ${saved.questions.length}, ${saved.score} pkt.`, "round-choice-description");
+      description.id = "round-choice-description";
+      addText(dialog, "p", "Możesz wrócić do tego miejsca albo rozpocząć tę grę od początku.", "round-choice-hint");
+
+      const actions = document.createElement("div");
+      actions.className = "round-choice-actions";
+      const resume = addText(actions, "button", "Wznów grę", "primary-button");
+      resume.type = "button";
+      resume.autofocus = true;
+      const restart = addText(actions, "button", "Rozpocznij nową grę", "secondary-button");
+      restart.type = "button";
+      dialog.append(actions);
+
+      function choose(action) {
+        if (typeof dialog.close === "function") dialog.close();
+        dialog.remove();
+        action();
+      }
+
+      resume.addEventListener("click", () => choose(() => startGame(mode, store.getRound(mode) || saved)));
+      restart.addEventListener("click", () => choose(() => { store.clearRound(mode); startGame(mode); }));
+      dialog.addEventListener("close", () => dialog.remove(), { once: true });
+      document.body.append(dialog);
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    }
+
     function finishGame() {
       const total = state.questions.length;
       const level = resultLevel(state.correct, total);
@@ -685,7 +837,7 @@
         restart.addEventListener("click", () => { store.clearRound(round.mode); startGame(round.mode); });
         item.append(copy, actions); el.savedRoundsList.append(item);
       });
-      if (preferredMode && rounds.length) showScreen("start", el.savedRounds.querySelector("h2"));
+      return rounds;
     }
 
     function rawAnswer() { return $("#answerInput")?.value.trim() || $(".choice-button.selected")?.dataset.choice || ""; }
@@ -717,11 +869,12 @@
     $("#playAgain").addEventListener("click", () => { store.clearRound(state.mode); startGame(state.mode); });
 
     const requested = exerciseFromAddress();
-    const saved = requested ? store.getRound(requested) : null;
     el.bestScore.textContent = store.getLegacyBest() ? `dawny rekord: ${store.getLegacyBest()} pkt` : "—";
-    renderSavedRounds(requested);
-    if (requested && !saved) startGame(requested);
+    const savedRounds = renderSavedRounds(requested);
+    const launchDecision = roundLaunchDecision(requested, savedRounds);
+    if (launchDecision === "start") startGame(requested);
+    else if (launchDecision === "choose") askHowToStart(requested, store.getRound(requested));
   }
 
-  global.MathTownGame = { createStore, isQuestion, isRound, resultLevel, start };
+  global.MathTownGame = { createStore, isQuestion, isRound, resultLevel, roundHasProgress, roundLaunchDecision, start };
 })(typeof window === "undefined" ? globalThis : window);
