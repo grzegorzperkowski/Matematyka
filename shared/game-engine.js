@@ -6,7 +6,7 @@
   const LEGACY_BEST_KEY = "matematyczneMiasteczkoBest";
 
   function emptyData() {
-    return { version: 2, rounds: {}, bestScores: {}, legacyBestScores: {} };
+    return { version: 2, rounds: {}, bestScores: {}, bestStreaks: {}, legacyBestScores: {} };
   }
 
   function isQuestion(value) {
@@ -23,6 +23,7 @@
     if (!Array.isArray(value.questions) || value.questions.length === 0 || value.questions.length > 100 || !value.questions.every(isQuestion)) return false;
     if (!Number.isInteger(value.index) || value.index < 0 || value.index >= value.questions.length) return false;
     if (![value.score, value.streak, value.correct].every((number) => Number.isFinite(number) && number >= 0)) return false;
+    if (value.bestStreak !== undefined && (!Number.isFinite(value.bestStreak) || value.bestStreak < value.streak)) return false;
     if (value.correct > value.index + (value.answered ? 1 : 0)) return false;
     return typeof value.currentAnswer === "string" && typeof value.answered === "boolean" && typeof value.hintUsed === "boolean";
   }
@@ -54,7 +55,12 @@
     if (available) {
       try {
         const parsed = JSON.parse(storage.getItem(STORAGE_KEY));
-        if (parsed?.version === 2 && parsed.rounds && parsed.bestScores && parsed.legacyBestScores) data = parsed;
+        if (parsed?.version === 2 && parsed.rounds && parsed.bestScores && parsed.legacyBestScores) {
+          data = {
+            ...parsed,
+            bestStreaks: parsed.bestStreaks && typeof parsed.bestStreaks === "object" ? parsed.bestStreaks : {}
+          };
+        }
       } catch {
         data = emptyData();
       }
@@ -116,6 +122,15 @@
         persist();
         return data.bestScores[keyFor(mode)];
       },
+      getBestStreak(mode) {
+        const value = Number(data.bestStreaks[keyFor(mode)]);
+        return Number.isFinite(value) && value > 0 ? value : 0;
+      },
+      saveBestStreak(mode, streak) {
+        data.bestStreaks[keyFor(mode)] = Math.max(this.getBestStreak(mode), streak);
+        persist();
+        return data.bestStreaks[keyFor(mode)];
+      },
       getLegacyBest() {
         return Number(data.legacyBestScores[chapterId]) || 0;
       },
@@ -145,16 +160,21 @@
     try { browserStorage = global.localStorage; } catch { /* Some file: contexts block storage access. */ }
     const store = createStore(browserStorage, config.chapterId, validModes, config.roundRevisions);
     const screens = { start: $("#startScreen"), game: $("#gameScreen"), result: $("#resultScreen") };
-    const state = { mode: "mix", questions: [], index: 0, score: 0, streak: 0, correct: 0, answered: false, hintUsed: false, currentAnswer: "", best: 0 };
+    const state = {
+      mode: "mix", questions: [], index: 0, score: 0, streak: 0, bestStreak: 0, recordStreak: 0,
+      correct: 0, answered: false, hintUsed: false, currentAnswer: "", best: 0,
+      lastAnswerSetRecord: false, streakBeforeMistake: 0
+    };
     const el = {
       bestScore: $("#bestScore"), score: $("#score"), streak: $("#streak"), correctCount: $("#correctCount"),
-      routeName: $("#routeName"), progressText: $("#progressText"), progressBar: $("#progressBar"), category: $("#category"),
+      routeName: $("#routeName"), progressText: $("#progressText"), progressBar: $("#progressBar"), progressSteps: null, category: $("#category"),
       questionNumber: $("#questionNumber"), questionTitle: $("#questionTitle"), visualPanel: $("#visualPanel"),
       answerForm: $("#answerForm"), answerArea: $("#answerArea"), hintButton: $("#hintButton"), hintBox: $("#hintBox"),
       feedback: $("#feedback"), feedbackTitle: $("#feedbackTitle"), feedbackText: $("#feedbackText"),
       resultEmoji: $("#resultEmoji"), resultTitle: $("#resultTitle"), resultMessage: $("#resultMessage"),
       resultScore: $("#resultScore"), resultStars: $("#resultStars"), resultCorrect: $("#resultCorrect"),
-      resultBest: $("#resultBest"), toast: $("#toast"), savedRounds: $("#savedRounds"), savedRoundsList: $("#savedRoundsList"),
+      resultBest: $("#resultBest"), resultStreak: null, streakBest: null,
+      toast: $("#toast"), savedRounds: $("#savedRounds"), savedRoundsList: $("#savedRoundsList"),
       get nextButton() { return $("#nextButton"); }
     };
 
@@ -181,7 +201,7 @@
 
     function saveProgress() {
       const round = {
-        mode: state.mode, questions: state.questions, index: state.index, score: state.score, streak: state.streak,
+        mode: state.mode, questions: state.questions, index: state.index, score: state.score, streak: state.streak, bestStreak: state.bestStreak,
         correct: state.correct, answered: state.answered, hintUsed: state.hintUsed, currentAnswer: state.currentAnswer,
         revision: store.getRevision(state.mode)
       };
@@ -198,11 +218,29 @@
 
     function updateStats() {
       const total = state.questions.length || 10;
+      const current = Math.min(state.index + 1, total);
+      const completed = Math.min(state.index + (state.answered ? 1 : 0), total);
       el.score.textContent = state.score;
       el.streak.textContent = state.streak;
       el.correctCount.textContent = state.correct;
-      el.progressText.textContent = `Wyzwanie ${Math.min(state.index + 1, total)} z ${total}`;
-      el.progressBar.style.width = `${(state.index / total) * 100}%`;
+      el.progressText.textContent = `Krok ${current} z ${total} · ukończono ${completed}/${total}`;
+      el.progressBar.style.width = `${(completed / total) * 100}%`;
+      const progressTrack = el.progressBar.parentElement;
+      progressTrack.setAttribute("aria-valuemax", String(total));
+      progressTrack.setAttribute("aria-valuenow", String(completed));
+      progressTrack.setAttribute("aria-valuetext", `Ukończono ${completed} z ${total} zadań. Teraz zadanie ${current}.`);
+      if (el.progressSteps) {
+        el.progressSteps.style.setProperty("--round-steps", total);
+        while (el.progressSteps.children.length < total) addText(el.progressSteps, "span", el.progressSteps.children.length + 1, "progress-step");
+        [...el.progressSteps.children].forEach((step, index) => {
+          step.hidden = index >= total;
+          step.classList.toggle("completed", index < completed);
+          step.classList.toggle("current", index === current - 1 && completed < total);
+          step.textContent = index < completed ? "✓" : String(index + 1);
+        });
+      }
+      if (el.streakBest) el.streakBest.textContent = `rekord ${state.recordStreak}`;
+      el.streak.closest(".stat-pill")?.classList.toggle("streak-active", state.streak >= 3);
       el.bestScore.textContent = `${state.best} pkt`;
     }
 
@@ -212,6 +250,52 @@
       node.textContent = String(text);
       parent.append(node);
       return node;
+    }
+
+    function prepareEngagementUi() {
+      const progressTrack = el.progressBar.parentElement;
+      progressTrack.classList.add("step-progress");
+      progressTrack.setAttribute("role", "progressbar");
+      progressTrack.setAttribute("aria-valuemin", "0");
+      el.progressBar.setAttribute("aria-hidden", "true");
+      el.progressSteps = document.createElement("div");
+      el.progressSteps.className = "progress-steps";
+      el.progressSteps.setAttribute("aria-hidden", "true");
+      progressTrack.append(el.progressSteps);
+
+      const streakPill = el.streak.closest(".stat-pill");
+      if (streakPill) el.streakBest = addText(streakPill, "span", "rekord 0", "streak-best");
+
+      const resultDetails = el.resultCorrect.parentElement?.parentElement;
+      if (resultDetails) {
+        const streakDetail = document.createElement("div");
+        el.resultStreak = addText(streakDetail, "strong", "0");
+        streakDetail.append(document.createTextNode("najdłuższa seria"));
+        resultDetails.append(streakDetail);
+      }
+    }
+
+    function replayAnimation(node, className) {
+      if (!node) return;
+      node.classList.remove(className);
+      void node.offsetWidth;
+      node.classList.add(className);
+    }
+
+    function feedbackHeading(correct) {
+      if (!correct) {
+        const headings = [
+          "Jeszcze nie — sprawdźmy to razem.",
+          "Dobry trening — zobacz rozwiązanie.",
+          "Spokojnie, ten krok już coś wyjaśnia."
+        ];
+        return headings[state.index % headings.length];
+      }
+      if (state.lastAnswerSetRecord && state.streak >= 2) return `Nowy rekord: seria ${state.streak}!`;
+      if (state.streak >= 5) return `Wspaniała seria ${state.streak}!`;
+      if (state.streak >= 3) return `Seria ${state.streak}! Tak trzymaj!`;
+      if (state.hintUsed) return ["Dobrze — podpowiedź pomogła!", "Zgadza się — krok po kroku do celu!"][state.index % 2];
+      return ["Brawo, wynik się zgadza!", "Świetnie policzone!", "Tak jest — dobra odpowiedź!"][state.index % 3];
     }
 
     const SVG_NS = "http://www.w3.org/2000/svg";
@@ -712,8 +796,15 @@
       });
       el.feedback.hidden = false;
       el.feedback.className = `feedback ${correct ? "correct" : "wrong"}`;
-      el.feedbackTitle.textContent = correct ? (state.hintUsed ? "Dobrze! Podpowiedź pomogła." : "Brawo, dobrze policzone!") : "Sprawdź rozwiązanie.";
-      el.feedbackText.textContent = correct ? question.explanation : `Twoja odpowiedź: ${state.currentAnswer}. Prawidłowa odpowiedź: ${question.answer}. ${question.explanation}`;
+      el.feedbackTitle.textContent = feedbackHeading(correct);
+      const retryMessage = state.streakBeforeMistake >= 2
+        ? `Seria ${state.streakBeforeMistake} to dobry wynik — następną możesz zacząć od kolejnego zadania.`
+        : "Błąd jest wskazówką — w kolejnym zadaniu próbujesz od nowa.";
+      el.feedbackText.textContent = correct
+        ? question.explanation
+        : `Twoja odpowiedź: ${state.currentAnswer}. Prawidłowa odpowiedź: ${question.answer}. ${question.explanation} ${retryMessage}`;
+      replayAnimation(el.feedback, "feedback-pop");
+      if (correct && state.streak >= 3) replayAnimation(el.streak.closest(".stat-pill"), "streak-pop");
       el.nextButton.className = `next-button${question.kind === "choice" ? " choice-action" : ""}${correct ? "" : " wrong"}`;
       el.nextButton.textContent = state.index === state.questions.length - 1 ? "Zobacz wynik →" : "Następne wyzwanie →";
       if (document.hasFocus()) el.nextButton.focus();
@@ -722,7 +813,13 @@
     function renderQuestion(restoring = false) {
       const question = state.questions[state.index];
       if (!question) return finishGame();
-      if (!restoring) { state.answered = false; state.hintUsed = false; state.currentAnswer = ""; }
+      if (!restoring) {
+        state.answered = false;
+        state.hintUsed = false;
+        state.currentAnswer = "";
+        state.lastAnswerSetRecord = false;
+        state.streakBeforeMistake = 0;
+      }
       el.category.textContent = question.label;
       el.questionNumber.textContent = `${String(state.index + 1).padStart(2, "0")} / ${String(state.questions.length).padStart(2, "0")}`;
       el.questionTitle.textContent = question.prompt;
@@ -762,8 +859,15 @@
 
     function startGame(mode, saved) {
       const progress = saved && isRound(saved, validModes) ? saved : null;
-      Object.assign(state, progress || { mode, questions: config.buildQuestions(mode), index: 0, score: 0, streak: 0, correct: 0, answered: false, hintUsed: false, currentAnswer: "" });
+      const freshRound = {
+        mode, questions: progress ? progress.questions : config.buildQuestions(mode), index: 0, score: 0, streak: 0, bestStreak: 0,
+        correct: 0, answered: false, hintUsed: false, currentAnswer: "",
+        lastAnswerSetRecord: false, streakBeforeMistake: 0
+      };
+      Object.assign(state, freshRound, progress || {});
+      state.bestStreak = Math.max(Number(state.bestStreak) || 0, state.streak);
       state.best = store.getBest(mode);
+      state.recordStreak = Math.max(store.getBestStreak(mode), state.bestStreak);
       try {
         const address = new URL(global.location.href);
         address.searchParams.set("exercise", mode);
@@ -814,13 +918,25 @@
       const level = resultLevel(state.correct, total);
       const isNewBest = state.score > state.best;
       state.best = store.saveBest(state.mode, state.score);
+      state.recordStreak = store.saveBestStreak(state.mode, state.bestStreak);
       store.clearRound(state.mode);
       el.resultEmoji.textContent = level.tone === "great" ? "🎉" : level.tone === "good" ? "🌟" : "💪";
       el.resultTitle.textContent = level.ratio === 1 ? "Mistrzowska jazda!" : level.tone === "great" ? "Świetna jazda!" : level.tone === "good" ? "Dobra próba!" : "Każdy trening pomaga!";
-      el.resultMessage.textContent = isNewBest ? "Ustanawiasz nowy najlepszy wynik na tej trasie. Miasteczko bije brawo!" : "Zobacz, które stacje już znasz, a które warto przećwiczyć jeszcze raz.";
+      const achievement = `${state.correct} z ${total} odpowiedzi poprawnych, najdłuższa seria: ${state.bestStreak}.`;
+      const nextStep = level.ratio === 1
+        ? "Masz komplet — brawo za dokładność!"
+        : level.tone === "great"
+          ? "Do kompletu brakuje już naprawdę niewiele."
+          : level.tone === "good"
+            ? "Solidna baza — kolejna runda może być jeszcze lepsza."
+            : "Każde wyjaśnienie przybliża Cię do pewniejszego wyniku.";
+      el.resultMessage.textContent = `${achievement} ${isNewBest ? "To także nowy rekord punktowy!" : nextStep}`;
       el.resultScore.textContent = state.score; el.resultCorrect.textContent = `${state.correct}/${total}`; el.resultBest.textContent = state.best;
       el.resultStars.textContent = "★".repeat(level.stars) + "☆".repeat(3 - level.stars);
+      el.resultStars.setAttribute("aria-label", `${level.stars} z 3 gwiazdek`);
+      if (el.resultStreak) el.resultStreak.textContent = state.bestStreak;
       showScreen("result", el.resultTitle);
+      replayAnimation(screens.result.querySelector(".result-card"), "result-celebrate");
     }
 
     function renderSavedRounds(preferredMode) {
@@ -848,7 +964,19 @@
       if (question.kind === "input" && (!question.checker || question.checker === "numeric") && !Number.isFinite(Number(String(raw).replace(",", ".")))) { showToast("Wpisz liczbę, na przykład 24."); return; }
       state.answered = true; state.currentAnswer = String(raw).trim();
       const correct = answerIsCorrect(question, state.currentAnswer);
-      if (correct) { state.correct += 1; state.streak += 1; state.score += (state.hintUsed ? 5 : 10) + Math.max(0, state.streak - 1); } else state.streak = 0;
+      state.lastAnswerSetRecord = false;
+      state.streakBeforeMistake = 0;
+      if (correct) {
+        state.correct += 1;
+        state.streak += 1;
+        state.score += (state.hintUsed ? 5 : 10) + Math.max(0, state.streak - 1);
+        state.bestStreak = Math.max(state.bestStreak, state.streak);
+        state.lastAnswerSetRecord = state.streak > store.getBestStreak(state.mode);
+        state.recordStreak = store.saveBestStreak(state.mode, state.bestStreak);
+      } else {
+        state.streakBeforeMistake = state.streak;
+        state.streak = 0;
+      }
       updateStats(); showAnsweredQuestion(question, correct); saveProgress();
     }
 
@@ -868,6 +996,7 @@
     });
     $("#playAgain").addEventListener("click", () => { store.clearRound(state.mode); startGame(state.mode); });
 
+    prepareEngagementUi();
     const requested = exerciseFromAddress();
     el.bestScore.textContent = store.getLegacyBest() ? `dawny rekord: ${store.getLegacyBest()} pkt` : "—";
     const savedRounds = renderSavedRounds(requested);

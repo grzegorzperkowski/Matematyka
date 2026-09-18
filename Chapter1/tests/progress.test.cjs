@@ -37,6 +37,23 @@ test("rounds and best scores are isolated by chapter and exercise", () => {
   assert.equal(store.getRound("mix").currentAnswer, "2");
 });
 
+test("best streaks are optional, isolated and only increase", () => {
+  const oldV2Data = {
+    version: 2,
+    rounds: {},
+    bestScores: { "chapter1:mix": 42 },
+    legacyBestScores: {}
+  };
+  const storage = memoryStorage({ "matematyczneMiasteczkoState:v2": JSON.stringify(oldV2Data) });
+  const store = createStore(storage, "chapter1", ["moreless", "mix"]);
+
+  assert.equal(store.getBestStreak("mix"), 0);
+  assert.equal(store.saveBestStreak("mix", 4), 4);
+  assert.equal(store.saveBestStreak("mix", 2), 4);
+  assert.equal(store.getBestStreak("moreless"), 0);
+  assert.equal(store.getBest("mix"), 42);
+});
+
 test("legacy Chapter 1 data migrates before old keys are removed", () => {
   const storage = memoryStorage({ matematyczneMiasteczkoProgress: JSON.stringify(round("moreless", "7")), matematyczneMiasteczkoBest: "42" });
   const store = createStore(storage, "chapter1", ["moreless"]);
