@@ -4,6 +4,8 @@
   const STORAGE_KEY = "matematyczneMiasteczkoState:v2";
   const LEGACY_PROGRESS_KEY = "matematyczneMiasteczkoProgress";
   const LEGACY_BEST_KEY = "matematyczneMiasteczkoBest";
+  const REPAIR_STAGES = ["none", "offer", "help", "retry", "completed"];
+  const REPAIR_ANIMATIONS = ["folding-bridge", "method-lantern", "repair-stamp"];
 
   function emptyData() {
     return { version: 2, rounds: {}, bestScores: {}, bestStreaks: {}, legacyBestScores: {} };
@@ -16,6 +18,47 @@
     if (!(typeof value.answer === "number" && Number.isFinite(value.answer)) && typeof value.answer !== "string") return false;
     if (value.kind === "choice" && (!Array.isArray(value.options) || value.options.length < 2)) return false;
     return true;
+  }
+
+  function createRepairBridge(granted) {
+    return {
+      granted: Boolean(granted),
+      available: Boolean(granted),
+      stage: "none",
+      questionIndex: null,
+      firstAnswer: "",
+      repairCorrect: false,
+      animationVariant: null,
+      choiceOrder: []
+    };
+  }
+
+  function rollRepairBridge(random = Math.random) {
+    return createRepairBridge(random() < 0.85);
+  }
+
+  function normalizeRepairBridge(value, questionCount = Infinity, currentIndex = null) {
+    if (!value || typeof value !== "object" || value.granted !== true) return createRepairBridge(false);
+    const normalized = createRepairBridge(true);
+    normalized.available = value.available === true;
+    normalized.stage = REPAIR_STAGES.includes(value.stage) ? value.stage : "none";
+    normalized.questionIndex = Number.isInteger(value.questionIndex) && value.questionIndex >= 0 && value.questionIndex < questionCount ? value.questionIndex : null;
+    normalized.firstAnswer = typeof value.firstAnswer === "string" ? value.firstAnswer : "";
+    normalized.repairCorrect = value.repairCorrect === true;
+    normalized.animationVariant = REPAIR_ANIMATIONS.includes(value.animationVariant) ? value.animationVariant : null;
+    normalized.choiceOrder = Array.isArray(value.choiceOrder)
+      ? value.choiceOrder.filter((item) => ["string", "number"].includes(typeof item)).slice(0, 100).map(String)
+      : [];
+    if (normalized.stage !== "none" && (normalized.questionIndex === null || (Number.isInteger(currentIndex) && normalized.questionIndex !== currentIndex))) normalized.stage = "none";
+    if (normalized.stage === "offer") normalized.available = true;
+    if (["help", "retry", "completed"].includes(normalized.stage)) normalized.available = false;
+    if (normalized.stage === "none") {
+      normalized.questionIndex = null;
+      normalized.firstAnswer = "";
+      normalized.animationVariant = null;
+      normalized.choiceOrder = [];
+    }
+    return normalized;
   }
 
   function isRound(value, validModes) {
@@ -99,14 +142,16 @@
     return {
       getRound(mode) {
         const round = data.rounds[keyFor(mode)];
-        return isRound(round, validModes) && round.mode === mode && savedRevision(round) === revisionFor(mode) ? round : null;
+        return isRound(round, validModes) && round.mode === mode && savedRevision(round) === revisionFor(mode)
+          ? { ...round, repairBridge: normalizeRepairBridge(round.repairBridge, round.questions.length, round.index) }
+          : null;
       },
       listRounds() {
         return validModes.map((mode) => this.getRound(mode)).filter(roundHasProgress);
       },
       saveRound(round) {
         if (!isRound(round, validModes) || savedRevision(round) !== revisionFor(round.mode)) return false;
-        data.rounds[keyFor(round.mode)] = round;
+        data.rounds[keyFor(round.mode)] = { ...round, repairBridge: normalizeRepairBridge(round.repairBridge, round.questions.length, round.index) };
         return persist();
       },
       clearRound(mode) {
@@ -163,7 +208,7 @@
     const state = {
       mode: "mix", questions: [], index: 0, score: 0, streak: 0, bestStreak: 0, recordStreak: 0,
       correct: 0, answered: false, hintUsed: false, currentAnswer: "", best: 0,
-      lastAnswerSetRecord: false, streakBeforeMistake: 0
+      lastAnswerSetRecord: false, streakBeforeMistake: 0, repairBridge: createRepairBridge(false)
     };
     const el = {
       bestScore: $("#bestScore"), score: $("#score"), streak: $("#streak"), correctCount: $("#correctCount"),
@@ -173,7 +218,7 @@
       feedback: $("#feedback"), feedbackTitle: $("#feedbackTitle"), feedbackText: $("#feedbackText"),
       resultEmoji: $("#resultEmoji"), resultTitle: $("#resultTitle"), resultMessage: $("#resultMessage"),
       resultScore: $("#resultScore"), resultStars: $("#resultStars"), resultCorrect: $("#resultCorrect"),
-      resultBest: $("#resultBest"), resultStreak: null, streakBest: null,
+      resultBest: $("#resultBest"), resultStreak: null, resultRepair: null, streakBest: null,
       toast: $("#toast"), savedRounds: $("#savedRounds"), savedRoundsList: $("#savedRoundsList"),
       get nextButton() { return $("#nextButton"); }
     };
@@ -203,10 +248,10 @@
       const round = {
         mode: state.mode, questions: state.questions, index: state.index, score: state.score, streak: state.streak, bestStreak: state.bestStreak,
         correct: state.correct, answered: state.answered, hintUsed: state.hintUsed, currentAnswer: state.currentAnswer,
+        repairBridge: normalizeRepairBridge(state.repairBridge, state.questions.length, state.index),
         revision: store.getRevision(state.mode)
       };
-      if (roundHasProgress(round)) store.saveRound(round);
-      else store.clearRound(round.mode);
+      store.saveRound(round);
     }
 
     function showToast(message) {
@@ -272,6 +317,12 @@
         el.resultStreak = addText(streakDetail, "strong", "0");
         streakDetail.append(document.createTextNode("najdłuższa seria"));
         resultDetails.append(streakDetail);
+        const repairDetail = document.createElement("div");
+        repairDetail.className = "result-repair";
+        repairDetail.hidden = true;
+        el.resultRepair = addText(repairDetail, "strong", "1 przykład");
+        repairDetail.append(document.createTextNode("naprawiony z pomocą"));
+        resultDetails.append(repairDetail);
       }
     }
 
@@ -784,30 +835,145 @@
       return panel;
     }
 
-    function showAnsweredQuestion(question, correct) {
+    function repairStageIs(stage) {
+      return state.repairBridge.questionIndex === state.index && state.repairBridge.stage === stage;
+    }
+
+    function resetFeedback(title, text) {
+      el.feedbackTitle.textContent = title;
+      el.feedbackText.textContent = text;
+      el.feedback.replaceChildren(el.feedbackTitle, el.feedbackText);
+    }
+
+    function setNextButton(correct) {
+      el.nextButton.hidden = false;
+      el.nextButton.disabled = false;
+      el.nextButton.className = `next-button${state.questions[state.index].kind === "choice" ? " choice-action" : ""}${correct ? "" : " wrong"}`;
+      el.nextButton.textContent = state.index === state.questions.length - 1 ? "Zobacz wynik →" : "Następne wyzwanie →";
+    }
+
+    function disableAnswerControls(question, revealCorrectAnswer) {
       $("#answerInput")?.setAttribute("disabled", "disabled");
       document.querySelectorAll(".choice-button").forEach((button) => {
         const learnerChoice = button.dataset.choice === state.currentAnswer;
         const correctChoice = String(button.dataset.choice) === String(question.answer);
+        button.classList.remove("learner-answer", "correct-answer");
+        button.querySelectorAll(".choice-state").forEach((label) => label.remove());
         button.disabled = true;
         button.setAttribute("aria-pressed", String(learnerChoice));
         if (learnerChoice) { button.classList.add("learner-answer"); addText(button, "span", "Twoja odpowiedź", "choice-state"); }
-        if (correctChoice) { button.classList.add("correct-answer"); addText(button, "span", "Poprawna odpowiedź", "choice-state"); }
+        if (revealCorrectAnswer && correctChoice) { button.classList.add("correct-answer"); addText(button, "span", "Poprawna odpowiedź", "choice-state"); }
       });
+    }
+
+    function addRepairDecoration(parent) {
+      const decoration = document.createElement("div");
+      decoration.className = `repair-decoration ${state.repairBridge.animationVariant || "folding-bridge"}`;
+      decoration.setAttribute("aria-hidden", "true");
+      if (state.repairBridge.animationVariant === "method-lantern") decoration.textContent = "Sposób";
+      else if (state.repairBridge.animationVariant === "repair-stamp") decoration.textContent = "SPRÓBUJ";
+      else for (let index = 0; index < 3; index += 1) addText(decoration, "span", "");
+      parent.append(decoration);
+    }
+
+    function addRepairHelp(parent, question) {
+      const help = document.createElement("section");
+      help.className = "repair-help";
+      addText(help, "h3", "Przeczytaj sposób, a potem popraw swoją odpowiedź.", "repair-help-title");
+      addText(help, "strong", "Podpowiedź", "repair-help-label");
+      addText(help, "p", question.hint);
+      addText(help, "strong", "Sposób rozwiązania", "repair-help-label");
+      addText(help, "p", question.explanation);
+      parent.append(help);
+      return help;
+    }
+
+    function showRepairOffer(question) {
+      disableAnswerControls(question, false);
+      el.feedback.hidden = false;
+      el.feedback.className = "feedback wrong repair-panel repair-offer";
+      resetFeedback(
+        "Zatrzymaj się na Moście naprawczym",
+        "Ta pierwsza odpowiedź nie jest poprawna. Zobacz podpowiedź i sposób rozwiązania, a potem możesz poprawić ten sam przykład. Wynik rundy zachowa pierwszą odpowiedź."
+      );
+      const actions = document.createElement("div");
+      actions.className = "repair-actions";
+      const use = addText(actions, "button", "Zobacz pomoc i spróbuj ponownie", "primary-button");
+      use.type = "button"; use.id = "repairUseButton";
+      const save = addText(actions, "button", "Zachowaj Most na później", "secondary-button");
+      save.type = "button"; save.id = "repairSaveButton";
+      el.feedback.append(actions);
+      el.nextButton.hidden = true;
+      replayAnimation(el.feedback, "feedback-pop");
+      if (document.hasFocus()) global.setTimeout(() => use.focus(), 0);
+    }
+
+    function showRepairHelp(question) {
+      el.answerArea.replaceChildren();
+      el.feedback.hidden = false;
+      el.feedback.className = "feedback repair-panel repair-help-stage";
+      resetFeedback("Most naprawczy pomaga zrobić kolejny krok", "Najpierw spokojnie przejrzyj podpowiedź i sposób rozwiązania.");
+      addRepairDecoration(el.feedback);
+      const help = addRepairHelp(el.feedback, question);
+      help.querySelector("h3").tabIndex = -1;
+      const continueButton = addText(el.feedback, "button", "Spróbuj poprawić odpowiedź", "primary-button repair-continue");
+      continueButton.type = "button"; continueButton.id = "repairContinueButton";
+      el.hintButton.closest(".help-row").hidden = true;
+      replayAnimation(el.feedback, "feedback-pop");
+      global.setTimeout(() => help.querySelector("h3").focus(), 0);
+    }
+
+    function showRepairResult(question) {
+      const correct = state.repairBridge.repairCorrect;
+      disableAnswerControls(question, true);
+      el.feedback.hidden = false;
+      el.feedback.className = `feedback ${correct ? "correct" : "wrong"} repair-panel repair-result`;
+      resetFeedback(
+        correct ? "Dobrze naprawione!" : "Sprawdźmy to krok po kroku.",
+        correct
+          ? "Pierwsza odpowiedź pozostaje błędem w wyniku rundy, ale poprawnie użyłeś/aś wskazówki. Wiesz już, jak zrobić taki przykład."
+          : `Prawidłowa odpowiedź: ${question.answer}. ${question.explanation}`
+      );
+      if (correct) addText(el.feedback, "strong", "Naprawione z pomocą", "repair-success-label");
+      setNextButton(correct);
+      replayAnimation(el.feedback, "feedback-pop");
+      if (document.hasFocus()) el.nextButton.focus();
+    }
+
+    function showAnsweredQuestion(question, correct) {
+      if (repairStageIs("offer")) return showRepairOffer(question);
+      if (repairStageIs("help")) return showRepairHelp(question);
+      if (repairStageIs("completed")) return showRepairResult(question);
+      disableAnswerControls(question, true);
       el.feedback.hidden = false;
       el.feedback.className = `feedback ${correct ? "correct" : "wrong"}`;
-      el.feedbackTitle.textContent = feedbackHeading(correct);
       const retryMessage = state.streakBeforeMistake >= 2
         ? `Seria ${state.streakBeforeMistake} to dobry wynik — następną możesz zacząć od kolejnego zadania.`
         : "Błąd jest wskazówką — w kolejnym zadaniu próbujesz od nowa.";
-      el.feedbackText.textContent = correct
-        ? question.explanation
-        : `Twoja odpowiedź: ${state.currentAnswer}. Prawidłowa odpowiedź: ${question.answer}. ${question.explanation} ${retryMessage}`;
+      resetFeedback(
+        feedbackHeading(correct),
+        correct
+          ? question.explanation
+          : `Twoja odpowiedź: ${state.currentAnswer}. Prawidłowa odpowiedź: ${question.answer}. ${question.explanation} ${retryMessage}`
+      );
       replayAnimation(el.feedback, "feedback-pop");
       if (correct && state.streak >= 3) replayAnimation(el.streak.closest(".stat-pill"), "streak-pop");
-      el.nextButton.className = `next-button${question.kind === "choice" ? " choice-action" : ""}${correct ? "" : " wrong"}`;
-      el.nextButton.textContent = state.index === state.questions.length - 1 ? "Zobacz wynik →" : "Następne wyzwanie →";
+      setNextButton(correct);
       if (document.hasFocus()) el.nextButton.focus();
+    }
+
+    function orderedChoiceOptions(question) {
+      const savedOrder = state.repairBridge.questionIndex === state.index ? state.repairBridge.choiceOrder : [];
+      if (savedOrder.length) {
+        const options = new Map(question.options.map((option) => [String(typeof option === "object" ? option.value : option), option]));
+        const ordered = savedOrder.map((value) => options.get(String(value))).filter((option) => option !== undefined);
+        question.options.forEach((option) => {
+          const value = String(typeof option === "object" ? option.value : option);
+          if (!savedOrder.includes(value)) ordered.push(option);
+        });
+        return ordered;
+      }
+      return [...question.options].sort(() => Math.random() - 0.5);
     }
 
     function renderQuestion(restoring = false) {
@@ -825,7 +991,9 @@
       el.questionTitle.textContent = question.prompt;
       const nextVisual = renderVisual(question.visual);
       el.visualPanel.replaceWith(nextVisual); el.visualPanel = nextVisual;
+      el.feedback.replaceChildren(el.feedbackTitle, el.feedbackText);
       el.feedback.hidden = !state.answered; el.feedback.className = "feedback";
+      el.hintButton.closest(".help-row").hidden = false;
       el.hintBox.hidden = !state.hintUsed; el.hintBox.textContent = question.hint;
       el.hintButton.disabled = state.hintUsed || state.answered;
       el.hintButton.textContent = state.hintUsed ? "💡 Podpowiedź pokazana" : "💡 Pokaż podpowiedź";
@@ -833,7 +1001,7 @@
       if (question.kind === "choice") {
         addText(el.answerArea, "span", "Wybierz odpowiedź", "answer-label");
         const grid = document.createElement("div"); grid.className = "choice-grid"; grid.setAttribute("role", "group");
-        [...question.options].sort(() => Math.random() - 0.5).forEach((option) => {
+        orderedChoiceOptions(question).forEach((option) => {
           const value = typeof option === "object" ? option.value : option;
           const label = typeof option === "object" ? option.label : option;
           const button = addText(grid, "button", label, "choice-button");
@@ -851,10 +1019,24 @@
         row.prepend(input); el.answerArea.append(row);
         if (state.answered) input.disabled = true;
       }
+      if (repairStageIs("retry")) {
+        const help = document.createElement("div");
+        help.className = "repair-retry-help";
+        addRepairDecoration(help);
+        addRepairHelp(help, question);
+        el.answerArea.prepend(help);
+        el.answerArea.querySelector(".answer-label").textContent = "Spróbuj poprawić odpowiedź";
+        el.nextButton.textContent = "Sprawdź poprawkę";
+        el.hintButton.closest(".help-row").hidden = true;
+      }
       if (state.answered) showAnsweredQuestion(question, answerIsCorrect(question, state.currentAnswer));
       updateStats();
       if (!restoring) saveProgress();
-      if (!state.answered) global.setTimeout(() => (question.kind === "choice" ? $(".choice-button") : $("#answerInput"))?.focus(), 0);
+      if (!state.answered) global.setTimeout(() => {
+        const target = question.kind === "choice" ? $(".choice-button") : $("#answerInput");
+        target?.focus();
+        if (repairStageIs("retry") && question.kind === "input") target?.select();
+      }, 0);
     }
 
     function startGame(mode, saved) {
@@ -862,9 +1044,11 @@
       const freshRound = {
         mode, questions: progress ? progress.questions : config.buildQuestions(mode), index: 0, score: 0, streak: 0, bestStreak: 0,
         correct: 0, answered: false, hintUsed: false, currentAnswer: "",
-        lastAnswerSetRecord: false, streakBeforeMistake: 0
+        lastAnswerSetRecord: false, streakBeforeMistake: 0,
+        repairBridge: progress ? normalizeRepairBridge(progress.repairBridge, progress.questions.length, progress.index) : rollRepairBridge()
       };
       Object.assign(state, freshRound, progress || {});
+      state.repairBridge = normalizeRepairBridge(state.repairBridge, state.questions.length, state.index);
       state.bestStreak = Math.max(Number(state.bestStreak) || 0, state.streak);
       state.best = store.getBest(mode);
       state.recordStreak = Math.max(store.getBestStreak(mode), state.bestStreak);
@@ -876,6 +1060,7 @@
       el.routeName.textContent = config.routeLabels[mode];
       showScreen("game"); updateStats(); renderQuestion(Boolean(progress));
       if (progress) showToast("Przywrócono zapisaną rundę.");
+      else if (state.repairBridge.granted) showToast("W tej wyprawie masz jeden Most naprawczy. Jeśli utkniesz, pomoże Ci poprawić jeden przykład po podpowiedzi.");
     }
 
     function askHowToStart(mode, saved) {
@@ -935,6 +1120,7 @@
       el.resultStars.textContent = "★".repeat(level.stars) + "☆".repeat(3 - level.stars);
       el.resultStars.setAttribute("aria-label", `${level.stars} z 3 gwiazdek`);
       if (el.resultStreak) el.resultStreak.textContent = state.bestStreak;
+      if (el.resultRepair) el.resultRepair.parentElement.hidden = !state.repairBridge.repairCorrect;
       showScreen("result", el.resultTitle);
       replayAnimation(screens.result.querySelector(".result-card"), "result-celebrate");
     }
@@ -962,6 +1148,14 @@
       const question = state.questions[state.index];
       if (!String(raw).trim()) { showToast("Najpierw wpisz albo wybierz odpowiedź."); return; }
       if (question.kind === "input" && (!question.checker || question.checker === "numeric") && !Number.isFinite(Number(String(raw).replace(",", ".")))) { showToast("Wpisz liczbę, na przykład 24."); return; }
+      if (repairStageIs("retry")) {
+        state.currentAnswer = String(raw).trim();
+        state.answered = true;
+        state.repairBridge.repairCorrect = answerIsCorrect(question, state.currentAnswer);
+        state.repairBridge.stage = "completed";
+        updateStats(); showAnsweredQuestion(question, state.repairBridge.repairCorrect); saveProgress();
+        return;
+      }
       state.answered = true; state.currentAnswer = String(raw).trim();
       const correct = answerIsCorrect(question, state.currentAnswer);
       state.lastAnswerSetRecord = false;
@@ -976,13 +1170,27 @@
       } else {
         state.streakBeforeMistake = state.streak;
         state.streak = 0;
+        if (state.repairBridge.granted && state.repairBridge.available && state.repairBridge.stage === "none") {
+          state.repairBridge.stage = "offer";
+          state.repairBridge.questionIndex = state.index;
+          state.repairBridge.firstAnswer = state.currentAnswer;
+          state.repairBridge.choiceOrder = question.kind === "choice"
+            ? [...document.querySelectorAll(".choice-button")].map((button) => String(button.dataset.choice))
+            : [];
+        }
       }
       updateStats(); showAnsweredQuestion(question, correct); saveProgress();
     }
 
     el.answerForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      if (state.answered) { state.index += 1; state.index >= state.questions.length ? finishGame() : renderQuestion(); }
+      if (state.answered) {
+        if (repairStageIs("completed")) {
+          state.repairBridge.stage = "none";
+          state.repairBridge = normalizeRepairBridge(state.repairBridge, state.questions.length, state.index);
+        }
+        state.index += 1; state.index >= state.questions.length ? finishGame() : renderQuestion();
+      }
       else checkAnswer(rawAnswer());
     });
     el.answerArea.addEventListener("click", (event) => {
@@ -991,19 +1199,45 @@
       choice.classList.add("selected"); choice.setAttribute("aria-pressed", "true"); state.currentAnswer = choice.dataset.choice; saveProgress();
     });
     el.answerArea.addEventListener("input", (event) => { if (event.target.id === "answerInput" && !state.answered) { state.currentAnswer = event.target.value; saveProgress(); } });
-    el.hintButton.addEventListener("click", () => {
-      if (state.answered) return; state.hintUsed = true; el.hintBox.hidden = false; el.hintButton.disabled = true; el.hintButton.textContent = "💡 Podpowiedź pokazana"; saveProgress(); el.hintBox.focus();
+    el.feedback.addEventListener("click", (event) => {
+      if (event.target.closest("#repairUseButton") && repairStageIs("offer")) {
+        state.repairBridge.available = false;
+        state.repairBridge.stage = "help";
+        state.repairBridge.animationVariant = REPAIR_ANIMATIONS[Math.floor(Math.random() * REPAIR_ANIMATIONS.length)];
+        saveProgress(); renderQuestion(true);
+      } else if (event.target.closest("#repairSaveButton") && repairStageIs("offer")) {
+        state.repairBridge.stage = "none";
+        state.repairBridge = normalizeRepairBridge(state.repairBridge, state.questions.length, state.index);
+        saveProgress(); showAnsweredQuestion(state.questions[state.index], false);
+      } else if (event.target.closest("#repairContinueButton") && repairStageIs("help")) {
+        state.repairBridge.stage = "retry";
+        state.answered = false;
+        state.currentAnswer = state.repairBridge.firstAnswer;
+        saveProgress(); renderQuestion(true);
+      }
     });
+    el.hintButton.addEventListener("click", () => {
+      if (state.answered || repairStageIs("retry")) return; state.hintUsed = true; el.hintBox.hidden = false; el.hintButton.disabled = true; el.hintButton.textContent = "💡 Podpowiedź pokazana"; saveProgress(); el.hintBox.focus();
+    });
+    $("#backToMenu")?.addEventListener("click", saveProgress);
     $("#playAgain").addEventListener("click", () => { store.clearRound(state.mode); startGame(state.mode); });
 
     prepareEngagementUi();
     const requested = exerciseFromAddress();
     el.bestScore.textContent = store.getLegacyBest() ? `dawny rekord: ${store.getLegacyBest()} pkt` : "—";
     const savedRounds = renderSavedRounds(requested);
+    const untouchedRequestedRound = requested ? store.getRound(requested) : null;
+    if (untouchedRequestedRound && !roundHasProgress(untouchedRequestedRound)) {
+      startGame(requested, untouchedRequestedRound);
+      return;
+    }
     const launchDecision = roundLaunchDecision(requested, savedRounds);
     if (launchDecision === "start") startGame(requested);
     else if (launchDecision === "choose") askHowToStart(requested, store.getRound(requested));
   }
 
-  global.MathTownGame = { createStore, isQuestion, isRound, resultLevel, roundHasProgress, roundLaunchDecision, start };
+  global.MathTownGame = {
+    createStore, isQuestion, isRound, resultLevel, roundHasProgress, roundLaunchDecision,
+    createRepairBridge, rollRepairBridge, normalizeRepairBridge, start
+  };
 })(typeof window === "undefined" ? globalThis : window);
