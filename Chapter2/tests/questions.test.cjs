@@ -26,6 +26,17 @@ test("Roman-numeral answers accept lowercase input and reject a different value"
   assert.equal(checker("XVI", "XIV"), false);
 });
 
+test("money ticket prompts agree with Polish number forms", () => {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    for (const question of config.buildQuestions("pieniadze")) {
+      assert.doesNotMatch(question.prompt, /kosztuje [2-4] biletów/);
+      assert.doesNotMatch(question.prompt, /kosztują [2-4] biletów/);
+      assert.doesNotMatch(question.prompt, /kosztuje [2-4] bilety/);
+      assert.doesNotMatch(question.prompt, /kosztują [5-9] biletów/);
+    }
+  }
+});
+
 test("clock conversion reference keeps values with their units and separates both facts with whitespace", () => {
   const [question] = config.buildQuestions("zegary");
   assert.equal(question.visual.expression, "1\u00a0h = 60\u00a0min\u2003\u20031\u00a0min = 60\u00a0s");

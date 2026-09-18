@@ -17,6 +17,20 @@
   const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
   const pick = (items) => items[Math.floor(Math.random() * items.length)];
   const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const polishFew = (count) => {
+    const absolute = Math.abs(Number(count));
+    const mod10 = absolute % 10;
+    const mod100 = absolute % 100;
+    return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14);
+  };
+  const polishCount = (count, one, few, many) => {
+    const absolute = Math.abs(Number(count));
+    return `${count} ${absolute === 1 ? one : polishFew(absolute) ? few : many}`;
+  };
+  const polishVerb = (count, singular, plural) => {
+    const absolute = Math.abs(Number(count));
+    return absolute === 1 || !polishFew(absolute) ? singular : plural;
+  };
   const format = (number) => number.toLocaleString("pl-PL");
   const question = (data) => ({ kind: "input", label: "Zadanie", visual: null, ...data });
   const equation = (expression, caption) => ({ type: "equation", expression, caption });
@@ -84,7 +98,7 @@
       if (index % 4 === 0) { answer = gross(first); prompt = `Ile groszy to ${text(first)}?`; hint = "Jeden złoty to 100 groszy."; explanation = `${first.zl} · 100 + ${first.gr} = ${answer} gr.`; }
       else if (index % 4 === 1) { answer = gross(first) + gross(second); prompt = `Ile groszy kosztują razem ${text(first)} i ${text(second)}?`; hint = "Zamień obie kwoty na grosze."; explanation = `${gross(first)} gr + ${gross(second)} gr = ${answer} gr.`; }
       else if (index % 4 === 2) { const price = amount(); const paid = gross(price) + rand(1, 12) * 100; answer = paid - gross(price); prompt = `Produkt kosztuje ${text(price)}. Ile groszy reszty dostaniesz z ${format(paid)} gr?`; hint = "Odejmij cenę od wpłaconej kwoty."; explanation = `${paid} gr − ${gross(price)} gr = ${answer} gr.`; }
-      else { const count = rand(2, 9), price = rand(1, 15) * 100; answer = count * price; prompt = `Ile groszy kosztuje ${count} biletów po ${format(price)} gr?`; hint = "Pomnóż cenę jednego biletu przez ich liczbę."; explanation = `${count} · ${price} gr = ${answer} gr.`; }
+      else { const count = rand(2, 9), price = rand(1, 15) * 100; answer = count * price; prompt = `Ile groszy ${polishVerb(count, "kosztuje", "kosztują")} ${polishCount(count, "bilet", "bilety", "biletów")} po ${format(price)} gr?`; hint = "Pomnóż cenę jednego biletu przez ich liczbę."; explanation = `${count} · ${price} gr = ${answer} gr.`; }
       return question({ label: "Złote i grosze", prompt, answer, hint, explanation, visual: equation("1 zł = 100 gr", "W razie potrzeby zamień wszystko na grosze.") });
     });
   }

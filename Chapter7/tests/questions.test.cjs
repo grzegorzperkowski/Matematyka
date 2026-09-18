@@ -121,6 +121,22 @@ test("generated contracts remain valid across many seeded rounds", () => {
   }
 });
 
+test("row-count wording uses Polish few/many forms", () => {
+  const config = loadConfig(61);
+  for (let round = 0; round < 80; round += 1) {
+    for (const question of config.buildQuestions("pole-prostokata")) {
+      if (!question.prompt.startsWith("Prostokąt ma") || question.prompt.includes("boki")) continue;
+      assert.doesNotMatch(question.prompt, /ma [2-4] rzędów /);
+      assert.doesNotMatch(question.prompt, /ma [5-9] rzędy /);
+      assert.doesNotMatch(question.visual.caption, /^[2-4] rzędów /);
+      assert.doesNotMatch(question.visual.caption, /^[5-9] rzędy /);
+    }
+    const unit = config.buildQuestions("kwadraty-jednostkowe")[0];
+    assert.doesNotMatch(unit.hint, /Policz [2-4] rzędów /);
+    assert.doesNotMatch(unit.hint, /Policz [5-9] rzędy /);
+  }
+});
+
 test("unit-square and composite answers equal their explicit cell data", () => {
   const config = loadConfig(21);
   for (let round = 0; round < 300; round += 1) {

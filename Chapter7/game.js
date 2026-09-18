@@ -18,6 +18,18 @@
   const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
   const pick = (items) => items[Math.floor(Math.random() * items.length)];
   const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
+  const polishFew = (count) => {
+    const absolute = Math.abs(Number(count));
+    const mod10 = absolute % 10;
+    const mod100 = absolute % 100;
+    return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14);
+  };
+  const polishCount = (count, one, few, many) => {
+    const absolute = Math.abs(Number(count));
+    return `${count} ${absolute === 1 ? one : polishFew(absolute) ? few : many}`;
+  };
+  const rowsOf = (rows, columns, unitFew, unitMany) =>
+    `${polishCount(rows, "rząd", "rzędy", "rzędów")} po ${polishCount(columns, unitFew, unitFew, unitMany)}`;
   const question = (data) => ({ kind: "input", label: "Pola figur", visual: null, ...data });
   const equation = (expression, caption) => ({ type: "equation", expression, caption });
   const geometry = (shape, data, caption) => ({ type: "geometry", shape, ...data, caption });
@@ -96,7 +108,7 @@
     const six = cellsWith(3, 4, [0, 1, 4, 5, 6, 9]);
     const pairedHalves = cellsWith(2, 4, [0, 1, 4], [2, 3, 5, 6]);
     return [
-      question({ label: "Kwadraty jednostkowe", prompt: "Każda kratka ma pole 1. Jakie pole ma zaznaczony prostokąt?", answer: rows * columns, hint: `Policz ${rows} rzędów po ${columns} kratek.`, explanation: `${rows} · ${columns} = ${rows * columns} jednostek kwadratowych.`, visual: fullGrid(rows, columns, "Równe kratki dokładnie pokrywają prostokąt.") }),
+      question({ label: "Kwadraty jednostkowe", prompt: "Każda kratka ma pole 1. Jakie pole ma zaznaczony prostokąt?", answer: rows * columns, hint: `Policz ${rowsOf(rows, columns, "kratki", "kratek")}.`, explanation: `${rows} · ${columns} = ${rows * columns} jednostek kwadratowych.`, visual: fullGrid(rows, columns, "Równe kratki dokładnie pokrywają prostokąt.") }),
       question({ label: "Figura na siatce", prompt: "Każda pełna kratka ma pole 1. Jakie pole ma zaznaczona figura z wyciętym narożnikiem?", answer: modelArea(areaModel(lRows, lColumns, lCells)), hint: "Policz pełny prostokąt i odejmij puste kratki w narożniku.", explanation: `Pełny prostokąt ma ${lRows * lColumns} kratek, a wycięto ${cutRows * cutColumns}. Pole wynosi ${lRows * lColumns - cutRows * cutColumns}.`, visual: areaModel(lRows, lColumns, lCells, "Puste kratki nie należą do figury.") }),
       question({ label: "Połówki kratek", prompt: "Dwie połówki tworzą jedną całą kratkę. Jakie pole ma zaznaczona figura?", answer: fullCount + halfCount / 2, hint: `Połącz ${halfCount} połówek w pary.`, explanation: `${fullCount} pełnych kratek i ${halfCount} połówek, czyli ${halfCount / 2} całe kratki, daje razem ${fullCount + halfCount / 2}.`, visual: areaModel(2, (halfCells.length) / 2, halfCells, "Zielone trójkąty są połówkami jednakowych kratek.") }),
       choice("1", ["1", "2", "1/2"], { label: "Połówki kratek", prompt: "Jakie pole mają razem dwie połówki tej samej kratki?", hint: "Dwie równe części składają się na całość.", explanation: "Dwie połówki mają razem pole jednej kratki, czyli 1.", visual: areaModel(1, 2, [0.5, 0.5], "Dwie połówki można złożyć w jedną pełną kratkę.") }),
@@ -130,12 +142,12 @@
     return dimensions.map(([width, height], index) => question({
       label: index < 2 ? "Rzędy kratek" : "Pole prostokąta",
       prompt: index < 2
-        ? `Prostokąt ma ${height} rzędy po ${width} kwadratów jednostkowych. Jakie ma pole?`
+        ? `Prostokąt ma ${rowsOf(height, width, "kwadraty jednostkowe", "kwadratów jednostkowych")}. Jakie ma pole?`
         : `Prostokąt ma boki ${width} ${units[index]} i ${height} ${units[index]}. Ile wynosi jego pole w ${units[index]}²?`,
       answer: width * height,
       hint: "Pomnóż długość przez szerokość.",
       explanation: `${width} · ${height} = ${width * height} ${index < 2 ? "jednostek kwadratowych" : `${units[index]}²`}.`,
-      visual: fullGrid(height, width, `${height} rzędów po ${width} równych kwadratów.`, { showDimensions: index >= 2, unit: index >= 2 ? units[index] : "" })
+      visual: fullGrid(height, width, `${rowsOf(height, width, "równe kwadraty", "równych kwadratów")}.`, { showDimensions: index >= 2, unit: index >= 2 ? units[index] : "" })
     }));
   }
 
@@ -147,7 +159,7 @@
       ...sides.map((side, index) => {
         const unit = index % 2 ? "m" : "cm";
         const visual = side <= 8
-          ? fullGrid(side, side, `${side} rzędów po ${side} kwadratów.`, { showDimensions: true, unit })
+          ? fullGrid(side, side, `${rowsOf(side, side, "kwadraty", "kwadratów")}.`, { showDimensions: true, unit })
           : geometry("rectangle", {
             square: true,
             width: side,

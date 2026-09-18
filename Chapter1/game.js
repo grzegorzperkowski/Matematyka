@@ -19,6 +19,20 @@
   function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
   function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
   function shuffle(list) { return [...list].sort(() => Math.random() - 0.5); }
+  function polishFew(count) {
+    const absolute = Math.abs(Number(count));
+    const mod10 = absolute % 10;
+    const mod100 = absolute % 100;
+    return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14);
+  }
+  function polishCount(count, one, few, many) {
+    const absolute = Math.abs(Number(count));
+    return `${count} ${absolute === 1 ? one : polishFew(absolute) ? few : many}`;
+  }
+  function polishVerb(count, singular, plural) {
+    const absolute = Math.abs(Number(count));
+    return absolute === 1 || !polishFew(absolute) ? singular : plural;
+  }
 
   function question(data) {
     return { kind: "input", label: "Zadanie", visual: null, ...data };
@@ -26,14 +40,14 @@
 
   function parkQuestions() {
     const templates = [
-      () => { const start = rand(8, 12), end = rand(start + 5, 22); return question({ label: "Wesołe miasteczko", prompt: `Wesołe miasteczko jest czynne od godziny ${start}:00 do ${end}:00. Przez ile godzin dziennie działa?`, answer: end - start, hint: `Policz, ile godzin mija od ${start} do ${end}.`, explanation: `${end} − ${start} = ${end - start}, więc miasteczko działa ${end - start} godzin.`, visual: { type: "story", items: [["🎡", `od ${start}:00`], ["⏰", `do ${end}:00`]], caption: "Ile godzin trwa zabawa?" } }); },
+      () => { const start = rand(8, 12), end = rand(start + 5, 22), hours = end - start; return question({ label: "Wesołe miasteczko", prompt: `Wesołe miasteczko jest czynne od godziny ${start}:00 do ${end}:00. Przez ile godzin dziennie działa?`, answer: hours, hint: `Policz, ile godzin mija od ${start} do ${end}.`, explanation: `${end} − ${start} = ${hours}, więc miasteczko działa ${polishCount(hours, "godzinę", "godziny", "godzin")}.`, visual: { type: "story", items: [["🎡", `od ${start}:00`], ["⏰", `do ${end}:00`]], caption: "Ile godzin trwa zabawa?" } }); },
       () => { const smaller = rand(10, 30), difference = rand(2, 15), larger = smaller + difference; return question({ label: "Wesołe miasteczko", prompt: `Na karuzeli jedzie ${smaller} osób, a kolejką górską ${larger} osób. O ile więcej osób jedzie kolejką?`, answer: difference, hint: "„O ile więcej” oznacza odejmowanie.", explanation: `${larger} − ${smaller} = ${difference}.`, visual: { type: "story", items: [["🎠", `${smaller} osób`], ["🚂", `${larger} osób`]], caption: "Porównaj liczby osób." } }); },
-      () => { const price = rand(2, 9), count = rand(2, 8), answer = price * count; return question({ label: "Wesołe miasteczko", prompt: `Jedna gałka lodów kosztuje ${price} zł. Ile zapłacisz za ${count} gałki?`, answer, hint: `Pomnóż ${price} przez ${count}.`, explanation: `${count} · ${price} = ${answer} zł.`, visual: { type: "story", items: [["🍦", `${price} zł`], ["🍦", `${count} gałek`]], caption: "Ta sama cena powtarza się." } }); },
+      () => { const price = rand(2, 9), count = rand(2, 8), answer = price * count; return question({ label: "Wesołe miasteczko", prompt: `Jedna gałka lodów kosztuje ${price} zł. Ile zapłacisz za ${polishCount(count, "gałkę", "gałki", "gałek")}?`, answer, hint: `Pomnóż ${price} przez ${count}.`, explanation: `${count} · ${price} = ${answer} zł.`, visual: { type: "story", items: [["🍦", `${price} zł`], ["🍦", polishCount(count, "gałka", "gałki", "gałek")]], caption: "Ta sama cena powtarza się." } }); },
       () => { const price = rand(2, 9), count = rand(2, 9), total = price * count; return question({ label: "Wesołe miasteczko", prompt: `Jeden żeton kosztuje ${price} zł. Ile żetonów można kupić za ${total} zł?`, answer: count, hint: `Podziel ${total} zł na paczki po ${price} zł.`, explanation: `${total} : ${price} = ${count}.`, visual: { type: "story", items: [["💰", `${total} zł`], ["🎟️", `${price} zł za 1`]], caption: "Ile razy cena mieści się w kwocie?" } }); },
       () => { const price = rand(3, 9), count = rand(3, 8), remainder = rand(1, price - 1), paid = price * count + remainder; return question({ label: "Wesołe miasteczko", prompt: `Za ${paid} zł kupujesz żetony po ${price} zł. Ile pieniędzy zostanie po kupieniu maksymalnej liczby żetonów?`, answer: remainder, hint: `Najpierw kup ${count} żetonów za ${count * price} zł.`, explanation: `${paid} − ${count * price} = ${remainder} zł.`, visual: { type: "story", items: [["💰", `${paid} zł`], ["🎟️", `${price} zł za 1`]], caption: "Ile zostanie reszty?" } }); }
     ];
     const price = rand(3, 12), count = rand(2, 8), answer = price * count;
-    return templates.map((make) => make()).concat(question({ label: "Wesołe miasteczko", prompt: `Bilet na jedną atrakcję kosztuje ${price} zł. Ile kosztuje ${count} biletów?`, answer, hint: "Pomnóż cenę jednego biletu przez ich liczbę.", explanation: `${count} · ${price} = ${answer} zł.`, visual: { type: "story", items: [["🎟️", `${price} zł`], ["🎟️", `${count} biletów`]], caption: "Pomnóż cenę przez liczbę biletów." } }));
+    return templates.map((make) => make()).concat(question({ label: "Wesołe miasteczko", prompt: `Bilet na jedną atrakcję kosztuje ${price} zł. Ile ${polishVerb(count, "kosztuje", "kosztują")} ${polishCount(count, "bilet", "bilety", "biletów")}?`, answer, hint: "Pomnóż cenę jednego biletu przez ich liczbę.", explanation: `${count} · ${price} = ${answer} zł.`, visual: { type: "story", items: [["🎟️", `${price} zł`], ["🎟️", polishCount(count, "bilet", "bilety", "biletów")]], caption: "Pomnóż cenę przez liczbę biletów." } }));
   }
 
   function plusMinusQuestions() {
@@ -288,8 +302,8 @@
       if (index % 5 === 0) { const remaining = rand(10, 80), shown = rand(20, 120), total = remaining + shown; prompt = `Serial ma ${total} odcinków. Nadano już ${shown}. Ile odcinków pokaże jeszcze telewizja?`; answer = remaining; hint = "Od wszystkich odcinków odejmij te już pokazane."; explanation = `${total} − ${shown} = ${answer} odcinków.`; }
       else if (index % 5 === 1) { const price = rand(2, 10), sold = rand(10, 60), total = price * sold; prompt = `Jeden los kosztował ${price} zł. Uczniowie zebrali ${total} zł. Ile losów sprzedali?`; answer = sold; hint = "Podziel zebrane pieniądze przez cenę jednego losu."; explanation = `${total} : ${price} = ${answer} losów.`; }
       else if (index % 5 === 2) { const smaller = rand(20, 90), difference = rand(5, 30), larger = smaller + difference; prompt = `Duży plik zajmuje ${larger} MB, a mały jest o ${difference} MB mniejszy. Ile zajmuje mały plik?`; answer = smaller; hint = "„O mniej” oznacza odejmowanie."; explanation = `${larger} − ${difference} = ${answer} MB.`; }
-      else if (index % 5 === 3) { const daily = rand(2, 9), days = rand(4, 20), total = daily * days; prompt = `Opakowanie ma ${total} tabletek. Dziecko bierze ${daily} tabletki dziennie. Na ile dni wystarczy opakowanie?`; answer = days; hint = "Podziel liczbę tabletek przez dzienną dawkę."; explanation = `${total} : ${daily} = ${answer} dni.`; }
-      else { const count = rand(2, 9), price = rand(3, 20), extra = rand(1, 10); answer = count * price + extra; prompt = `W kwiaciarni jest ${count} róż po ${price} zł i jedna wstążka za ${extra} zł. Ile kosztuje bukiet?`; hint = "Pomnóż cenę róży przez ich liczbę i dodaj wstążkę."; explanation = `${count} · ${price} + ${extra} = ${answer} zł.`; }
+      else if (index % 5 === 3) { const daily = rand(2, 9), days = rand(4, 20), total = daily * days; prompt = `Opakowanie ma ${total} tabletek. Dziecko bierze ${polishCount(daily, "tabletkę", "tabletki", "tabletek")} dziennie. Na ile dni wystarczy opakowanie?`; answer = days; hint = "Podziel liczbę tabletek przez dzienną dawkę."; explanation = `${total} : ${daily} = ${answer} dni.`; }
+      else { const count = rand(2, 9), price = rand(3, 20), extra = rand(1, 10); answer = count * price + extra; prompt = `W kwiaciarni ${polishVerb(count, "jest", "są")} ${polishCount(count, "róża", "róże", "róż")} po ${price} zł i jedna wstążka za ${extra} zł. Ile kosztuje bukiet?`; hint = "Pomnóż cenę róży przez ich liczbę i dodaj wstążkę."; explanation = `${count} · ${price} + ${extra} = ${answer} zł.`; }
       return question({ label: "Zadania tekstowe", prompt, answer, hint, explanation, visual: { type: "story", items: [["📖", "czytaj"], ["🧩", "połącz informacje"]], caption: "Zapisz w głowie dane i wybierz działania." } });
     });
   }
