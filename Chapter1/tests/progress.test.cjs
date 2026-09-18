@@ -54,6 +54,25 @@ test("best streaks are optional, isolated and only increase", () => {
   assert.equal(store.getBest("mix"), 42);
 });
 
+test("completed routes include old records and zero-point finished rounds", () => {
+  const oldV2Data = {
+    version: 2,
+    rounds: {},
+    bestScores: { "chapter1:mix": 42 },
+    legacyBestScores: {}
+  };
+  const storage = memoryStorage({ "matematyczneMiasteczkoState:v2": JSON.stringify(oldV2Data) });
+  const store = createStore(storage, "chapter1", ["moreless", "mix"]);
+
+  assert.equal(store.hasCompleted("mix"), true);
+  assert.equal(store.hasCompleted("moreless"), false);
+  assert.equal(store.saveBest("moreless", 0), 0);
+  assert.equal(store.hasCompleted("moreless"), true);
+
+  const saved = JSON.parse(storage.values.get("matematyczneMiasteczkoState:v2"));
+  assert.equal(saved.completedRoutes["chapter1:moreless"], true);
+});
+
 test("legacy Chapter 1 data migrates before old keys are removed", () => {
   const storage = memoryStorage({ matematyczneMiasteczkoProgress: JSON.stringify(round("moreless", "7")), matematyczneMiasteczkoBest: "42" });
   const store = createStore(storage, "chapter1", ["moreless"]);

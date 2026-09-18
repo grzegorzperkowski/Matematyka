@@ -13,6 +13,14 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .saved-round strong, .saved-round span { display: block; }
 .saved-round span { margin-top: 3px; color: #6d6875; font-size: 13px; }
 .saved-round-actions { display: flex; gap: 8px; }
+.route-progress-summary { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin: 0 0 12px; color: #6d6875; font-size: 12px; font-weight: 800; line-height: 1.2; }
+.route-completion, .route-record { display: inline-flex; align-items: center; min-height: 25px; padding: 4px 8px; border: 1px solid #d7cbbb; border-radius: 999px; background: rgba(255,255,255,.9); white-space: nowrap; }
+.route-completion.completed { border-color: #77aa84; background: #e5f6e8; color: #1f5c34; }
+.route-completion.completed::before { margin-right: 4px; content: "✓"; }
+.route-completion.pending::before { margin-right: 4px; content: "○"; }
+.route-record { color: #574787; font-variant-numeric: tabular-nums; }
+.mode-card.route-completed { border-color: #9bc8a5; }
+.route-mix-card .route-progress-summary { width: auto; margin: 0; flex: 0 0 auto; flex-direction: column; align-items: stretch; }
 .round-choice-dialog { box-sizing: border-box; width: min(92vw, 520px); padding: 26px; border: 3px solid #ffd166; border-radius: 20px; background: #fffaf2; color: #28252f; box-shadow: 0 22px 70px rgba(40,37,47,.32); }
 .round-choice-dialog::backdrop { background: rgba(40,37,47,.58); backdrop-filter: blur(2px); }
 .round-choice-dialog h2 { margin: 0 0 10px; font-size: clamp(24px, 5vw, 32px); }
@@ -149,6 +157,10 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
   .repair-actions { flex-direction: column; }
   .repair-actions > *, .repair-continue { width: 100%; }
   .saved-round-actions > *, .round-choice-actions > *, .check-button, .next-button { width: 100%; }
+  .mode-card.route-mix-card { align-items: stretch !important; flex-direction: column !important; }
+  .route-mix-card .route-progress-summary { width: 100%; margin-bottom: 12px; flex-direction: row; }
+  .route-progress-summary { gap: 5px; }
+  .route-completion, .route-record { padding-inline: 7px; font-size: 11px; }
   .round-choice-actions { flex-direction: column; }
   .choice-grid { grid-template-columns: 1fr; }
   .lesson-list { display: grid; }

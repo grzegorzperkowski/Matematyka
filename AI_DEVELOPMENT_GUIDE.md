@@ -6,6 +6,12 @@ follow `CHAPTER_TEMPLATE.md`.
 
 ## Documentation ownership
 
+- `PRODUCT_FEATURE_BRIEF.md` is the canonical product input for feature-gap
+  analysis and new-feature ideation. It describes the target users, current
+  capabilities, meaningful constraints and unknowns without implementation
+  detail. Every task that adds, removes or materially changes a user-facing
+  feature must update this brief in the same change. The feature is not
+  complete until the brief accurately describes the resulting product.
 - This guide owns product rules, architecture, shared behaviour and general
   delivery standards.
 - `CHAPTER_TEMPLATE.md` owns the workflow, data contract, tests and release
@@ -169,6 +175,13 @@ one chapter only, run that chapter's tests plus checks for any shared files that
 changed. Always run JavaScript syntax checks and `git diff --check`. Perform
 browser checks when a browser is available; never report source inspection as
 manual verification.
+
+Before handoff, check whether the work added, removed or materially changed
+anything a user can experience. If it did, update `PRODUCT_FEATURE_BRIEF.md`:
+move the capability into the correct status, revise the relevant journey or
+feature inventory, remove obsolete “not currently present” statements and set
+the verification date. Do not leave an implemented feature documented only in
+a plan, audit or implementation note.
 
 For handoff, lead with the result and briefly list teaching coverage,
 architecture, changed files, automated/manual verification and any known

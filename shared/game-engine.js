@@ -8,7 +8,7 @@
   const REPAIR_ANIMATIONS = ["folding-bridge", "method-lantern", "repair-stamp"];
 
   function emptyData() {
-    return { version: 2, rounds: {}, bestScores: {}, bestStreaks: {}, legacyBestScores: {} };
+    return { version: 2, rounds: {}, bestScores: {}, bestStreaks: {}, completedRoutes: {}, legacyBestScores: {} };
   }
 
   function isQuestion(value) {
@@ -101,7 +101,8 @@
         if (parsed?.version === 2 && parsed.rounds && parsed.bestScores && parsed.legacyBestScores) {
           data = {
             ...parsed,
-            bestStreaks: parsed.bestStreaks && typeof parsed.bestStreaks === "object" ? parsed.bestStreaks : {}
+            bestStreaks: parsed.bestStreaks && typeof parsed.bestStreaks === "object" ? parsed.bestStreaks : {},
+            completedRoutes: parsed.completedRoutes && typeof parsed.completedRoutes === "object" ? parsed.completedRoutes : {}
           };
         }
       } catch {
@@ -163,9 +164,16 @@
         return Number.isFinite(value) && value > 0 ? value : 0;
       },
       saveBest(mode, score) {
-        data.bestScores[keyFor(mode)] = Math.max(this.getBest(mode), score);
+        const normalizedScore = Number(score);
+        data.bestScores[keyFor(mode)] = Math.max(this.getBest(mode), Number.isFinite(normalizedScore) ? normalizedScore : 0);
+        data.completedRoutes[keyFor(mode)] = true;
         persist();
         return data.bestScores[keyFor(mode)];
+      },
+      hasCompleted(mode) {
+        const key = keyFor(mode);
+        const savedBest = data.bestScores[key];
+        return data.completedRoutes[key] === true || (typeof savedBest === "number" && Number.isFinite(savedBest) && savedBest >= 0);
       },
       getBestStreak(mode) {
         const value = Number(data.bestStreaks[keyFor(mode)]);
@@ -1142,6 +1150,31 @@
       return rounds;
     }
 
+    function renderRouteProgress() {
+      screens.start.querySelectorAll("a.mode-card[href]").forEach((card) => {
+        let mode = null;
+        try {
+          mode = new URL(card.getAttribute("href"), global.location.href).searchParams.get("exercise");
+        } catch { /* An invalid card address is left unchanged. */ }
+        if (!mode || !Object.hasOwn(config.routeLabels, mode)) return;
+
+        card.querySelector(".route-progress-summary")?.remove();
+        card.classList.toggle("route-completed", store.hasCompleted(mode));
+        card.classList.toggle("route-mix-card", mode === "mix");
+
+        const completed = store.hasCompleted(mode);
+        const summary = document.createElement("div");
+        summary.className = "route-progress-summary";
+        const completion = addText(summary, "span", completed ? "Ukończona" : "Nieukończona", `route-completion ${completed ? "completed" : "pending"}`);
+        completion.setAttribute("aria-label", completed ? "Trasa ukończona" : "Trasa jeszcze nieukończona");
+        addText(summary, "span", completed ? `Rekord: ${store.getBest(mode)} pkt` : "Rekord: —", "route-record");
+
+        const action = card.querySelector(".primary-button");
+        if (action) card.insertBefore(summary, action);
+        else card.append(summary);
+      });
+    }
+
     function rawAnswer() { return $("#answerInput")?.value.trim() || $(".choice-button.selected")?.dataset.choice || ""; }
     function checkAnswer(raw) {
       if (state.answered) return;
@@ -1225,6 +1258,7 @@
     prepareEngagementUi();
     const requested = exerciseFromAddress();
     el.bestScore.textContent = store.getLegacyBest() ? `dawny rekord: ${store.getLegacyBest()} pkt` : "—";
+    renderRouteProgress();
     const savedRounds = renderSavedRounds(requested);
     const untouchedRequestedRound = requested ? store.getRound(requested) : null;
     if (untouchedRequestedRound && !roundHasProgress(untouchedRequestedRound)) {
