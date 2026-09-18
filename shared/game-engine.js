@@ -304,11 +304,17 @@
       store.saveRound(round);
     }
 
+    function hideToast() {
+      el.toast.classList.remove("visible");
+      global.clearTimeout(showToast.timer);
+    }
+
     function showToast(message) {
+      if (repairStageIs("offer") || repairStageIs("help") || repairStageIs("retry")) return;
       el.toast.textContent = message;
       el.toast.classList.add("visible");
       global.clearTimeout(showToast.timer);
-      showToast.timer = global.setTimeout(() => el.toast.classList.remove("visible"), 2200);
+      showToast.timer = global.setTimeout(hideToast, 2200);
     }
 
     function showFifthStepEncouragement() {
@@ -965,6 +971,7 @@
     }
 
     function showRepairOffer(question) {
+      hideToast();
       disableAnswerControls(question, false);
       el.feedback.hidden = false;
       el.feedback.className = "feedback wrong repair-panel repair-offer";
@@ -985,6 +992,7 @@
     }
 
     function showRepairHelp(question) {
+      hideToast();
       el.answerArea.replaceChildren();
       el.feedback.hidden = false;
       el.feedback.className = "feedback repair-panel repair-help-stage";

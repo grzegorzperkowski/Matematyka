@@ -212,7 +212,9 @@ These answers would materially improve feature proposals:
 - Semantic HTML and native buttons/inputs.
 - Full keyboard-oriented flow, including Enter-to-submit.
 - Visible focus states.
-- Polite live announcements for feedback and status changes.
+- Polite live announcements for feedback and status changes. Status toasts
+  stay off the answer button on a narrow screen and are dismissed while the
+  Repair Bridge panel is open.
 - Text and state cues that do not rely on colour alone.
 - Question content appears before the reference panel on narrow screens.
 - Layout is intended to remain usable at 320 px viewport width.
