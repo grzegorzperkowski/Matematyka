@@ -117,7 +117,8 @@ These answers would materially improve feature proposals:
 ## Core user journey available now
 
 1. The child opens a town-style homepage and chooses one of eight visible
-   curriculum chapters. Seven are playable; one is marked as coming soon.
+   curriculum chapters. Seven are playable; one is marked as coming soon. The
+   hero action starts Chapter 1, “Liczby i działania”.
 2. Inside a published chapter, the child chooses a focused station or a mixed
    station covering that chapter.
 3. Each station starts a ten-question round. Questions ask the child either to
@@ -145,7 +146,8 @@ These answers would materially improve feature proposals:
 
 ### Navigation and content choice
 
-- Homepage with eight chapter cards and clear published/coming-soon status.
+- Homepage with eight chapter cards, a hero action into Chapter 1, and clear
+  published/coming-soon status.
 - A chapter menu with focused practice stations and one mixed station.
 - Direct links to individual stations, so a specific exercise can be shared or
   reopened.
@@ -358,3 +360,4 @@ research finding changes. Do not update it for refactors, file moves, CSS
 changes, test changes, cache versions or other implementation-only work.
 
 Last verified against the current application source: **2026-09-18**.
+
