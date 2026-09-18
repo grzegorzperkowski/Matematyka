@@ -139,8 +139,9 @@ These answers would materially improve feature proposals:
    can resume one or deliberately start it again.
 9. At the end, the child sees points, correct answers, one to three stars, the
    longest streak, the best score and supportive next-step wording.
-10. Back at a chapter menu, completed stations and their best scores are
-    visible.
+10. Back at a chapter menu, stations the child has started or finished show
+    completion and, after a finished round, their best score. Untouched
+    stations stay unmarked.
 
 ## Feature inventory — available now
 
@@ -182,7 +183,9 @@ These answers would materially improve feature proposals:
   correct answers.
 - End-of-round result with accuracy, points, one-to-three-star summary, longest
   streak and personal best score.
-- Completion status and best score shown on station cards.
+- Completion status shown on a station card only after that station has been
+  started or finished; the best score appears after a finished round. Untouched
+  stations have no empty “not completed” mark.
 - No public leaderboard or child-to-child comparison.
 
 ### Continuity and persistence

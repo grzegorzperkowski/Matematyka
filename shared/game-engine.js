@@ -96,6 +96,26 @@
     return Boolean(round && (round.index > 0 || round.score > 0 || round.correct > 0 || round.answered || round.hintUsed || String(round.currentAnswer || "").trim()));
   }
 
+  function routeCardProgress(completed, inProgress, bestScore) {
+    if (completed) {
+      return {
+        label: "Ukończona",
+        completed: true,
+        record: `Rekord: ${bestScore} pkt`,
+        ariaLabel: "Trasa ukończona"
+      };
+    }
+    if (inProgress) {
+      return {
+        label: "Nieukończona",
+        completed: false,
+        record: null,
+        ariaLabel: "Trasa jeszcze nieukończona"
+      };
+    }
+    return null;
+  }
+
   function createStore(storage, chapterId, validModes, roundRevisions = {}) {
     let data = emptyData();
     let available = Boolean(storage);
@@ -1207,15 +1227,17 @@
         if (!mode || !Object.hasOwn(config.routeLabels, mode)) return;
 
         card.querySelector(".route-progress-summary")?.remove();
-        card.classList.toggle("route-completed", store.hasCompleted(mode));
-        card.classList.toggle("route-mix-card", mode === "mix");
-
         const completed = store.hasCompleted(mode);
+        const progress = routeCardProgress(completed, roundHasProgress(store.getRound(mode)), store.getBest(mode));
+        card.classList.toggle("route-completed", completed);
+        card.classList.toggle("route-mix-card", mode === "mix");
+        if (!progress) return;
+
         const summary = document.createElement("div");
         summary.className = "route-progress-summary";
-        const completion = addText(summary, "span", completed ? "Ukończona" : "Nieukończona", `route-completion ${completed ? "completed" : "pending"}`);
-        completion.setAttribute("aria-label", completed ? "Trasa ukończona" : "Trasa jeszcze nieukończona");
-        addText(summary, "span", completed ? `Rekord: ${store.getBest(mode)} pkt` : "Rekord: —", "route-record");
+        const completion = addText(summary, "span", progress.label, `route-completion ${progress.completed ? "completed" : "pending"}`);
+        completion.setAttribute("aria-label", progress.ariaLabel);
+        if (progress.record) addText(summary, "span", progress.record, "route-record");
 
         const action = card.querySelector(".primary-button");
         if (action) card.insertBefore(summary, action);
@@ -1324,7 +1346,7 @@
   }
 
   global.MathTownGame = {
-    createStore, isQuestion, isRound, resultLevel, roundHasProgress, roundLaunchDecision,
+    createStore, isQuestion, isRound, resultLevel, roundHasProgress, routeCardProgress, roundLaunchDecision,
     createRepairBridge, rollRepairBridge, normalizeRepairBridge, fifthStepEncouragement, start
   };
 })(typeof window === "undefined" ? globalThis : window);

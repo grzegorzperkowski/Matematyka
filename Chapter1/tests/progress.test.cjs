@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const source = readFileSync(join(__dirname, "..", "..", "shared", "game-engine.js"), "utf8");
 const context = {};
 vm.runInNewContext(source, context);
-const { createStore, resultLevel, roundHasProgress, roundLaunchDecision, fifthStepEncouragement } = context.MathTownGame;
+const { createStore, resultLevel, roundHasProgress, routeCardProgress, roundLaunchDecision, fifthStepEncouragement } = context.MathTownGame;
 
 function memoryStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -52,6 +52,20 @@ test("best streaks are optional, isolated and only increase", () => {
   assert.equal(store.saveBestStreak("mix", 2), 4);
   assert.equal(store.getBestStreak("moreless"), 0);
   assert.equal(store.getBest("mix"), 42);
+});
+
+test("station cards hide completion until a route is started or finished", () => {
+  assert.equal(routeCardProgress(false, false, 0), null);
+  const pending = routeCardProgress(false, true, 0);
+  assert.equal(pending.label, "Nieukończona");
+  assert.equal(pending.completed, false);
+  assert.equal(pending.record, null);
+  assert.equal(pending.ariaLabel, "Trasa jeszcze nieukończona");
+  const done = routeCardProgress(true, false, 42);
+  assert.equal(done.label, "Ukończona");
+  assert.equal(done.completed, true);
+  assert.equal(done.record, "Rekord: 42 pkt");
+  assert.equal(done.ariaLabel, "Trasa ukończona");
 });
 
 test("completed routes include old records and zero-point finished rounds", () => {
