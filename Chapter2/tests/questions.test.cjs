@@ -1,8 +1,9 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
+require("../../shared/game-engine.js");
 let config;
-global.MathTownGame = { start(value) { config = value; } };
+global.MathTownGame = { ...global.MathTownGame, start(value) { config = value; } };
 require("../game.js");
 
 test("each Chapter 2 station produces a complete ten-question round", () => {

@@ -126,19 +126,30 @@ These answers would materially improve feature proposals:
    mathematical visual.
 4. During the round the child sees the route name, current step, completed
    steps, score, correct-answer count, current streak and personal streak
-   record.
+   record. Steps where a hint was used carry a discreet mark. The side panel
+   (“Mała ściąga”) matches the current station, not a generic chapter dump.
 5. The child can reveal a hint before answering. The app then awards fewer base
-   points for a correct answer, while still recognizing it as correct.
-6. After an answer the app gives immediate, supportive feedback and an
-   explanation of the method or result. A wrong answer does not block progress.
+   points for a correct answer, while still recognizing it as correct. Hint use
+   is marked as help on the step bar and on the result screen, not as failure.
+6. After an answer the app gives immediate, supportive feedback, an
+   explanation, and a short Polish name for the method just used. A wrong
+   answer does not block progress.
 7. 85% of new rounds offer one voluntary “Most naprawczy” (Repair Bridge):
    after a wrong first answer, the child can read help and retry the same
    example. The original mistake remains a mistake for score, accuracy, stars
    and streak.
-8. The app automatically preserves unfinished rounds on the device. The child
-   can resume one or deliberately start it again.
+8. The app automatically preserves unfinished rounds on the device after the
+   child has given at least one correct answer. A round left with no correct
+   answers is not saved, so it does not come back as “Dokończ” or an unfinished
+   station. After a saved round exists, the child can resume it or deliberately
+   start again. Resume names the station, the current step and the last method,
+   not the answer. The homepage can show a “Dokończ: …” chip; tapping it
+   resumes that round immediately, without asking again. Opening the same
+   station from a chapter menu still offers resume, restart or closing the
+   window to stay on the menu.
 9. At the end, the child sees points, correct answers, one to three stars, the
-   longest streak, the best score and supportive next-step wording.
+   longest streak, the best score, one or two method names from the round,
+   hint-as-help wording when a hint was used, and supportive next-step wording.
 10. Back at a chapter menu, stations the child has started or finished show
     completion and, after a finished round, their best score. Untouched
     stations stay unmarked.
@@ -151,7 +162,9 @@ These answers would materially improve feature proposals:
   published/coming-soon status.
 - A chapter menu with focused practice stations and one mixed station.
 - Direct links to individual stations, so a specific exercise can be shared or
-  reopened.
+  reopened as `ChapterN/index.html?exercise=…`. Directory addresses such as
+  `/Chapter1` are normalized to `/Chapter1/` so a station query does not become
+  `/Chapter1?exercise=…`.
 - Child-friendly Polish names and short descriptions for chapters and stations.
 - A return path from a round to its chapter menu and from a chapter to the
   homepage.
@@ -170,13 +183,19 @@ These answers would materially improve feature proposals:
 - Immediate correctness feedback after submission.
 - A worked or explanatory response for every question.
 - A persistent chapter-specific “how to think” reference panel during play.
-- A mixed station that samples all focused skills in its chapter.
+- A mixed station that samples all focused skills in its chapter. Chapter 1
+  has eleven focused stations, so its mix keeps ten questions, rotates the
+  omitted station and names it on the route heading.
+- A short Polish method name after each answer and again on the result screen
+  (one or two methods from the round).
+- A station-specific “Mała ściąga” during play when the chapter supplies one.
 - One optional guided retry after a mistake in most new rounds. The retry
   supports learning without rewriting the original performance result.
 
 ### Motivation and progress
 
-- Visible ten-step progress, including completed and current steps.
+- Visible ten-step progress, including completed and current steps, with a
+  discreet mark on steps where a hint was used.
 - Score, correct-answer count and current answer streak.
 - Personal best streak for each station.
 - Streak milestones and varied supportive feedback.
@@ -191,10 +210,14 @@ These answers would materially improve feature proposals:
 
 ### Continuity and persistence
 
-- Automatic local saving of each unfinished station round.
+- Automatic local saving of an unfinished station round only after at least
+  one correct answer. Leaving earlier discards that attempt.
 - Separate unfinished progress and records for each chapter and station.
-- Resume/restart choice when opening a station with saved progress.
+- Resume/restart choice when opening a station with saved progress, with a
+  close control to stay on the chapter menu.
 - A chapter-level list of unfinished rounds with quick resume actions.
+- A homepage “Dokończ: …” chip that opens an unfinished chapter round and
+  resumes it immediately. The resume/restart choice remains on the chapter menu.
 - Saved answer, hint state, score, position, streak and guided-retry state.
 - Defensive behavior when browser storage is unavailable: the app remains
   playable, but persistence is lost.
@@ -239,7 +262,7 @@ chapters, plus one mixed station per chapter (**74 playable stations in all**).
 
 | Chapter | Status | Focused skills available now |
 | --- | --- | --- |
-| 1. Liczby i działania | Available now | addition and subtraction; comparisons such as “how many more”; multiplication and division; multiplying/dividing by 10, 100 and similar powers; times more/times less; division with remainder; squares and cubes; word problems; order of operations; number lines and puzzles |
+| 1. Liczby i działania | Available now | addition and subtraction; comparisons such as “how many more”; multiplication and division; multiplying/dividing by 10, 100 and similar powers; times more/times less; division with remainder; squares and cubes; word problems; order of operations; number lines and puzzles. Mixed rounds use ten of the eleven stations and rotate which one rests. |
 | 2. Systemy zapisywania liczb | Available now | decimal place value and reading numbers; comparing numbers; large-number calculations; money; length; mass; Roman numerals; calendar; clocks and elapsed time |
 | 3. Działania pisemne | Available now | written addition; written subtraction; multiplication by one digit; longer multiplication; division by one digit; longer division; written-method word problems |
 | 4. Figury geometryczne | Available now | points, lines, segments, rays and broken lines; parallel/perpendicular relations; lengths; angle types and measurement; polygons; rectangles and squares; perimeter; circles; scale |

@@ -5,7 +5,7 @@
   bottom: auto;
   left: 50%;
   z-index: 30;
-  max-width: min(300px, calc(100vw - 24px));
+  max-width: min(360px, calc(100vw - 24px));
   padding: 13px 16px;
   border-radius: 12px;
   background: #28252f;
@@ -58,12 +58,53 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .route-record { color: #574787; font-variant-numeric: tabular-nums; }
 .mode-card.route-completed { border-color: #9bc8a5; }
 .route-mix-card .route-progress-summary { width: auto; margin: 0; flex: 0 0 auto; flex-direction: column; align-items: stretch; }
-.round-choice-dialog { box-sizing: border-box; width: min(92vw, 520px); padding: 26px; border: 3px solid #ffd166; border-radius: 20px; background: #fffaf2; color: #28252f; box-shadow: 0 22px 70px rgba(40,37,47,.32); }
+.round-choice-dialog { position: relative; box-sizing: border-box; width: min(92vw, 520px); padding: 26px 52px 26px 26px; border: 3px solid #ffd166; border-radius: 20px; background: #fffaf2; color: #28252f; box-shadow: 0 22px 70px rgba(40,37,47,.32); }
 .round-choice-dialog::backdrop { background: rgba(40,37,47,.58); backdrop-filter: blur(2px); }
 .round-choice-dialog h2 { margin: 0 0 10px; font-size: clamp(24px, 5vw, 32px); }
 .round-choice-dialog p { margin: 0; line-height: 1.55; }
 .round-choice-dialog .round-choice-hint { margin-top: 8px; color: #6d6875; }
+.round-choice-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  padding: 0;
+  border: 2px solid #28252f;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 3px 3px 0 #ffd166;
+  transition: transform .22s ease, background .22s ease;
+  animation: round-choice-close-in .34s ease-out;
+}
+.round-choice-close span {
+  position: absolute;
+  left: 10px;
+  width: 16px;
+  height: 3px;
+  border-radius: 99px;
+  background: #28252f;
+  transform-origin: center;
+  animation: round-choice-x-in .32s ease-out;
+}
+.round-choice-close span:first-child { transform: rotate(45deg); }
+.round-choice-close span:last-child { transform: rotate(-45deg); animation-delay: .05s; }
+.round-choice-close:hover,
+.round-choice-close:focus-visible {
+  background: #ffd166;
+  transform: rotate(90deg);
+}
 .round-choice-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 22px; }
+@keyframes round-choice-close-in {
+  from { opacity: 0; transform: scale(.7) rotate(-18deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes round-choice-x-in {
+  from { opacity: 0; transform: rotate(0) scaleX(.2); }
+}
 .answer-input { border-color: #b8aa99; }
 .check-button { background: #187d7c; }
 .choice-button { border-color: #b8aa99; }
@@ -99,10 +140,28 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .next-button.wrong { color: #7d3518; }
 .progress-track.step-progress { height: 30px; overflow: visible; border-radius: 0; background: transparent; }
 .step-progress .progress-bar { display: none; }
+.progress-label { flex-wrap: wrap; gap: 6px; }
+#routeName { min-width: 0; }
 .progress-steps { display: grid; grid-template-columns: repeat(var(--round-steps), minmax(0, 1fr)); gap: clamp(2px, .8vw, 6px); height: 30px; }
 .progress-step { display: grid; min-width: 0; height: 28px; place-items: center; border: 2px solid #b8aa99; border-radius: 9px; background: #fffaf2; color: #6d6875; font-size: 11px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
 .progress-step.current { border-color: #187d7c; color: #145f5e; box-shadow: 0 0 0 3px rgba(24,125,124,.16); }
 .progress-step.completed { border-color: #337947; background: #e5f6e8; color: #1f5c34; }
+.progress-step.hint-used { position: relative; }
+.progress-step.hint-used::after {
+  position: absolute;
+  top: 2px;
+  right: 3px;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #28252f;
+  border-radius: 50%;
+  background: #7b61c9;
+  content: "";
+}
+.method-label { margin-top: 8px !important; color: #574787; font-size: 13px; font-weight: 800; }
+.feedback.wrong .method-label { color: #574787; }
+.result-methods { max-width: 480px; margin: 0 auto 18px; color: #574787; font-size: 15px; font-weight: 800; line-height: 1.4; }
+.result-hints strong { color: #574787 !important; }
 .streak-best { display: block; margin-top: 2px; color: #6d6875; font-size: 10px; font-weight: 800; line-height: 1; text-transform: lowercase; }
 .stat-pill.streak-active { border-color: #7b61c9; background: #f4efff; }
 .feedback.feedback-pop { animation: feedback-pop .28s ease-out; }
@@ -241,6 +300,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 }
 @media (prefers-reduced-motion: reduce) {
   .progress-bar, .feedback.feedback-pop, .stat-pill.streak-pop, .result-card.result-celebrate,
-  .repair-decoration, .repair-decoration.folding-bridge span { animation: none; transition: none; }
+  .repair-decoration, .repair-decoration.folding-bridge span,
+  .round-choice-close, .round-choice-close span { animation: none; transition: none; }
   .milestone-toast.visible { animation-name: milestone-toast-reduced; }
 }

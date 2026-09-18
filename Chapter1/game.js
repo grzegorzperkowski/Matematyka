@@ -16,23 +16,11 @@
     mix: "Wielka przejażdżka"
   };
 
+  const polishCount = MathTownGame.polishCount;
+  const polishVerb = MathTownGame.polishVerb;
   function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
   function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
   function shuffle(list) { return [...list].sort(() => Math.random() - 0.5); }
-  function polishFew(count) {
-    const absolute = Math.abs(Number(count));
-    const mod10 = absolute % 10;
-    const mod100 = absolute % 100;
-    return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14);
-  }
-  function polishCount(count, one, few, many) {
-    const absolute = Math.abs(Number(count));
-    return `${count} ${absolute === 1 ? one : polishFew(absolute) ? few : many}`;
-  }
-  function polishVerb(count, singular, plural) {
-    const absolute = Math.abs(Number(count));
-    return absolute === 1 || !polishFew(absolute) ? singular : plural;
-  }
 
   function question(data) {
     return { kind: "input", label: "Zadanie", visual: null, ...data };
@@ -379,15 +367,6 @@
     const answer = values[3] + step;
     const options = shuffle([answer, answer + Math.abs(step), answer - Math.abs(step)]);
     return question({ kind: "choice", label: "Ciąg liczb", prompt: `Jaka liczba będzie następna? ${values.join(", ")}, ...`, answer, options, hint: "Sprawdź, o ile zmieniają się kolejne liczby.", explanation: `${step > 0 ? "Dodajemy" : "Odejmujemy"} ${Math.abs(step)}: ${values[3]} ${step > 0 ? "+" : "−"} ${Math.abs(step)} = ${answer}.`, values, visual: { type: "sequence", values } });
-
-    const patterns = [
-      { prompt: "Jaka liczba będzie następna? 157, 167, 177, 187, ...", answer: 197, options: [197, 198, 207], hint: "Każda kolejna liczba jest większa o 10.", explanation: "Dodajemy 10: 187 + 10 = 197.", values: [157, 167, 177, 187] },
-      { prompt: "Jaka liczba będzie następna? 450, 465, 480, 495, ...", answer: 510, options: [500, 505, 510], hint: "Sprawdź, o ile rosną kolejne liczby.", explanation: "Każda liczba rośnie o 15, więc 495 + 15 = 510.", values: [450, 465, 480, 495] },
-      { prompt: "Jaka liczba będzie następna? 250, 240, 230, 220, ...", answer: 210, options: [200, 210, 215], hint: "Tym razem liczby maleją o 10.", explanation: "220 − 10 = 210.", values: [250, 240, 230, 220] },
-      { prompt: "Jaka liczba będzie następna? 500, 492, 484, 476, ...", answer: 468, options: [468, 464, 470], hint: "Od każdej liczby odejmujemy 8.", explanation: "476 − 8 = 468.", values: [500, 492, 484, 476] }
-    ];
-    const chosen = pick(patterns);
-    return question({ kind: "choice", label: "Ciąg liczb", ...chosen, visual: { type: "sequence", values: chosen.values } });
   }
 
   function extraChallengeQuestions() {
@@ -403,41 +382,103 @@
       const n = rand(4, 9), answer = n * (n + 1) / 2, values = Array.from({ length: n - 1 }, (_, i) => (i + 1) * (i + 2) / 2);
       return question({ label: "Zagadki liczbowe", prompt: `Jaka jest ${n}. liczba trójkątna? ${values.join(", ")}, ...`, answer, hint: `Dodaj kolejną liczbę, czyli ${n}.`, explanation: `${values[values.length - 1]} + ${n} = ${answer}.`, visual: { type: "sequence", values } });
     });
+  }
 
-    const fixed = [
-      ["W równaniu x + 27 = 50 jaka liczba kryje się pod x?", 23, "Od 50 odejmij 27.", "x = 50 − 27 = 23.", { type: "number", left: "x + 27", right: "50" }],
-      ["W równaniu 35 + y = 72 jaka liczba kryje się pod y?", 37, "Od 72 odejmij 35.", "y = 72 − 35 = 37.", { type: "number", left: "35 + y", right: "72" }],
-      ["Jaka jest piąta liczba trójkątna? 1, 3, 6, 10, ...", 15, "Dodaj kolejno 1, 2, 3, 4, a potem 5.", "Piąta liczba trójkątna to 1 + 2 + 3 + 4 + 5 = 15.", { type: "sequence", values: [1, 3, 6, 10] }],
-      ["Ile jest liczb dwucyfrowych mniejszych od 20?", 10, "Wypisz je: 10, 11, ..., 19.", "To liczby od 10 do 19, czyli 10 liczb.", { type: "number", left: "10 … 19", right: "?" }],
-      ["Ile jest liczb większych od 260 i jednocześnie mniejszych od 500?", 239, "Policz liczby od 261 do 499: 499 − 261 + 1.", "499 − 261 + 1 = 239 liczb.", { type: "number", left: "261 … 499", right: "?" }]
-    ];
-    return shuffle(fixed).map(([prompt, answer, hint, explanation, visual]) => question({ label: "Zagadki liczbowe", prompt, answer, hint, explanation, visual }));
+  const stationMethods = {
+    park: "policz dane z historii",
+    plusminus: "szukaj wygodnej pary",
+    moreless: "szukanie różnicy",
+    multdiv: "równe grupy",
+    by10: "dopisz lub skreśl zera",
+    timesmore: "razy więcej to mnożenie",
+    remainder: "iloraz i reszta",
+    powers: "równe czynniki",
+    word: "wybierz działanie z treści",
+    order: "nawiasy, potem potęgi",
+    numberline: "równe kroki na osi"
+  };
+
+  const routeHelp = {
+    park: {
+      intro: "W historiach z miasteczka najpierw znajdź dane, potem działanie.",
+      items: ["„o ile więcej” oznacza odejmowanie", "ta sama cena powtarza się — mnoż", "reszty szukaj po kupieniu pełnych żetonów"]
+    },
+    plusminus: {
+      intro: "Szukaj wygodnej pary, zanim policzysz wszystko po kolei.",
+      items: ["liczby dopełniające do 100 łącz razem", "do okrągłej setki dochodź małymi krokami", "odejmując od dziesiątki, odejmij 10 i dodaj resztę"]
+    },
+    moreless: {
+      intro: "„O ile więcej” i „o ile mniej” to zawsze szukanie różnicy.",
+      items: ["większa minus mniejsza", "„jest o … większa” oznacza dodawanie", "„jest o … mniejsza” oznacza odejmowanie"]
+    },
+    multdiv: {
+      intro: "Mnożenie to równe grupy, a dzielenie sprawdzaj mnożeniem.",
+      items: ["a · 0 = 0", "mnożenie łącz w wygodne pary", "dzielna : dzielnik = ? oznacza dzielnik · ? = dzielna"]
+    },
+    by10: {
+      intro: "Przy 10, 100 i 1000 pracuj zerami, nie długim mnożeniem.",
+      items: ["· 10 dopisz jedno zero", ": 10 skreśl jedno zero", "połącz czynniki, które dają 10 albo 100"]
+    },
+    timesmore: {
+      intro: "„Razy więcej” łączy się z mnożeniem, „razy mniej” z dzieleniem.",
+      items: ["razy większa — pomnóż", "razy mniejsza — podziel", "ile razy większa — podziel większą przez mniejszą"]
+    },
+    remainder: {
+      intro: "Przy dzieleniu z resztą najpierw pełne porcje, potem to, co zostaje.",
+      items: ["reszta jest mniejsza od dzielnika", "sprawdź: dzielnik · iloraz + reszta = dzielna", "reszta 0 oznacza, że dzieli się równo"]
+    },
+    powers: {
+      intro: "Wykładnik mówi, ile razy ta sama liczba jest czynnikiem.",
+      items: ["a² = a · a", "a³ = a · a · a", "kwadrat i sześcian to nie to samo co a · 2 albo a · 3"]
+    },
+    word: {
+      intro: "Najpierw zaznacz w głowie, jakie działanie pasuje do treści.",
+      items: ["„razem” oznacza dodawanie", "„po tyle samo” oznacza mnożenie", "wypisz dane, zanim liczysz"]
+    },
+    order: {
+      intro: "Kolejność działań chroni przed pomyłką.",
+      items: ["najpierw nawiasy", "potem potęgi", "potem mnożenie i dzielenie, na końcu dodawanie i odejmowanie"]
+    },
+    numberline: {
+      intro: "Na osi równe kreski oznaczają równe odległości.",
+      items: ["policz kroki, nie zgaduj miejsca", "środek odcinka to połowa sumy końców", "zagadka: zapisz równanie z niewiadomą"]
+    },
+    mix: {
+      intro: "Najpierw rozpoznaj typ zadania, dopiero potem licz.",
+      items: ["„o ile” oznacza różnicę", "„po tyle samo” oznacza mnożenie", "dzielenie sprawdzaj mnożeniem", "nawiasy i potęgi liczymy pierwsze"]
+    }
+  };
+
+  const builders = {
+    park: () => shuffle(parkQuestions()).slice(0, 10).concat(plusMinusQuestions().slice(0, 4)).slice(0, 10),
+    plusminus: plusMinusQuestions,
+    moreless: () => shuffle([...moreLessQuestions().slice(0, 8), patternQuestions(), ...extraChallengeQuestions().slice(0, 1)]),
+    multdiv: multDivQuestions,
+    by10: by10Questions,
+    timesmore: timesMoreQuestions,
+    remainder: remainderQuestions,
+    powers: powersQuestions,
+    word: wordProblemQuestions,
+    order: orderQuestions,
+    numberline: numberLineQuestions
+  };
+
+  function withRoute(routeId, item) {
+    return { ...item, routeId, method: item.method || stationMethods[routeId] || item.label };
   }
 
   function buildQuestions(mode) {
-    if (mode === "park") return shuffle(parkQuestions()).slice(0, 10).concat(plusMinusQuestions().slice(0, 4)).slice(0, 10);
-    if (mode === "plusminus") return plusMinusQuestions();
-    if (mode === "moreless") return shuffle([...moreLessQuestions().slice(0, 8), patternQuestions(), ...extraChallengeQuestions().slice(0, 1)]);
-    if (mode === "multdiv") return multDivQuestions();
-    if (mode === "by10") return by10Questions();
-    if (mode === "timesmore") return timesMoreQuestions();
-    if (mode === "remainder") return remainderQuestions();
-    if (mode === "powers") return powersQuestions();
-    if (mode === "word") return wordProblemQuestions();
-    if (mode === "order") return orderQuestions();
-    if (mode === "numberline") return numberLineQuestions();
-    const pools = [
-      parkQuestions(), plusMinusQuestions(), moreLessQuestions(), multDivQuestions(),
-      by10Questions(), timesMoreQuestions(), remainderQuestions(), powersQuestions(), wordProblemQuestions(),
-      orderQuestions(), numberLineQuestions()
-    ];
-    return shuffle(pools.map((pool) => pick(pool))).slice(0, 10);
+    if (builders[mode]) return builders[mode]().map((item) => withRoute(mode, item));
+    const focused = Object.keys(builders);
+    const omitted = pick(focused);
+    return shuffle(focused.filter((routeId) => routeId !== omitted).map((routeId) => withRoute(routeId, pick(builders[routeId]()))));
   }
 
   MathTownGame.start({
     chapterId: "chapter1",
     chapterTitle: "Liczby i działania",
     routeLabels,
-    buildQuestions
+    buildQuestions,
+    routeHelp
   });
 })();

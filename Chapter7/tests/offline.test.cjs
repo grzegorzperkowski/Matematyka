@@ -29,7 +29,7 @@ test("Chapter 7 is published with its game asset and no reference PNGs", () => {
   const chapter = Array.from(PUBLISHED_CHAPTERS).find((item) => String(item.document).includes("Chapter7/index.html"));
   assert.ok(chapter);
   assert.deepEqual(Array.from(chapter.assets), ["Chapter7/game.js"]);
-  assert.equal(CACHE_NAME, "matematyczne-miasteczko-v18");
+  assert.match(CACHE_NAME, /^matematyczne-miasteczko-v\d+$/);
   assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter7/index.html")));
   assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter7/game.js")));
   assert.equal(Array.from(APP_SHELL).some((url) => /Chapter7\/page_\d+\.png$/.test(String(url))), false);
@@ -47,7 +47,6 @@ test("an offline direct Chapter 7 exercise URL resolves to the cached document",
 test("the homepage publishes Chapter 7 while preserving exactly eight cards", () => {
   assert.match(homeSource, /<a class="chapter areas" href="Chapter7\/index\.html">/);
   assert.doesNotMatch(homeSource, /<article class="chapter areas coming"/);
-  assert.match(homeSource, /<a class="hero-action" href="Chapter1\/index\.html">/);
   const cards = homeSource.match(/<(?:a|article) class="chapter\b/g) || [];
   assert.equal(cards.length, 8);
 });

@@ -68,7 +68,9 @@ MathTownGame.start({
 ```
 
 Do not rename published chapter or route IDs. Each advertised route, including
-`mix`, returns exactly 10 original questions.
+`mix`, returns exactly 10 original questions. Mix must include every focused
+station. If a chapter has more than ten focused stations, keep ten questions,
+rotate which station is omitted, and name the omitted station in the UI.
 
 When a published generator change makes already serialized questions visually
 or mathematically incompatible, keep the route ID stable and set a larger
@@ -86,6 +88,7 @@ Every question has:
   kind: "input",              // or "choice"
   checker: "fraction",        // optional custom checker
   label: "Części całości",
+  method: "porównaj liczniki", // optional; the engine falls back to label
   prompt: "Jaka część figury jest zaznaczona?",
   answer: "3/4",
   hint: "Policz wszystkie równe części i zaznaczone części.",
@@ -207,12 +210,17 @@ Add focused tests for each non-trivial generator rule. At minimum verify:
 Run, substituting the actual chapter number:
 
 ```powershell
-node --test ChapterN/tests/*.test.cjs
-node --check ChapterN/game.js
-node --check shared/game-engine.js
-node --check service-worker.js
+npm test
+npm run check
 git diff --check
 ```
+
+`npm test` runs `node --test **/*.test.cjs`. The directory form of
+`node --test ChapterN/tests` is unreliable here; after shared-engine edits run
+the full glob. Do not hardcode `CACHE_NAME` in tests — assert it matches the
+value exported by `service-worker.js`. Do not assert the homepage hero from a
+chapter test; homepage checks live in `shared/home-offline.test.cjs`. Mix
+coverage belongs in the chapter's own tests.
 
 If shared code changed, also run all published chapter tests. Do not alter an
 unrelated chapter merely to hide a pre-existing failure; report the evidence.

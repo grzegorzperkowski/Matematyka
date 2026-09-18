@@ -18,16 +18,7 @@
   const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
   const pick = (items) => items[Math.floor(Math.random() * items.length)];
   const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
-  const polishFew = (count) => {
-    const absolute = Math.abs(Number(count));
-    const mod10 = absolute % 10;
-    const mod100 = absolute % 100;
-    return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14);
-  };
-  const polishCount = (count, one, few, many) => {
-    const absolute = Math.abs(Number(count));
-    return `${count} ${absolute === 1 ? one : polishFew(absolute) ? few : many}`;
-  };
+  const polishCount = MathTownGame.polishCount;
   const rowsOf = (rows, columns, unitFew, unitMany) =>
     `${polishCount(rows, "rząd", "rzędy", "rzędów")} po ${polishCount(columns, unitFew, unitFew, unitMany)}`;
   const question = (data) => ({ kind: "input", label: "Pola figur", visual: null, ...data });

@@ -23,6 +23,9 @@
     h1 { max-width:620px; margin:0 0 18px; font-size:clamp(38px,5vw,62px); line-height:.98; letter-spacing:-.05em; } h1 span { color:var(--orange); }
     .hero-copy > p { max-width:540px; margin:0; color:var(--muted); font-size:18px; line-height:1.55; }
     .hero-action { display:inline-flex; align-items:center; justify-content:center; width:max-content; margin-top:26px; padding:13px 20px; border-radius:12px; background:var(--orange); color:white; font-weight:900; text-decoration:none; box-shadow:0 7px 0 rgba(201,80,22,.22); transition:transform .15s ease,filter .15s ease; }.hero-action:hover { transform:translateY(-2px); filter:brightness(1.04); }
+    .resume-chips { display:flex; flex-wrap:wrap; gap:10px; margin-top:18px; }
+    .resume-chip { display:inline-flex; align-items:baseline; gap:8px; max-width:100%; padding:8px 14px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.9); color:var(--ink); font-size:14px; font-weight:800; text-decoration:none; box-shadow:0 6px 16px rgba(116,67,25,.08); }
+    .resume-chip span { color:var(--muted); font-size:13px; font-weight:700; }
     .hero-art { position:relative; display:grid; place-items:center; overflow:hidden; background:linear-gradient(155deg,#f58a35 0 37%,#ffd166 37% 100%); }.hero-art::before { position:absolute; inset:0; background:linear-gradient(120deg,rgba(255,255,255,.17),transparent 38%); content:""; }.hero-art img { position:relative; z-index:1; width:min(100%,480px); height:100%; object-fit:contain; mix-blend-mode:multiply; }
     .section-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; margin:40px 0 17px; }.section-heading h2 { margin:0; font-size:clamp(26px,3vw,36px); letter-spacing:-.035em; }.section-heading p { max-width:430px; margin:0; color:var(--muted); line-height:1.42; text-align:right; }
     .chapter-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
@@ -43,7 +46,7 @@
       <span class="top-note">8 matematycznych krain</span>
     </header>
     <section class="hero" aria-labelledby="welcome-title">
-      <div class="hero-copy"><p class="eyebrow">Witaj, odkrywco!</p><h1 id="welcome-title">Wybierz swoją <span>matematyczną</span> przygodę.</h1><p>Każdy rozdział to nowa kraina pełna krótkich wyzwań. Zacznij tam, gdzie masz ochotę ćwiczyć!</p><a class="hero-action" href="Chapter1/index.html">Zacznij od liczb i działań →</a></div>
+      <div class="hero-copy"><p class="eyebrow">Witaj, odkrywco!</p><h1 id="welcome-title">Wybierz swoją <span>matematyczną</span> przygodę.</h1><p>Każdy rozdział to nowa kraina pełna krótkich wyzwań. Zacznij tam, gdzie masz ochotę ćwiczyć!</p><a class="hero-action" href="Chapter1/index.html">Zacznij od liczb i działań →</a><nav class="resume-chips" id="resumeChips" hidden aria-label="Niedokończone rundy"></nav></div>
       <div class="hero-art" aria-hidden="true"><img src="assets/math-town-mascot.png" alt=""></div>
     </section>
     <section id="chapters" aria-labelledby="chapters-title">
@@ -61,7 +64,36 @@
     </section>
     <footer>Matematyczne miasteczko • małe kroki, wielkie odkrycia</footer>
   </main>
+  <script src="shared/game-engine.js"></script>
   <script>
+    (function () {
+      const nav = document.getElementById("resumeChips");
+      if (!nav || !globalThis.MathTownGame) return;
+      const chapters = [
+        { id: "chapter1", title: "Liczby i działania", href: "Chapter1/index.html" },
+        { id: "chapter2", title: "Systemy zapisywania liczb", href: "Chapter2/index.html" },
+        { id: "chapter3", title: "Działania pisemne", href: "Chapter3/index.html" },
+        { id: "chapter4", title: "Figury geometryczne", href: "Chapter4/index.html" },
+        { id: "chapter5", title: "Ułamki zwykłe", href: "Chapter5/index.html" },
+        { id: "chapter6", title: "Ułamki dziesiętne", href: "Chapter6/index.html" },
+        { id: "chapter7", title: "Pola figur", href: "Chapter7/index.html" }
+      ];
+      let parsed = null;
+      try { parsed = JSON.parse(localStorage.getItem("matematyczneMiasteczkoState:v2")); } catch { return; }
+      const chips = MathTownGame.unfinishedHomeChips(parsed, chapters);
+      if (!chips.length) return;
+      chips.forEach((chip) => {
+        const link = document.createElement("a");
+        link.className = "resume-chip";
+        link.href = chip.href;
+        link.append(document.createTextNode(chip.label));
+        const detail = document.createElement("span");
+        detail.textContent = ` · ${chip.detail}`;
+        link.append(detail);
+        nav.append(link);
+      });
+      nav.hidden = false;
+    })();
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("service-worker.js").catch(() => {}));
     }

@@ -28,6 +28,102 @@
     };
   }
 
+  function polishFew(count) {
+    const absolute = Math.abs(Number(count));
+    const mod10 = absolute % 10;
+    const mod100 = absolute % 100;
+    return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14);
+  }
+
+  function polishCount(count, one, few, many) {
+    const absolute = Math.abs(Number(count));
+    return `${count} ${absolute === 1 ? one : polishFew(absolute) ? few : many}`;
+  }
+
+  function polishVerb(count, singular, plural) {
+    const absolute = Math.abs(Number(count));
+    return absolute === 1 || !polishFew(absolute) ? singular : plural;
+  }
+
+  function questionMethod(question) {
+    if (!question || typeof question !== "object") return "";
+    const method = typeof question.method === "string" ? question.method.trim() : "";
+    if (method) return method;
+    const label = typeof question.label === "string" ? question.label.trim() : "";
+    return label && label !== "Zadanie" ? label : "";
+  }
+
+  function rememberedMethods(questions, limit = 2) {
+    const seen = [];
+    if (!Array.isArray(questions)) return seen;
+    const cap = Number.isInteger(limit) && limit > 0 ? limit : 2;
+    for (const question of questions) {
+      const method = questionMethod(question);
+      if (method && !seen.includes(method)) seen.push(method);
+      if (seen.length >= cap) break;
+    }
+    return seen;
+  }
+
+  function lastAnsweredQuestion(round) {
+    if (!round || !Array.isArray(round.questions) || round.questions.length === 0) return null;
+    const index = Number.isInteger(round.index) ? round.index : 0;
+    if (round.answered) return round.questions[index] || null;
+    if (index > 0) return round.questions[index - 1] || null;
+    return null;
+  }
+
+  function resumeSummary({ stationName, current, total, method }) {
+    const station = typeof stationName === "string" && stationName.trim() ? stationName.trim() : "";
+    const hasStep = Number.isInteger(current) && Number.isInteger(total) && current > 0 && total > 0;
+    const parts = [station, hasStep ? `krok ${current}/${total}` : ""].filter(Boolean);
+    const lead = parts.join(", ");
+    if (method) return lead ? `${lead}. Ostatni sposób: ${method}.` : `Ostatni sposób: ${method}.`;
+    return lead ? `${lead}.` : "Przywrócono zapisaną rundę.";
+  }
+
+  function omittedMixStations(routeLabels, questions) {
+    if (!routeLabels || typeof routeLabels !== "object") return [];
+    const focused = Object.keys(routeLabels).filter((id) => id !== "mix");
+    const present = new Set((Array.isArray(questions) ? questions : []).map((question) => question && question.routeId).filter(Boolean));
+    if (present.size === 0) return [];
+    return focused.filter((id) => !present.has(id));
+  }
+
+  function normalizeHintSteps(value, length) {
+    const size = Number.isInteger(length) && length > 0 ? Math.min(length, 100) : 0;
+    const source = Array.isArray(value) ? value : [];
+    return Array.from({ length: size }, (_, index) => source[index] === true);
+  }
+
+  function hintHelpSummary(count) {
+    if (!Number.isInteger(count) || count <= 0) return "";
+    if (count === 1) return "Podpowiedź pomogła w 1 kroku — to nauka, nie porażka.";
+    return `Podpowiedź pomogła w ${count} krokach — to nauka, nie porażka.`;
+  }
+
+  function unfinishedHomeChips(state, chapters) {
+    if (!state || state.version !== 2 || !state.rounds || typeof state.rounds !== "object" || !Array.isArray(chapters)) return [];
+    const chips = [];
+    chapters.forEach((chapter) => {
+      if (!chapter || typeof chapter.id !== "string" || typeof chapter.href !== "string" || typeof chapter.title !== "string") return;
+      const prefix = `${chapter.id}:`;
+      Object.entries(state.rounds).forEach(([key, round]) => {
+        if (!key.startsWith(prefix) || !roundHasProgress(round)) return;
+        const mode = typeof round.mode === "string" && round.mode ? round.mode : key.slice(prefix.length);
+        if (!mode) return;
+        const total = Array.isArray(round.questions) && round.questions.length > 0 ? round.questions.length : 10;
+        const current = Math.min(Math.max((Number.isInteger(round.index) ? round.index : 0) + 1, 1), total);
+        chips.push({
+          href: `${chapter.href}?exercise=${encodeURIComponent(mode)}&resume=1`,
+          label: `Dokończ: ${chapter.title}`,
+          detail: `krok ${current}/${total}`
+        });
+      });
+    });
+    return chips;
+  }
+
   function emptyData() {
     return { version: 2, rounds: {}, bestScores: {}, bestStreaks: {}, completedRoutes: {}, legacyBestScores: {} };
   }
@@ -93,7 +189,7 @@
   }
 
   function roundHasProgress(round) {
-    return Boolean(round && (round.index > 0 || round.score > 0 || round.correct > 0 || round.answered || round.hintUsed || String(round.currentAnswer || "").trim()));
+    return Boolean(round && Number(round.correct) > 0);
   }
 
   function routeCardProgress(completed, inProgress, bestScore) {
@@ -185,7 +281,11 @@
       getRound(mode) {
         const round = data.rounds[keyFor(mode)];
         return isRound(round, validModes) && round.mode === mode && savedRevision(round) === revisionFor(mode)
-          ? { ...round, repairBridge: normalizeRepairBridge(round.repairBridge, round.questions.length, round.index) }
+          ? {
+            ...round,
+            repairBridge: normalizeRepairBridge(round.repairBridge, round.questions.length, round.index),
+            hintSteps: normalizeHintSteps(round.hintSteps, round.questions.length)
+          }
           : null;
       },
       listRounds() {
@@ -193,7 +293,11 @@
       },
       saveRound(round) {
         if (!isRound(round, validModes) || savedRevision(round) !== revisionFor(round.mode)) return false;
-        data.rounds[keyFor(round.mode)] = { ...round, repairBridge: normalizeRepairBridge(round.repairBridge, round.questions.length, round.index) };
+        data.rounds[keyFor(round.mode)] = {
+          ...round,
+          repairBridge: normalizeRepairBridge(round.repairBridge, round.questions.length, round.index),
+          hintSteps: normalizeHintSteps(round.hintSteps, round.questions.length)
+        };
         return persist();
       },
       clearRound(mode) {
@@ -242,9 +346,62 @@
     };
   }
 
-  function roundLaunchDecision(requestedMode, savedRounds) {
+  function resumeRequestedFromSearch(search) {
+    const value = new URLSearchParams(search || "").get("resume");
+    return value === "1" || value === "true";
+  }
+
+  function roundLaunchDecision(requestedMode, savedRounds, options = {}) {
     if (!requestedMode) return "idle";
-    return savedRounds.some((round) => round.mode === requestedMode) ? "choose" : "start";
+    const hasSaved = savedRounds.some((round) => round.mode === requestedMode);
+    if (!hasSaved) return "start";
+    if (options.resume) return "resume";
+    return "choose";
+  }
+
+  function withDirectorySlash(url) {
+    if (url.protocol === "file:" || url.pathname.endsWith("/") || /\.html$/i.test(url.pathname)) return url;
+    const next = new URL(url.href);
+    next.pathname += "/";
+    return next;
+  }
+
+  function directoryRedirectHref(currentHref) {
+    try {
+      const url = new URL(currentHref);
+      const next = withDirectorySlash(url);
+      return next.href === url.href ? null : next.href;
+    } catch {
+      return null;
+    }
+  }
+
+  function chapterPlayHref(currentHref, mode, extra = {}) {
+    const url = withDirectorySlash(new URL(currentHref));
+    if (mode) url.searchParams.set("exercise", mode);
+    else url.searchParams.delete("exercise");
+    url.searchParams.delete("resume");
+    if (extra.resume) url.searchParams.set("resume", String(extra.resume));
+    return url.href;
+  }
+
+  if (global.document && global.document.addEventListener) {
+    const redirect = typeof global.location === "object" ? directoryRedirectHref(global.location.href) : null;
+    if (redirect && global.location && typeof global.location.replace === "function") {
+      global.location.replace(redirect);
+    }
+    global.document.addEventListener("click", (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = event.target && event.target.closest && event.target.closest("a[href]");
+      if (!link) return;
+      const href = link.getAttribute("href") || "";
+      if (!href.startsWith("?exercise=") && !href.startsWith("./?exercise=")) return;
+      if (!directoryRedirectHref(global.location.href)) return;
+      const mode = new URLSearchParams(href.replace(/^\.\//, "")).get("exercise");
+      if (!mode) return;
+      event.preventDefault();
+      global.location.assign(chapterPlayHref(global.location.href, mode));
+    });
   }
 
   function start(config) {
@@ -257,7 +414,8 @@
     const state = {
       mode: "mix", questions: [], index: 0, score: 0, streak: 0, bestStreak: 0, recordStreak: 0,
       correct: 0, answered: false, hintUsed: false, currentAnswer: "", best: 0,
-      lastAnswerSetRecord: false, streakBeforeMistake: 0, repairBridge: createRepairBridge(false)
+      lastAnswerSetRecord: false, streakBeforeMistake: 0, repairBridge: createRepairBridge(false),
+      hintSteps: []
     };
     const el = {
       bestScore: $("#bestScore"), score: $("#score"), streak: $("#streak"), correctCount: $("#correctCount"),
@@ -267,7 +425,7 @@
       feedback: $("#feedback"), feedbackTitle: $("#feedbackTitle"), feedbackText: $("#feedbackText"),
       resultEmoji: $("#resultEmoji"), resultTitle: $("#resultTitle"), resultMessage: $("#resultMessage"),
       resultScore: $("#resultScore"), resultStars: $("#resultStars"), resultCorrect: $("#resultCorrect"),
-      resultBest: $("#resultBest"), resultStreak: null, resultRepair: null, streakBest: null,
+      resultBest: $("#resultBest"), resultStreak: null, resultRepair: null, resultHints: null, resultMethods: null, streakBest: null,
       milestoneToast: null, milestoneMessage: null,
       toast: $("#toast"), savedRounds: $("#savedRounds"), savedRoundsList: $("#savedRoundsList"),
       get nextButton() { return $("#nextButton"); }
@@ -288,6 +446,10 @@
       return Object.hasOwn(config.routeLabels, exercise) ? exercise : null;
     }
 
+    function resumeFromAddress() {
+      return resumeRequestedFromSearch(global.location.search);
+    }
+
     function showScreen(name, focusTarget) {
       Object.entries(screens).forEach(([key, screen]) => { screen.hidden = key !== name; });
       global.scrollTo({ top: 0, behavior: "smooth" });
@@ -295,10 +457,15 @@
     }
 
     function saveProgress() {
+      if (!(Number(state.correct) > 0)) {
+        store.clearRound(state.mode);
+        return;
+      }
       const round = {
         mode: state.mode, questions: state.questions, index: state.index, score: state.score, streak: state.streak, bestStreak: state.bestStreak,
         correct: state.correct, answered: state.answered, hintUsed: state.hintUsed, currentAnswer: state.currentAnswer,
         repairBridge: normalizeRepairBridge(state.repairBridge, state.questions.length, state.index),
+        hintSteps: normalizeHintSteps(state.hintSteps, state.questions.length),
         revision: store.getRevision(state.mode)
       };
       store.saveRound(round);
@@ -309,12 +476,12 @@
       global.clearTimeout(showToast.timer);
     }
 
-    function showToast(message) {
+    function showToast(message, duration = 2200) {
       if (repairStageIs("offer") || repairStageIs("help") || repairStageIs("retry")) return;
       el.toast.textContent = message;
       el.toast.classList.add("visible");
       global.clearTimeout(showToast.timer);
-      showToast.timer = global.setTimeout(hideToast, 2200);
+      showToast.timer = global.setTimeout(hideToast, duration);
     }
 
     function showFifthStepEncouragement() {
@@ -340,17 +507,24 @@
       el.progressText.textContent = `Krok ${current} z ${total} · ukończono ${completed}/${total}`;
       el.progressBar.style.width = `${(completed / total) * 100}%`;
       const progressTrack = el.progressBar.parentElement;
+      const hintedSteps = normalizeHintSteps(state.hintSteps, total).map((used, index) => used ? index + 1 : null).filter(Boolean);
       progressTrack.setAttribute("aria-valuemax", String(total));
       progressTrack.setAttribute("aria-valuenow", String(completed));
-      progressTrack.setAttribute("aria-valuetext", `Ukończono ${completed} z ${total} zadań. Teraz zadanie ${current}.`);
+      progressTrack.setAttribute("aria-valuetext", hintedSteps.length
+        ? `Ukończono ${completed} z ${total} zadań. Teraz zadanie ${current}. Podpowiedź przy krokach ${hintedSteps.join(", ")}.`
+        : `Ukończono ${completed} z ${total} zadań. Teraz zadanie ${current}.`);
       if (el.progressSteps) {
         el.progressSteps.style.setProperty("--round-steps", total);
         while (el.progressSteps.children.length < total) addText(el.progressSteps, "span", el.progressSteps.children.length + 1, "progress-step");
         [...el.progressSteps.children].forEach((step, index) => {
+          const usedHint = Boolean(state.hintSteps && state.hintSteps[index]);
           step.hidden = index >= total;
           step.classList.toggle("completed", index < completed);
           step.classList.toggle("current", index === current - 1 && completed < total);
+          step.classList.toggle("hint-used", usedHint);
           step.textContent = index < completed ? "✓" : String(index + 1);
+          if (usedHint) step.title = "z podpowiedzią";
+          else step.removeAttribute("title");
         });
       }
       if (el.streakBest) el.streakBest.textContent = `rekord ${state.recordStreak}`;
@@ -392,6 +566,18 @@
         el.resultRepair = addText(repairDetail, "strong", "1 przykład");
         repairDetail.append(document.createTextNode("naprawiony z pomocą"));
         resultDetails.append(repairDetail);
+        const hintDetail = document.createElement("div");
+        hintDetail.className = "result-hints";
+        hintDetail.hidden = true;
+        el.resultHints = addText(hintDetail, "strong", "1 krok");
+        hintDetail.append(document.createTextNode("z podpowiedzią"));
+        resultDetails.append(hintDetail);
+      }
+      if (el.resultMessage) {
+        el.resultMethods = document.createElement("p");
+        el.resultMethods.className = "result-methods";
+        el.resultMethods.hidden = true;
+        el.resultMessage.after(el.resultMethods);
       }
 
       el.milestoneToast = document.createElement("div");
@@ -952,6 +1138,34 @@
       el.feedback.replaceChildren(el.feedbackTitle, el.feedbackText);
     }
 
+    function addMethodLabel(question) {
+      const method = questionMethod(question);
+      if (!method) return;
+      addText(el.feedback, "p", `Sposób: ${method}`, "method-label");
+    }
+
+    function applyRouteHelp(mode) {
+      const help = config.routeHelp && (config.routeHelp[mode] || config.routeHelp.mix);
+      if (!help) return;
+      const side = document.querySelector(".side-card");
+      if (!side) return;
+      const intro = side.querySelector("h2 + p");
+      const list = side.querySelector(".lesson-list");
+      if (intro && typeof help.intro === "string") intro.textContent = help.intro;
+      if (list && Array.isArray(help.items)) {
+        list.replaceChildren();
+        help.items.forEach((item) => addText(list, "li", item));
+      }
+    }
+
+    function routeHeading(mode, questions) {
+      const name = config.routeLabels[mode];
+      if (mode !== "mix") return name;
+      const omitted = omittedMixStations(config.routeLabels, questions);
+      if (omitted.length !== 1) return name;
+      return `${name} · dziś bez: ${config.routeLabels[omitted[0]]}`;
+    }
+
     function setNextButton(correct) {
       el.nextButton.hidden = false;
       el.nextButton.disabled = false;
@@ -1004,6 +1218,7 @@
         "Zatrzymaj się na Moście naprawczym",
         "Ta pierwsza odpowiedź nie jest poprawna. Zobacz podpowiedź i sposób rozwiązania, a potem możesz poprawić ten sam przykład. Wynik rundy zachowa pierwszą odpowiedź."
       );
+      addMethodLabel(question);
       const actions = document.createElement("div");
       actions.className = "repair-actions";
       const use = addText(actions, "button", "Zobacz pomoc i spróbuj ponownie", "primary-button");
@@ -1044,6 +1259,7 @@
           : `Prawidłowa odpowiedź: ${question.answer}. ${question.explanation}`
       );
       if (correct) addText(el.feedback, "strong", "Naprawione z pomocą", "repair-success-label");
+      addMethodLabel(question);
       setNextButton(correct);
       replayAnimation(el.feedback, "feedback-pop");
       if (document.hasFocus()) el.nextButton.focus();
@@ -1065,6 +1281,7 @@
           ? question.explanation
           : `Twoja odpowiedź: ${state.currentAnswer}. Prawidłowa odpowiedź: ${question.answer}. ${question.explanation} ${retryMessage}`
       );
+      addMethodLabel(question);
       replayAnimation(el.feedback, "feedback-pop");
       if (correct && state.streak >= 3) replayAnimation(el.streak.closest(".stat-pill"), "streak-pop");
       setNextButton(correct);
@@ -1095,6 +1312,7 @@
         state.lastAnswerSetRecord = false;
         state.streakBeforeMistake = 0;
       }
+      applyRouteHelp(state.mode);
       el.category.textContent = question.label;
       el.questionNumber.textContent = `${String(state.index + 1).padStart(2, "0")} / ${String(state.questions.length).padStart(2, "0")}`;
       el.questionTitle.textContent = question.prompt;
@@ -1150,26 +1368,35 @@
 
     function startGame(mode, saved) {
       const progress = saved && isRound(saved, validModes) ? saved : null;
+      const questions = progress ? progress.questions : config.buildQuestions(mode);
       const freshRound = {
-        mode, questions: progress ? progress.questions : config.buildQuestions(mode), index: 0, score: 0, streak: 0, bestStreak: 0,
+        mode, questions, index: 0, score: 0, streak: 0, bestStreak: 0,
         correct: 0, answered: false, hintUsed: false, currentAnswer: "",
         lastAnswerSetRecord: false, streakBeforeMistake: 0,
-        repairBridge: progress ? normalizeRepairBridge(progress.repairBridge, progress.questions.length, progress.index) : rollRepairBridge()
+        repairBridge: progress ? normalizeRepairBridge(progress.repairBridge, questions.length, progress.index) : rollRepairBridge(),
+        hintSteps: normalizeHintSteps(progress && progress.hintSteps, questions.length)
       };
       Object.assign(state, freshRound, progress || {});
       state.repairBridge = normalizeRepairBridge(state.repairBridge, state.questions.length, state.index);
+      state.hintSteps = normalizeHintSteps(state.hintSteps, state.questions.length);
+      if (state.hintUsed) state.hintSteps[state.index] = true;
       state.bestStreak = Math.max(Number(state.bestStreak) || 0, state.streak);
       state.best = store.getBest(mode);
       state.recordStreak = Math.max(store.getBestStreak(mode), state.bestStreak);
       try {
-        const address = new URL(global.location.href);
-        address.searchParams.set("exercise", mode);
-        global.history.replaceState(null, "", address);
+        global.history.replaceState(null, "", chapterPlayHref(global.location.href, mode));
       } catch { /* Direct-file navigation still works without History API access. */ }
-      el.routeName.textContent = config.routeLabels[mode];
+      el.routeName.textContent = routeHeading(mode, state.questions);
       showScreen("game"); updateStats(); renderQuestion(Boolean(progress));
-      if (progress) showToast("Przywrócono zapisaną rundę.");
-      else if (state.repairBridge.granted) showToast("W tej wyprawie masz jeden Most naprawczy. Jeśli utkniesz, pomoże Ci poprawić jeden przykład po podpowiedzi.");
+      if (progress) {
+        const last = lastAnsweredQuestion(progress);
+        showToast(resumeSummary({
+          stationName: config.routeLabels[mode],
+          current: Math.min((progress.index || 0) + 1, progress.questions.length),
+          total: progress.questions.length,
+          method: questionMethod(last)
+        }), 4500);
+      } else if (state.repairBridge.granted) showToast("W tej wyprawie masz jeden Most naprawczy. Jeśli utkniesz, pomoże Ci poprawić jeden przykład po podpowiedzi.");
     }
 
     function askHowToStart(mode, saved) {
@@ -1178,11 +1405,23 @@
       dialog.setAttribute("aria-labelledby", "round-choice-title");
       dialog.setAttribute("aria-describedby", "round-choice-description");
 
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "round-choice-close";
+      close.setAttribute("aria-label", "Zamknij");
+      close.title = "Zamknij";
+      const closeArmA = addText(close, "span", "");
+      const closeArmB = addText(close, "span", "");
+      closeArmA.setAttribute("aria-hidden", "true");
+      closeArmB.setAttribute("aria-hidden", "true");
+      dialog.append(close);
+
       const title = addText(dialog, "h2", "Dokończyć rozpoczętą grę?");
       title.id = "round-choice-title";
-      const description = addText(dialog, "p", `W grze „${config.routeLabels[mode]}” czeka zapisana runda: wyzwanie ${saved.index + 1} z ${saved.questions.length}, ${saved.score} pkt.`, "round-choice-description");
+      const resumeMethod = questionMethod(lastAnsweredQuestion(saved));
+      const description = addText(dialog, "p", `W grze „${config.routeLabels[mode]}” czeka zapisana runda: krok ${saved.index + 1}/${saved.questions.length}, ${saved.score} pkt${resumeMethod ? `. Ostatni sposób: ${resumeMethod}` : ""}.`, "round-choice-description");
       description.id = "round-choice-description";
-      addText(dialog, "p", "Możesz wrócić do tego miejsca albo rozpocząć tę grę od początku.", "round-choice-hint");
+      addText(dialog, "p", "Możesz wrócić do tego miejsca, zacząć od nowa albo zamknąć to okno i wybrać inną stację.", "round-choice-hint");
 
       const actions = document.createElement("div");
       actions.className = "round-choice-actions";
@@ -1193,21 +1432,41 @@
       restart.type = "button";
       dialog.append(actions);
 
+      let decided = false;
+      function stayOnMenu() {
+        try {
+          global.history.replaceState(null, "", chapterPlayHref(global.location.href, ""));
+        } catch { /* The chapter menu still works with the current address. */ }
+      }
+      function dismiss() {
+        if (typeof dialog.close === "function") dialog.close();
+        else {
+          dialog.remove();
+          stayOnMenu();
+        }
+      }
       function choose(action) {
+        decided = true;
         if (typeof dialog.close === "function") dialog.close();
         dialog.remove();
         action();
       }
 
+      close.addEventListener("click", dismiss);
       resume.addEventListener("click", () => choose(() => startGame(mode, store.getRound(mode) || saved)));
       restart.addEventListener("click", () => choose(() => { store.clearRound(mode); startGame(mode); }));
-      dialog.addEventListener("close", () => dialog.remove(), { once: true });
+      dialog.addEventListener("close", () => {
+        dialog.remove();
+        if (!decided) stayOnMenu();
+      }, { once: true });
       document.body.append(dialog);
       if (typeof dialog.showModal === "function") dialog.showModal();
       else dialog.setAttribute("open", "");
     }
 
     function finishGame() {
+      hideToast();
+      if (el.milestoneToast) el.milestoneToast.classList.remove("visible", ...TOAST_DIRECTIONS.map((direction) => `from-${direction}`));
       const total = state.questions.length;
       const level = resultLevel(state.correct, total);
       const isNewBest = state.score > state.best;
@@ -1230,6 +1489,22 @@
       el.resultStars.setAttribute("aria-label", `${level.stars} z 3 gwiazdek`);
       if (el.resultStreak) el.resultStreak.textContent = state.bestStreak;
       if (el.resultRepair) el.resultRepair.parentElement.hidden = !state.repairBridge.repairCorrect;
+      const methods = rememberedMethods(state.questions);
+      if (el.resultMethods) {
+        el.resultMethods.hidden = methods.length === 0;
+        el.resultMethods.textContent = methods.length === 1
+          ? `Sposób z tej rundy: ${methods[0]}.`
+          : methods.length > 1
+            ? `Sposoby z tej rundy: ${methods.join("; ")}.`
+            : "";
+      }
+      const hintCount = normalizeHintSteps(state.hintSteps, total).filter(Boolean).length;
+      if (el.resultHints) {
+        el.resultHints.parentElement.hidden = hintCount === 0;
+        el.resultHints.textContent = polishCount(hintCount, "krok", "kroki", "kroków");
+        const hintNote = hintHelpSummary(hintCount);
+        if (hintNote) el.resultHints.parentElement.setAttribute("title", hintNote);
+      }
       showScreen("result", el.resultTitle);
       replayAnimation(screens.result.querySelector(".result-card"), "result-celebrate");
     }
@@ -1240,7 +1515,10 @@
       el.savedRoundsList.replaceChildren();
       rounds.sort((a, b) => Number(b.mode === preferredMode) - Number(a.mode === preferredMode)).forEach((round) => {
         const item = document.createElement("div"); item.className = "saved-round";
-        const copy = document.createElement("div"); addText(copy, "strong", config.routeLabels[round.mode]); addText(copy, "span", `Wyzwanie ${round.index + 1} z ${round.questions.length}, ${round.score} pkt`);
+        const copy = document.createElement("div");
+        addText(copy, "strong", config.routeLabels[round.mode]);
+        const lastMethod = questionMethod(lastAnsweredQuestion(round));
+        addText(copy, "span", `Krok ${round.index + 1}/${round.questions.length}, ${round.score} pkt${lastMethod ? ` · ${lastMethod}` : ""}`);
         const actions = document.createElement("div"); actions.className = "saved-round-actions";
         const resume = addText(actions, "button", "Kontynuuj", "primary-button"); resume.type = "button";
         resume.addEventListener("click", () => startGame(round.mode, store.getRound(round.mode)));
@@ -1358,7 +1636,12 @@
       }
     });
     el.hintButton.addEventListener("click", () => {
-      if (state.answered || repairStageIs("retry")) return; state.hintUsed = true; el.hintBox.hidden = false; el.hintButton.disabled = true; el.hintButton.textContent = "💡 Podpowiedź pokazana"; saveProgress(); el.hintBox.focus();
+      if (state.answered || repairStageIs("retry")) return;
+      state.hintUsed = true;
+      state.hintSteps = normalizeHintSteps(state.hintSteps, state.questions.length);
+      state.hintSteps[state.index] = true;
+      el.hintBox.hidden = false; el.hintButton.disabled = true; el.hintButton.textContent = "💡 Podpowiedź pokazana";
+      updateStats(); saveProgress(); el.hintBox.focus();
     });
     $("#backToMenu")?.addEventListener("click", saveProgress);
     $("#playAgain").addEventListener("click", () => { store.clearRound(state.mode); startGame(state.mode); });
@@ -1368,18 +1651,22 @@
     el.bestScore.textContent = store.getLegacyBest() ? `dawny rekord: ${store.getLegacyBest()} pkt` : "—";
     renderRouteProgress();
     const savedRounds = renderSavedRounds(requested);
-    const untouchedRequestedRound = requested ? store.getRound(requested) : null;
-    if (untouchedRequestedRound && !roundHasProgress(untouchedRequestedRound)) {
-      startGame(requested, untouchedRequestedRound);
+    const leftoverRound = requested ? store.getRound(requested) : null;
+    if (leftoverRound && !roundHasProgress(leftoverRound)) {
+      startGame(requested);
       return;
     }
-    const launchDecision = roundLaunchDecision(requested, savedRounds);
+    const launchDecision = roundLaunchDecision(requested, savedRounds, { resume: resumeFromAddress() });
     if (launchDecision === "start") startGame(requested);
+    else if (launchDecision === "resume") startGame(requested, store.getRound(requested));
     else if (launchDecision === "choose") askHowToStart(requested, store.getRound(requested));
   }
 
   global.MathTownGame = {
     createStore, isQuestion, isRound, resultLevel, roundHasProgress, routeCardProgress, roundLaunchDecision,
-    createRepairBridge, rollRepairBridge, normalizeRepairBridge, fifthStepEncouragement, start
+    resumeRequestedFromSearch, directoryRedirectHref, chapterPlayHref,
+    createRepairBridge, rollRepairBridge, normalizeRepairBridge, fifthStepEncouragement, start,
+    polishFew, polishCount, polishVerb, questionMethod, rememberedMethods, lastAnsweredQuestion,
+    resumeSummary, omittedMixStations, normalizeHintSteps, hintHelpSummary, unfinishedHomeChips
   };
 })(typeof window === "undefined" ? globalThis : window);

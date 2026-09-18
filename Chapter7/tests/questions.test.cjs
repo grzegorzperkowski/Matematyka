@@ -14,7 +14,9 @@ function loadConfig(seed = 20260917) {
     return seed / 2 ** 32;
   };
   let config;
-  vm.runInNewContext(source, { Math: math, MathTownGame: { start(value) { config = value; } } });
+  const engineContext = { Math: math };
+  vm.runInNewContext(engineSource, engineContext);
+  vm.runInNewContext(source, { Math: math, MathTownGame: { ...engineContext.MathTownGame, start(value) { config = value; } } });
   return config;
 }
 

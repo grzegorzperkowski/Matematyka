@@ -4,7 +4,7 @@
  * after the site has been opened online once.
  */
 const CACHE_PREFIX = "matematyczne-miasteczko-";
-const CACHE_NAME = `${CACHE_PREFIX}v18`;
+const CACHE_NAME = `${CACHE_PREFIX}v23`;
 const NETWORK_TIMEOUT_MS = 3000;
 const APP_SHELL_URL = new URL("./", self.registration.scope).href;
 const INDEX_URL = new URL("index.html", self.registration.scope).href;

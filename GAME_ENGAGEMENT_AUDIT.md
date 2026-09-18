@@ -1,5 +1,10 @@
 # Audyt zaangażowania — Matematyczne miasteczko
 
+> Historical snapshot from before numbered steps, streak records, Most
+> naprawczy and method labels shipped. It is not the live product inventory.
+> Current capabilities: `PRODUCT_FEATURE_BRIEF.md`. Proposed leftovers:
+> `REMAINING_IMPROVEMENTS.md`. Do not treat missing items here as current gaps.
+
 ## Zakres i obecny stan
 
 Audyt obejmuje stronę główną, wspólny silnik i style oraz reprezentatywne

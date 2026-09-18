@@ -83,15 +83,19 @@ ChapterN/index.html?exercise=<exercise-id>
 ```
 
 Use explicit `index.html` links because directory URLs do not work consistently
-when opened from the file system. Once published, do not rename a `chapterId` or
+when opened from the file system. HTTP directory addresses without a trailing
+slash (`/Chapter1`) must be turned into `/Chapter1/` before applying
+`?exercise=`; otherwise the browser navigates to `/Chapter1?exercise=…`, which
+is not the chapter document. Once published, do not rename a `chapterId` or
 exercise ID: `chapterId:exerciseId` is both a saved-progress key and part of the
 public URL.
 
 The engine stores version 2 data under
 `matematyczneMiasteczkoState:v2`. Unfinished rounds and best scores are isolated
 by chapter and exercise. Keep storage optional and defensive; the game must
-still work when `localStorage` is unavailable or throws. Clear only the round
-that was completed or explicitly restarted.
+still work when `localStorage` is unavailable or throws. Persist an unfinished
+round only after at least one correct answer. Clear the round that was
+completed, explicitly restarted, or left with no correct answers.
 
 ## Offline delivery
 

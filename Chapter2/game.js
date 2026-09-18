@@ -17,20 +17,8 @@
   const shuffle = (items) => [...items].sort(() => Math.random() - 0.5);
   const pick = (items) => items[Math.floor(Math.random() * items.length)];
   const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-  const polishFew = (count) => {
-    const absolute = Math.abs(Number(count));
-    const mod10 = absolute % 10;
-    const mod100 = absolute % 100;
-    return mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14);
-  };
-  const polishCount = (count, one, few, many) => {
-    const absolute = Math.abs(Number(count));
-    return `${count} ${absolute === 1 ? one : polishFew(absolute) ? few : many}`;
-  };
-  const polishVerb = (count, singular, plural) => {
-    const absolute = Math.abs(Number(count));
-    return absolute === 1 || !polishFew(absolute) ? singular : plural;
-  };
+  const polishCount = MathTownGame.polishCount;
+  const polishVerb = MathTownGame.polishVerb;
   const format = (number) => number.toLocaleString("pl-PL");
   const question = (data) => ({ kind: "input", label: "Zadanie", visual: null, ...data });
   const equation = (expression, caption) => ({ type: "equation", expression, caption });

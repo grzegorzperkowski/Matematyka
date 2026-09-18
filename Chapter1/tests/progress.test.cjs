@@ -5,9 +5,9 @@ const { test } = require("node:test");
 const vm = require("node:vm");
 
 const source = readFileSync(join(__dirname, "..", "..", "shared", "game-engine.js"), "utf8");
-const context = {};
+const context = { URLSearchParams, URL };
 vm.runInNewContext(source, context);
-const { createStore, resultLevel, roundHasProgress, routeCardProgress, roundLaunchDecision, fifthStepEncouragement } = context.MathTownGame;
+const { createStore, resultLevel, roundHasProgress, routeCardProgress, roundLaunchDecision, resumeRequestedFromSearch, fifthStepEncouragement } = context.MathTownGame;
 
 function memoryStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -117,19 +117,36 @@ test("only a saved round for the requested game requires a start choice", () => 
   assert.equal(roundLaunchDecision(null, savedRounds), "idle");
   assert.equal(roundLaunchDecision("park", savedRounds), "start");
   assert.equal(roundLaunchDecision("moreless", savedRounds), "choose");
+  assert.equal(roundLaunchDecision("moreless", savedRounds, { resume: true }), "resume");
+  assert.equal(roundLaunchDecision("park", savedRounds, { resume: true }), "start");
+  assert.equal(resumeRequestedFromSearch("?exercise=moreless&resume=1"), true);
+  assert.equal(resumeRequestedFromSearch("?exercise=moreless"), false);
 });
 
-test("an untouched first question is not offered as an unfinished round", () => {
+test("an interrupted round is unfinished only after a correct answer", () => {
   const store = createStore(memoryStorage(), "chapter1", ["moreless"]);
-  const untouched = { ...round("moreless"), hintUsed: false };
-  assert.equal(roundHasProgress(untouched), false);
-  assert.equal(store.saveRound(untouched), true);
+  const started = { ...round("moreless"), hintUsed: false, currentAnswer: "1", answered: true };
+  assert.equal(roundHasProgress(started), false);
+  assert.equal(store.saveRound(started), true);
   assert.equal(store.listRounds().length, 0);
 
-  untouched.currentAnswer = "1";
-  assert.equal(roundHasProgress(untouched), true);
-  assert.equal(store.saveRound(untouched), true);
+  started.correct = 1;
+  started.score = 10;
+  assert.equal(roundHasProgress(started), true);
+  assert.equal(store.saveRound(started), true);
   assert.equal(store.listRounds().length, 1);
+});
+
+test("hint steps are saved with the round and default to false on old data", () => {
+  const store = createStore(memoryStorage(), "chapter1", ["mix"]);
+  const withHints = { ...round("mix", "1"), hintUsed: true, hintSteps: [true] };
+  assert.equal(store.saveRound(withHints), true);
+  assert.deepEqual(Array.from(store.getRound("mix").hintSteps), [true]);
+
+  const old = round("mix", "2");
+  delete old.hintSteps;
+  assert.equal(store.saveRound(old), true);
+  assert.deepEqual(Array.from(store.getRound("mix").hintSteps), [false]);
 });
 
 test("encouragement is randomized and offered only after step five of a ten-step round", () => {
