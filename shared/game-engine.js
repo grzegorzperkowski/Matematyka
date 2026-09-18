@@ -6,6 +6,27 @@
   const LEGACY_BEST_KEY = "matematyczneMiasteczkoBest";
   const REPAIR_STAGES = ["none", "offer", "help", "retry", "completed"];
   const REPAIR_ANIMATIONS = ["folding-bridge", "method-lantern", "repair-stamp"];
+  const TOAST_DIRECTIONS = ["top", "right", "bottom", "left"];
+  const FIFTH_STEP_MESSAGES = [
+    "Pięć kroków już za Tobą — jeszcze pięć. Tak trzymaj!",
+    "Świetnie Ci idzie! Meta jest coraz bliżej.",
+    "Dobra robota: pierwsza połowa gotowa. Ruszaj dalej!",
+    "Każdy kolejny krok przybliża Cię do mety.",
+    "Brawo za wytrwałość! Zostało tylko pięć małych kroków.",
+    "Masz już pół rundy! Spokojnie działaj dalej."
+  ];
+
+  function randomItem(items, random) {
+    return items[Math.floor(random() * items.length)];
+  }
+
+  function fifthStepEncouragement(completed, total, random = Math.random) {
+    if (completed !== 5 || total !== 10) return null;
+    return {
+      message: randomItem(FIFTH_STEP_MESSAGES, random),
+      direction: randomItem(TOAST_DIRECTIONS, random)
+    };
+  }
 
   function emptyData() {
     return { version: 2, rounds: {}, bestScores: {}, bestStreaks: {}, completedRoutes: {}, legacyBestScores: {} };
@@ -227,6 +248,7 @@
       resultEmoji: $("#resultEmoji"), resultTitle: $("#resultTitle"), resultMessage: $("#resultMessage"),
       resultScore: $("#resultScore"), resultStars: $("#resultStars"), resultCorrect: $("#resultCorrect"),
       resultBest: $("#resultBest"), resultStreak: null, resultRepair: null, streakBest: null,
+      milestoneToast: null, milestoneMessage: null,
       toast: $("#toast"), savedRounds: $("#savedRounds"), savedRoundsList: $("#savedRoundsList"),
       get nextButton() { return $("#nextButton"); }
     };
@@ -267,6 +289,19 @@
       el.toast.classList.add("visible");
       global.clearTimeout(showToast.timer);
       showToast.timer = global.setTimeout(() => el.toast.classList.remove("visible"), 2200);
+    }
+
+    function showFifthStepEncouragement() {
+      const encouragement = fifthStepEncouragement(state.index, state.questions.length);
+      if (!encouragement || !el.milestoneToast) return;
+      el.milestoneToast.classList.remove("visible", ...TOAST_DIRECTIONS.map((direction) => `from-${direction}`));
+      el.milestoneMessage.textContent = encouragement.message;
+      global.clearTimeout(showFifthStepEncouragement.timer);
+      void el.milestoneToast.offsetWidth;
+      el.milestoneToast.classList.add(`from-${encouragement.direction}`, "visible");
+      showFifthStepEncouragement.timer = global.setTimeout(() => {
+        el.milestoneToast.classList.remove("visible", ...TOAST_DIRECTIONS.map((direction) => `from-${direction}`));
+      }, 6600);
     }
 
     function updateStats() {
@@ -332,6 +367,19 @@
         repairDetail.append(document.createTextNode("naprawiony z pomocą"));
         resultDetails.append(repairDetail);
       }
+
+      el.milestoneToast = document.createElement("div");
+      el.milestoneToast.className = "milestone-toast";
+      el.milestoneToast.setAttribute("role", "status");
+      el.milestoneToast.setAttribute("aria-live", "polite");
+      el.milestoneToast.setAttribute("aria-atomic", "true");
+      const milestoneBadge = addText(el.milestoneToast, "span", "★", "milestone-badge");
+      milestoneBadge.setAttribute("aria-hidden", "true");
+      const milestoneCopy = document.createElement("div");
+      addText(milestoneCopy, "strong", "Półmetek!", "milestone-title");
+      el.milestoneMessage = addText(milestoneCopy, "span", "", "milestone-message");
+      el.milestoneToast.append(milestoneCopy);
+      document.body.append(el.milestoneToast);
     }
 
     function replayAnimation(node, className) {
@@ -1222,7 +1270,12 @@
           state.repairBridge.stage = "none";
           state.repairBridge = normalizeRepairBridge(state.repairBridge, state.questions.length, state.index);
         }
-        state.index += 1; state.index >= state.questions.length ? finishGame() : renderQuestion();
+        state.index += 1;
+        if (state.index >= state.questions.length) finishGame();
+        else {
+          renderQuestion();
+          showFifthStepEncouragement();
+        }
       }
       else checkAnswer(rawAnswer());
     });
@@ -1272,6 +1325,6 @@
 
   global.MathTownGame = {
     createStore, isQuestion, isRound, resultLevel, roundHasProgress, roundLaunchDecision,
-    createRepairBridge, rollRepairBridge, normalizeRepairBridge, start
+    createRepairBridge, rollRepairBridge, normalizeRepairBridge, fifthStepEncouragement, start
   };
 })(typeof window === "undefined" ? globalThis : window);

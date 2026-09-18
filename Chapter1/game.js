@@ -124,6 +124,8 @@
   function by10Questions() {
     // Generate from the arithmetic relationship, so every hint stays applicable.
     const zeroWords = { 10: "jedno zero", 100: "dwa zera" };
+    const product = (...parts) => parts.join("\u00A0·\u00A0");
+    const by10Tip = "× 10 → + 1 zero\u2003\u2003× 100 → + 2 zera";
     const direct = (scale, divide) => {
       const base = rand(11, 99);
       const expression = divide ? `${base * scale} : ${scale}` : `${base} · ${scale}`;
@@ -152,19 +154,19 @@
       () => direct(100, true),
       () => {
         const a = rand(2, 9), b = rand(2, 9);
-        return [`Jaką liczbą zastąpić znak ?: ${a} · ${b * 10} = ${a} · ${b} · ?`, 10,
-          `${b * 10} = ${b} · 10.`, `${a} · ${b * 10} = ${a} · ${b} · 10, więc ? = 10.`];
+        return [`Jaką liczbą zastąpić znak ?: ${product(a, b * 10)} = ${product(a, b, "?")}`, 10,
+          `${product(b * 10)} = ${product(b, 10)}.`, `${product(a, b * 10)} = ${product(a, b, 10)}, więc ? = 10.`];
       },
       () => {
         const a = rand(2, 9), b = rand(2, 9);
-        return [`Jaką liczbą zastąpić znak ?: ${a * 100} · ${b} = ${a} · ${b} · ?`, 100,
-          `${a * 100} = ${a} · 100.`, `${a * 100} · ${b} = ${a} · ${b} · 100, więc ? = 100.`];
+        return [`Jaką liczbą zastąpić znak ?: ${product(a * 100, b)} = ${product(a, b, "?")}`, 100,
+          `${product(a * 100)} = ${product(a, 100)}.`, `${product(a * 100, b)} = ${product(a, b, 100)}, więc ? = 100.`];
       },
       () => {
         const a = rand(2, 9), b = rand(2, 9);
-        return [`Jaką liczbą zastąpić znak ?: ${a * 10} · ${b * 10} = ${a} · ${b} · ?`, 100,
-          `${a * 10} · ${b * 10} = ${a} · 10 · ${b} · 10.`,
-          `${a * 10} · ${b * 10} = ${a} · ${b} · 100, więc ? = 100.`];
+        return [`Jaką liczbą zastąpić znak ?: ${product(a * 10, b * 10)} = ${product(a, b, "?")}`, 100,
+          `${product(a * 10, b * 10)} = ${product(a, 10, b, 10)}.`,
+          `${product(a * 10, b * 10)} = ${product(a, b, 100)}, więc ? = 100.`];
       },
       () => scaledDivision(100, false),
       () => scaledDivision(10, false),
@@ -199,7 +201,7 @@
     ];
     return shuffle(templates).slice(0, 10).map((make) => {
       const [prompt, answer, hint, explanation] = make();
-      return question({ label: "Mnożenie i dzielenie przez 10, 100, ...", prompt, answer, hint, explanation, visual: { type: "equation", expression: "× 10 → + 1 zero   •   × 100 → + 2 zera", caption: "Zerami można sprytnie ułatwiać rachunki." } });
+      return question({ label: "Mnożenie i dzielenie przez 10, 100, ...", prompt, answer, hint, explanation, visual: { type: "equation", expression: by10Tip, caption: "Zerami można sprytnie ułatwiać rachunki." } });
     });
   }
 

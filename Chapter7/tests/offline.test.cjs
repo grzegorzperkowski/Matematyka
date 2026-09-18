@@ -29,7 +29,7 @@ test("Chapter 7 is published with its game asset and no reference PNGs", () => {
   const chapter = Array.from(PUBLISHED_CHAPTERS).find((item) => String(item.document).includes("Chapter7/index.html"));
   assert.ok(chapter);
   assert.deepEqual(Array.from(chapter.assets), ["Chapter7/game.js"]);
-  assert.equal(CACHE_NAME, "matematyczne-miasteczko-v14");
+  assert.equal(CACHE_NAME, "matematyczne-miasteczko-v17");
   assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter7/index.html")));
   assert.ok(Array.from(APP_SHELL).some((url) => String(url).endsWith("/Chapter7/game.js")));
   assert.equal(Array.from(APP_SHELL).some((url) => /Chapter7\/page_\d+\.png$/.test(String(url))), false);
@@ -51,4 +51,3 @@ test("the homepage publishes Chapter 7 while preserving exactly eight cards", ()
   const cards = homeSource.match(/<(?:a|article) class="chapter\b/g) || [];
   assert.equal(cards.length, 8);
 });
-

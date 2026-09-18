@@ -72,12 +72,35 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .stat-pill.streak-pop { animation: streak-pop .34s ease-out; }
 .result-card .result-details { flex-wrap: wrap; }
 .result-card.result-celebrate { animation: result-celebrate .45s ease-out; }
+.milestone-toast { position: fixed; top: clamp(88px,16vh,145px); left: 50%; z-index: 40; display: grid; grid-template-columns: 66px minmax(0,1fr); align-items: center; width: min(520px,calc(100vw - 28px)); min-height: 104px; padding: 17px 42px 17px 18px; overflow: hidden; border: 3px solid #28252f; border-radius: 24px; background: radial-gradient(circle at 90% 20%,rgba(239,107,141,.32) 0 18px,transparent 19px),radial-gradient(circle at 82% 82%,rgba(58,167,163,.3) 0 25px,transparent 26px),linear-gradient(135deg,#fff2b9 0%,#fffaf2 45%,#eee7ff 100%); color: #28252f; box-shadow: 0 8px 0 rgba(244,119,33,.3),0 20px 45px rgba(40,37,47,.22); opacity: 0; visibility: hidden; pointer-events: none; transform: translate(-50%,-20px); }
+.milestone-toast::before { position: absolute; top: 9px; right: 16px; color: #ef6b8d; font-size: 22px; line-height: 1; text-shadow: -26px 9px #ffd166,-10px 47px #3aa7a3; content: "✦"; }
+.milestone-toast::after { position: absolute; right: 0; bottom: 0; left: 0; height: 8px; background: linear-gradient(90deg,#f47721 0 25%,#ffd166 25% 50%,#3aa7a3 50% 75%,#7b61c9 75%); content: ""; }
+.milestone-badge { position: relative; display: grid; width: 54px; height: 54px; place-items: center; border: 3px solid #28252f; border-radius: 18px; background: #f47721; color: #fff; box-shadow: 5px 5px 0 #ffd166; font-size: 30px; line-height: 1; transform: rotate(-5deg); }
+.milestone-title, .milestone-message { position: relative; display: block; }
+.milestone-title { margin-bottom: 3px; color: #574787; font-size: clamp(20px,3vw,27px); font-weight: 900; letter-spacing: -.02em; line-height: 1; text-transform: uppercase; }
+.milestone-message { font-size: clamp(14px,2vw,17px); font-weight: 800; line-height: 1.35; }
+.milestone-toast.from-top { --milestone-start-x: -50%; --milestone-start-y: calc(-100% - 150px); }
+.milestone-toast.from-right { --milestone-start-x: calc(-50% + 100vw); --milestone-start-y: 0; }
+.milestone-toast.from-bottom { --milestone-start-x: -50%; --milestone-start-y: calc(100vh - 100%); }
+.milestone-toast.from-left { --milestone-start-x: calc(-50% - 100vw); --milestone-start-y: 0; }
+.milestone-toast.visible { animation: milestone-toast 6.4s linear both; }
 @keyframes feedback-pop { from { opacity: .35; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes streak-pop { 50% { transform: scale(1.08) rotate(-1deg); } }
 @keyframes result-celebrate { from { opacity: .45; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes repair-bridge-in { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes repair-lantern-in { from { opacity: .2; transform: scale(.88); } to { opacity: 1; transform: scale(1); } }
 @keyframes repair-stamp-in { from { opacity: .25; transform: rotate(3deg) scale(.9); } to { opacity: 1; transform: rotate(-4deg) scale(1); } }
+@keyframes milestone-toast {
+  0% { visibility: visible; opacity: 0; transform: translate(var(--milestone-start-x),var(--milestone-start-y)) rotate(-2deg) scale(.94); }
+  3% { visibility: visible; opacity: 1; transform: translate(-50%,0) rotate(1deg) scale(1.04); }
+  7%, 62% { visibility: visible; opacity: 1; transform: translate(-50%,0) rotate(0) scale(1); }
+  100% { visibility: hidden; opacity: 0; transform: translate(-50%,-12px) scale(.98); }
+}
+@keyframes milestone-toast-reduced {
+  0% { visibility: visible; opacity: 0; }
+  3%, 62% { visibility: visible; opacity: 1; }
+  100% { visibility: hidden; opacity: 0; }
+}
 .game-layout, .question-card, .side-card { min-width: 0; }
 .equation-visual { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; max-width: 100%; text-align: center; }
 .equation-visual small { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
@@ -172,8 +195,11 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
   .fraction-object { width: 26px; height: 26px; }
   .fraction-numberline { padding-inline: 3px; }
   .fraction-numberline-labels span { font-size: 11px; }
+  .milestone-toast { top: 76px; grid-template-columns: 53px minmax(0,1fr); min-height: 92px; padding: 14px 34px 14px 14px; border-radius: 20px; }
+  .milestone-badge { width: 44px; height: 44px; border-radius: 14px; font-size: 25px; box-shadow: 4px 4px 0 #ffd166; }
 }
 @media (prefers-reduced-motion: reduce) {
   .progress-bar, .feedback.feedback-pop, .stat-pill.streak-pop, .result-card.result-celebrate,
   .repair-decoration, .repair-decoration.folding-bridge span { animation: none; transition: none; }
+  .milestone-toast.visible { animation-name: milestone-toast-reduced; }
 }

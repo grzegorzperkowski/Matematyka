@@ -7,7 +7,7 @@ const vm = require("node:vm");
 const source = readFileSync(join(__dirname, "..", "..", "shared", "game-engine.js"), "utf8");
 const context = {};
 vm.runInNewContext(source, context);
-const { createStore, resultLevel, roundHasProgress, roundLaunchDecision } = context.MathTownGame;
+const { createStore, resultLevel, roundHasProgress, roundLaunchDecision, fifthStepEncouragement } = context.MathTownGame;
 
 function memoryStorage(initial = {}) {
   const values = new Map(Object.entries(initial));
@@ -116,4 +116,17 @@ test("an untouched first question is not offered as an unfinished round", () => 
   assert.equal(roundHasProgress(untouched), true);
   assert.equal(store.saveRound(untouched), true);
   assert.equal(store.listRounds().length, 1);
+});
+
+test("encouragement is randomized and offered only after step five of a ten-step round", () => {
+  assert.equal(fifthStepEncouragement(4, 10, () => 0), null);
+  assert.equal(fifthStepEncouragement(5, 8, () => 0), null);
+  assert.equal(fifthStepEncouragement(6, 10, () => 0), null);
+
+  const first = fifthStepEncouragement(5, 10, () => 0);
+  const last = fifthStepEncouragement(5, 10, () => 0.999);
+  assert.equal(first.direction, "top");
+  assert.equal(last.direction, "left");
+  assert.ok(first.message.length > 0);
+  assert.notEqual(first.message, last.message);
 });

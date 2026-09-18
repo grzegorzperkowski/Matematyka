@@ -26,6 +26,12 @@ function evaluate(expression) {
 function checkQuestion(q) {
   assert.equal(q.kind, "input");
   assert.equal(q.visual.type, "equation");
+  assert.equal(q.visual.expression, "× 10 → + 1 zero\u2003\u2003× 100 → + 2 zera");
+  assert.doesNotMatch(q.visual.expression, /[•·]/);
+  if (q.prompt.includes("zastąpić znak")) {
+    assert.match(q.prompt, /\u00A0·\u00A0\?$/);
+    assert.doesNotMatch(q.prompt, / · |· \?/);
+  }
   assert.ok(Number.isSafeInteger(q.answer) && q.answer > 0 && q.answer <= 60000);
   for (const text of [q.prompt, q.hint, q.explanation]) {
     assert.ok(text && !/undefined|NaN/.test(text));
