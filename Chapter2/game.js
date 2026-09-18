@@ -140,7 +140,7 @@
       else if (index % 4 === 1) { const minutes = rand(2, 20); answer = minutes * 60; prompt = `Ile sekund ma ${minutes} minut?`; hint = "Jedna minuta ma 60 sekund."; explanation = `${minutes} · 60 = ${answer} sekund.`; }
       else if (index % 4 === 2) { const start = rand(6 * 60, 20 * 60), duration = rand(1, 18) * 5; const end = start + duration; answer = end; prompt = `Która godzina będzie za ${duration} minut po ${time(start)}? Zapisz jako liczbę minut po północy.`; hint = "Dodaj liczbę minut do godziny startu."; explanation = `${time(start)} + ${duration} min = ${time(end)}, czyli ${end} minut po północy.`; }
       else { const start = rand(6 * 60, 19 * 60), duration = rand(2, 18) * 5; const end = start + duration; answer = duration; prompt = `Pociąg odjeżdża o ${time(start)}, a przyjeżdża o ${time(end)}. Ile minut trwa podróż?`; hint = "Odejmij godzinę odjazdu od godziny przyjazdu."; explanation = `${time(end)} − ${time(start)} = ${duration} minut.`; }
-      return question({ label: "Godziny na zegarach", prompt, answer, hint, explanation, visual: equation("1 h = 60 min   •   1 min = 60 s", "Zamieniaj czas krok po kroku.") });
+      return question({ label: "Godziny na zegarach", prompt, answer, hint, explanation, visual: equation("1\u00a0h = 60\u00a0min\u2003\u20031\u00a0min = 60\u00a0s", "Zamieniaj czas krok po kroku.") });
     });
   }
 
@@ -155,6 +155,7 @@
     chapterId: "chapter2",
     chapterTitle: "Systemy zapisywania liczb",
     routeLabels,
+    roundRevisions: { zegary: 2 },
     buildQuestions,
     answerCheckers: {
       roman(raw, answer) { return String(raw).trim().toUpperCase().replace(/\s+/g, "") === answer; }

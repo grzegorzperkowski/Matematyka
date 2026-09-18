@@ -25,3 +25,9 @@ test("Roman-numeral answers accept lowercase input and reject a different value"
   assert.equal(checker(" xiv ", "XIV"), true);
   assert.equal(checker("XVI", "XIV"), false);
 });
+
+test("clock conversion reference keeps values with their units and separates both facts with whitespace", () => {
+  const [question] = config.buildQuestions("zegary");
+  assert.equal(question.visual.expression, "1\u00a0h = 60\u00a0min\u2003\u20031\u00a0min = 60\u00a0s");
+  assert.equal(config.roundRevisions.zegary, 2);
+});
