@@ -135,7 +135,9 @@ Always pass explicit mathematical data:
   separately. `alt` and `caption` describe the mathematical purpose.
 - `fraction-model`: `shape` (`bar`, `circle`, `grid` or `collection`), integer
   `numerator` and positive integer `denominator`; optional `groups`, and for a
-  grid explicit `rows` and `columns` whose product matches the denominator;
+  grid explicit `rows` and `columns` whose product matches the denominator.
+  Optional `compare: { numerator, denominator }` draws a second labelled model
+  beside the first for comparison; both denominators stay in `1–24`;
 - `fraction-numberline`: positive integer `denominator`, integer
   `minNumerator`, `maxNumerator` and a `markedNumerators` array. Positions are
   numerator steps over the shared denominator, never floating-point values.

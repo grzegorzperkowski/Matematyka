@@ -40,6 +40,10 @@ function validateVisual(visual) {
     assert.ok(["bar", "circle", "grid", "collection"].includes(visual.shape));
     assert.ok(Number.isInteger(visual.numerator) && visual.numerator >= 0);
     assert.ok(Number.isInteger(visual.denominator) && visual.denominator >= 1 && visual.denominator <= 24);
+    if (visual.compare) {
+      assert.ok(Number.isInteger(visual.compare.numerator) && visual.compare.numerator >= 0);
+      assert.ok(Number.isInteger(visual.compare.denominator) && visual.compare.denominator >= 1 && visual.compare.denominator <= 24);
+    }
     if (visual.shape === "grid") {
       assert.ok(Number.isInteger(visual.rows) && visual.rows > 0);
       assert.ok(Number.isInteger(visual.columns) && visual.columns > 0);
@@ -115,6 +119,18 @@ test("fraction checkers distinguish value from required notation", () => {
   assert.equal(answerCheckers.mixed("1 1/2", "3/2"), true);
   assert.equal(answerCheckers.mixed("3/2", "1 1/2"), false);
   assert.equal(answerCheckers.mixed("1 3/2", "5/2"), false);
+});
+
+test("comparison questions show two explicit fraction models", () => {
+  const config = loadConfig(71);
+  for (let round = 0; round < 80; round += 1) {
+    for (const question of config.buildQuestions("porownywanie")) {
+      assert.equal(question.visual.type, "fraction-model", question.label);
+      assert.ok(question.visual.compare, question.label);
+      assert.ok(Number.isInteger(question.visual.compare.numerator), question.label);
+      assert.ok(Number.isInteger(question.visual.compare.denominator), question.label);
+    }
+  }
 });
 
 test("models and number lines encode the answers with integer fraction data", () => {

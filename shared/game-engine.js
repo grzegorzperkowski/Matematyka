@@ -637,19 +637,14 @@
       return `${numerator}/${denominator}`;
     }
 
-    function renderFractionModel(visual, panel) {
-      const numerator = Number(visual.numerator);
-      const denominator = Number(visual.denominator);
-      if (!Number.isInteger(numerator) || numerator < 0 || !Number.isInteger(denominator) || denominator < 1 || denominator > 24) {
-        panel.hidden = true;
-        return;
-      }
+    function isFractionAmount(numerator, denominator) {
+      return Number.isInteger(numerator) && numerator >= 0 && Number.isInteger(denominator) && denominator >= 1 && denominator <= 24;
+    }
+
+    function renderFractionShape(visual, numerator, denominator, label) {
       const shape = ["bar", "circle", "grid", "collection"].includes(visual.shape) ? visual.shape : "bar";
       const box = document.createElement("div");
       box.className = `fraction-model fraction-${shape}`;
-      box.setAttribute("role", "img");
-      box.setAttribute("aria-label", visual.alt || `Model ułamka ${fractionName(numerator, denominator)}. ${visual.caption || ""}`.trim());
-
       if (shape === "collection") {
         const collection = document.createElement("div");
         collection.className = "fraction-collection";
@@ -700,6 +695,36 @@
         }
         box.append(shapes);
       }
+      if (label) addText(box, "p", label, "fraction-compare-label");
+      return box;
+    }
+
+    function renderFractionModel(visual, panel) {
+      const numerator = Number(visual.numerator);
+      const denominator = Number(visual.denominator);
+      const compareNumerator = Number(visual.compare?.numerator);
+      const compareDenominator = Number(visual.compare?.denominator);
+      const hasCompare = Boolean(visual.compare) && isFractionAmount(compareNumerator, compareDenominator);
+      if (!isFractionAmount(numerator, denominator) || (visual.compare && !hasCompare)) {
+        panel.hidden = true;
+        return;
+      }
+      if (hasCompare) {
+        const wrap = document.createElement("div");
+        wrap.className = "fraction-compare";
+        wrap.setAttribute("role", "img");
+        wrap.setAttribute("aria-label", visual.alt || `Porównanie ${fractionName(numerator, denominator)} i ${fractionName(compareNumerator, compareDenominator)}. ${visual.caption || ""}`.trim());
+        wrap.append(
+          renderFractionShape({ shape: visual.shape }, numerator, denominator, fractionName(numerator, denominator)),
+          renderFractionShape({ shape: visual.shape }, compareNumerator, compareDenominator, fractionName(compareNumerator, compareDenominator))
+        );
+        addText(wrap, "p", visual.caption || "Porównaj zaznaczone części obu modeli.", "visual-caption");
+        panel.append(wrap);
+        return;
+      }
+      const box = renderFractionShape(visual, numerator, denominator);
+      box.setAttribute("role", "img");
+      box.setAttribute("aria-label", visual.alt || `Model ułamka ${fractionName(numerator, denominator)}. ${visual.caption || ""}`.trim());
       addText(box, "p", visual.caption || `Zaznaczono ${numerator} z ${denominator} równych części.`, "visual-caption");
       panel.append(box);
     }

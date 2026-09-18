@@ -2,7 +2,8 @@
 
 ## Status
 
-- Etap: **rozdział zaimplementowany, opublikowany i zweryfikowany 2026-09-17**.
+- Etap: **rozdział zaimplementowany, opublikowany i zweryfikowany 2026-09-18**.
+  Stacja `porownywanie` pokazuje dwa modele ułamków zamiast samego zapisu.
 - Tytuł rozdziału ustalony ze strony otwierającej: **Ułamki zwykłe**.
 - Źródło: 30 plików `page_0159.png`–`page_0188.png`, obejrzanych w całości i w kolejności 2026-09-16.
 - Obrazy są wyłącznie materiałem programowym. Nie wolno publikować, buforować, kopiować ani odtwarzać ich ilustracji i treści zadań w grze.
@@ -63,7 +64,7 @@ Poniższe identyfikatory są publicznym kontraktem adresów rozdziału. Każda t
 | `czesci-calosci` | Pracownia równych części | część całości, licznik, mianownik, dopełnienie do całości, ułamek zbioru | Odczyt zaznaczenia na kole/prostokącie/siatce (`2–12` części), wskazanie licznika lub mianownika, wybór poprawnie podzielonej figury, część obiektów spełniających warunek, brakująca część do `1`. Każdy model niesie jawne dane, nie jest dekoracją. |
 | `liczby-mieszane` | Magazyn całych i części | budowa i odczyt liczby mieszanej, część jednostki, proste zamiany jednostek | Odczyt kilku całych figur i reszty; składanie „całości + część”; cm↔m, min↔h, h↔doba, dag↔kg na dobranych wielokrotnościach; wartości całkowite `1–9`, mianowniki zgodne z jednostką albo uproszczone. |
 | `os-ulamkowa` | Ulica ułamkowej osi | podział odcinka jednostkowego, odczyt i zaznaczanie ułamków/liczb mieszanych | Odczyt zaznaczonego punktu, wybór położenia, brakująca etykieta, dopasowanie podziałki do mianownika, prosty spacer po osi. Zakres zwykle `0–5`, mianownik `2–10`; pozycje przechowywane jako całkowita liczba kroków, nie jako niedokładne liczby zmiennoprzecinkowe. |
-| `porownywanie` | Wieża porównań | wspólny mianownik/licznik, liczby mieszane, punkt odniesienia `1/2` i `1`, porządkowanie | Wstawianie `<`, `>` lub `=`, wybór największej/najmniejszej liczby, układanie 4–6 kart, wskazanie liczby bliższej `1`, pytania „zużyto/pozostało”. Najpierw jedna jawna reguła, później wybór strategii. |
+| `porownywanie` | Wieża porównań | wspólny mianownik/licznik, liczby mieszane, punkt odniesienia `1/2` i `1`, porządkowanie | Wstawianie `<`, `>` lub `=`, wybór największej/najmniejszej liczby, układanie 4–6 kart, wskazanie liczby bliższej `1`, pytania „zużyto/pozostało”. Każde zadanie pokazuje dwa modele ułamków z jawnymi licznikami i mianownikami, nie sam zapis. Najpierw jedna jawna reguła, później wybór strategii. |
 | `rozszerzanie-skracanie` | Warsztat równoważności | ułamki równe, brakujący licznik/mianownik, postać nieskracalna, wspólny mianownik | Uzupełnienie jednej wartości, wybór wszystkich ułamków równych, skrócenie do najprostszej postaci, rozszerzenie do wskazanego mianownika/licznika, wykrycie błędnego kroku. Mnożnik/dzielnik zwykle `2–10`; dane mają jednoznaczne rozwiązanie całkowite. |
 | `ulamki-niewlasciwe` | Przepakownia całości | właściwy/niewłaściwy, relacja do `1`, ułamek ↔ liczba mieszana/naturalna | Klasyfikacja, odczyt wielu całych modeli, wyłączanie całości, zamiana liczby mieszanej na niewłaściwą, zapis liczby naturalnej z zadanym mianownikiem. Całości `1–9`, mianowniki `2–12`, licznik na ogół nie większy niż `10 × mianownik`. |
 | `ulamek-jako-iloraz` | Punkt sprawiedliwego podziału | `a : b = a/b`, równy podział, dzielenie z resztą | Dzielenie przedmiotów między osoby, zapis ilorazu jako ułamka i odwrotnie, wynik naturalny lub mieszany, interpretacja reszty jako części jednostki. Dzielnik `2–12`, wynik do `9` całości; konteksty inne niż ilustracje źródłowe. |

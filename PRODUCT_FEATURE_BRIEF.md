@@ -164,7 +164,8 @@ These answers would materially improve feature proposals:
 - Two main response formats: typed answers and multiple choice.
 - Acceptance of a decimal comma in numeric answers.
 - Topic-appropriate mathematical visuals, including number lines, fraction
-  models, written calculations, geometry diagrams, clocks, grids and equations.
+  models, paired fraction models for comparison, written calculations, geometry
+  diagrams, clocks, grids and equations.
 - A concise hint available before submitting an answer.
 - Immediate correctness feedback after submission.
 - A worked or explanatory response for every question.
