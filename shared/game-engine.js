@@ -421,6 +421,28 @@
     });
   }
 
+  function geometryDescription(visual) {
+    const shape = visual.shape || visual.subtype || visual.kind;
+    const relationNames = { parallel: "równoległe", perpendicular: "prostopadłe", intersecting: "przecinające się, ale nie prostopadłe", "double-perpendicular": "dwie proste prostopadłe do tej samej prostej" };
+    const featureNames = { radius: "promień", diameter: "średnica", circumference: "okrąg", disk: "koło z wnętrzem", center: "środek", chord: "cięciwa", point: `punkt ${visual.pointPosition === "inside" ? "wewnątrz koła" : visual.pointPosition === "outside" ? "na zewnątrz koła" : "na okręgu"}` };
+    const descriptions = {
+      point: () => `Punkt ${visual.name || "A"}.`,
+      line: () => `${visual.extent === "ray" ? "Półprosta" : visual.extent === "infinite" ? "Prosta" : "Odcinek"}${visual.pointNames ? ` przez punkty ${visual.pointNames.join(", ")}` : ""}.`,
+      polyline: () => `Łamana ${visual.closed ? "zamknięta" : "otwarta"} złożona z ${visual.segments || visual.lengths?.length || 3} odcinków.`,
+      lines: () => `Proste ${relationNames[visual.relation || visual.lineRelation] || "przecinające się"}.`,
+      angle: () => `Kąt o mierze ${visual.degrees ?? visual.angle ?? 90} stopni${visual.split ? `, podzielony ramieniem przy ${visual.split} stopniach` : ""}.`,
+      polygon: () => visual.variant === "rhombus" ? "Romb o czterech równych bokach i kątach, które nie są proste." : `Wielokąt o ${visual.sides || 3} bokach.`,
+      rectangle: () => `${visual.square || visual.width === visual.height ? "Kwadrat" : "Prostokąt"} o bokach ${visual.width} i ${visual.height}.`,
+      perimeter: () => {
+        const sides = Array.isArray(visual.sides) ? visual.sides : Array.isArray(visual.lengths) ? visual.lengths : [];
+        if (sides.length === 0) return visual.caption || "Diagram obwodu wielokąta.";
+        return `Wielokąt o bokach ${sides.map((value) => value ?? "nieznana długość").join(", ")}${visual.unit ? ` ${visual.unit}` : ""}.`;
+      },
+      circle: () => `Diagram koła: zaznaczony element to ${featureNames[visual.feature] || "okrąg"}.`
+    };
+    return descriptions[shape]?.() || visual.caption || "Diagram geometryczny";
+  }
+
   function start(config) {
     const $ = (selector) => document.querySelector(selector);
     const validModes = Object.keys(config.routeLabels);
@@ -663,20 +685,7 @@
       const shape = visual.shape || visual.subtype || visual.kind;
       const box = document.createElement("div");
       box.className = "geometry-visual";
-      const relationNames = { parallel: "równoległe", perpendicular: "prostopadłe", intersecting: "przecinające się, ale nie prostopadłe", "double-perpendicular": "dwie proste prostopadłe do tej samej prostej" };
-      const featureNames = { radius: "promień", diameter: "średnica", circumference: "okrąg", disk: "koło z wnętrzem", center: "środek", chord: "cięciwa", point: `punkt ${visual.pointPosition === "inside" ? "wewnątrz koła" : visual.pointPosition === "outside" ? "na zewnątrz koła" : "na okręgu"}` };
-      const descriptions = {
-        point: `Punkt ${visual.name || "A"}.`,
-        line: `${visual.extent === "ray" ? "Półprosta" : visual.extent === "infinite" ? "Prosta" : "Odcinek"}${visual.pointNames ? ` przez punkty ${visual.pointNames.join(", ")}` : ""}.`,
-        polyline: `Łamana ${visual.closed ? "zamknięta" : "otwarta"} złożona z ${visual.segments || visual.lengths?.length || 3} odcinków.`,
-        lines: `Proste ${relationNames[visual.relation || visual.lineRelation] || "przecinające się"}.`,
-        angle: `Kąt o mierze ${visual.degrees ?? visual.angle ?? 90} stopni${visual.split ? `, podzielony ramieniem przy ${visual.split} stopniach` : ""}.`,
-        polygon: visual.variant === "rhombus" ? "Romb o czterech równych bokach i kątach, które nie są proste." : `Wielokąt o ${visual.sides || 3} bokach.`,
-        rectangle: `${visual.square || visual.width === visual.height ? "Kwadrat" : "Prostokąt"} o bokach ${visual.width} i ${visual.height}.`,
-        perimeter: `Wielokąt o bokach ${(visual.sides || visual.lengths || []).map((value) => value ?? "nieznana długość").join(", ")}${visual.unit ? ` ${visual.unit}` : ""}.`,
-        circle: `Diagram koła: zaznaczony element to ${featureNames[visual.feature] || "okrąg"}.`
-      };
-      const svg = addSvg(box, "svg", { viewBox: "0 0 240 145", role: "img", "aria-label": visual.alt || descriptions[shape] || visual.caption || "Diagram geometryczny", focusable: "false" });
+      const svg = addSvg(box, "svg", { viewBox: "0 0 240 145", role: "img", "aria-label": visual.alt || geometryDescription(visual), focusable: "false" });
       const line = (x1, y1, x2, y2, className = "geometry-stroke") => addSvg(svg, "line", { x1, y1, x2, y2, class: className });
       const label = (x, y, value, className = "geometry-label") => addSvg(svg, "text", { x, y, class: className }, value);
       const dot = (x, y, className = "geometry-dot") => addSvg(svg, "circle", { cx: x, cy: y, r: 4, class: className });
@@ -1684,6 +1693,7 @@
     resumeRequestedFromSearch, directoryRedirectHref, chapterPlayHref,
     createRepairBridge, rollRepairBridge, normalizeRepairBridge, fifthStepEncouragement, start,
     polishFew, polishCount, polishVerb, questionMethod, rememberedMethods, lastAnsweredQuestion,
-    resumeSummary, omittedMixStations, normalizeHintSteps, hintHelpSummary, unfinishedHomeChips
+    resumeSummary, omittedMixStations, normalizeHintSteps, hintHelpSummary, unfinishedHomeChips,
+    geometryDescription
   };
 })(typeof window === "undefined" ? globalThis : window);

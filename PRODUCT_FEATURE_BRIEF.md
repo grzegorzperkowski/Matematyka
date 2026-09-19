@@ -221,6 +221,9 @@ These answers would materially improve feature proposals:
 - Saved answer, hint state, score, position, streak and guided-retry state.
 - Defensive behavior when browser storage is unavailable: the app remains
   playable, but persistence is lost.
+- Completing a route writes a separate, optional Playground result summary
+  with completed-route count, best score and best streak. The main progress
+  record remains authoritative.
 
 ### Offline and install-like behavior
 
@@ -228,7 +231,11 @@ These answers would materially improve feature proposals:
   an online visit.
 - Previously cached published chapters and their direct station links can work
   without a network connection.
-- A clear Polish offline response is shown for content that was not cached.
+- Unknown offline navigation falls back to the cached town homepage.
+- The hosted `/Matematyka/` version can be installed as a standalone PWA with
+  its own identity and icons; installation is optional.
+- A waiting application update is activated only after the user chooses
+  **Wczytaj**, avoiding an automatic reload during a round.
 - No installation, account or sign-in is required.
 
 ### Accessibility and responsive behavior
@@ -388,5 +395,4 @@ Also update this brief when a target-user fact, known problem or meaningful
 research finding changes. Do not update it for refactors, file moves, CSS
 changes, test changes, cache versions or other implementation-only work.
 
-Last verified against the current application source: **2026-09-18**.
-
+Last verified against the current application source: **2026-09-19**.

@@ -35,3 +35,9 @@ test("the homepage hero starts Chapter 1 and keeps exactly eight chapter cards",
   assert.equal(cards.length, 8);
   assert.match(homeSource, /id="resumeChips"/);
 });
+
+test("decorative chapter icons are hidden from accessible card names", () => {
+  const icons = homeSource.match(/<span class="chapter-icon[^>]*>/g) || [];
+  assert.equal(icons.length, 8);
+  assert.ok(icons.every((icon) => icon.includes('aria-hidden="true"')));
+});

@@ -52,6 +52,7 @@ chapters remain visible as non-navigable cards with a Polish “wkrótce” labe
 ```text
 index.html                         Chapter-selection page
 assets/                            Product assets
+assets/icons/                      Install, maskable and Apple touch icons
 ChapterN/index.html                Chapter markup and local artwork/styles
 ChapterN/game.js                   Routes and question generators
 ChapterN/IMPLEMENTATION_NOTES.md   Curriculum analysis and chapter decisions
@@ -59,7 +60,10 @@ ChapterN/tests/*.test.cjs          Focused generator/offline tests
 ChapterN/page_*.png                Ignored curriculum reference pages
 shared/game-engine.js              Rounds, scoring, storage and rendering
 shared/game.css                    Shared controls, visuals and responsive rules
+manifest.webmanifest               Stable hosted PWA identity and install metadata
+pwa-register.js                    Scoped registration and opt-in update banner
 service-worker.js                  Offline application shell and chapter registry
+scripts/optimize-assets.ps1        Checked-in mascot resize helper
 CHAPTER_TEMPLATE.md                Chapter contract and release checklist
 NEW_CHAPTER_PROMPT_TEMPLATE.md     Short prompt for starting the next chapter
 ```
@@ -71,8 +75,10 @@ chapter. Shared controls, answer states and reusable diagram styles belong in
 `shared/game.css`.
 
 Use native HTML, CSS and JavaScript. The project has no framework, package
-manager, bundler or build step. All application paths are relative and must
-work both through `file:` and under a hosted repository subpath.
+manager, bundler or build step. Runtime assets and chapter links are relative
+and must work both through `file:` and under a hosted repository subpath. The
+manifest identity/scope and the hosted Playground link are deliberate stable
+absolute paths.
 
 ## Stable routes and saved progress
 
@@ -99,15 +105,23 @@ completed, explicitly restarted, or left with no correct answers.
 
 ## Offline delivery
 
-`service-worker.js` caches the shared application shell and every entry in
-`PUBLISHED_CHAPTERS`. Publishing a chapter requires adding its document,
-`game.js` and any real product assets to that registry, then increasing
-`CACHE_NAME` exactly once for the release.
+`service-worker.js` atomically precaches the shared application shell, PWA
+manifest and icons, and every entry derived from `CHAPTERS`. Publishing a
+chapter requires adding its document, `game.js` and any real product assets to
+that shell, then increasing `CACHE_NAME` exactly once for the release.
 
 Do not cache `page_*.png` curriculum references. Query-string exercise routes
-must resolve to the cached chapter document while preserving their URL. Cache
-cleanup remains limited to this application's prefix, and an unknown uncached
-chapter gets an explicit Polish offline response.
+must resolve to the cached chapter document while preserving their URL.
+Navigations are network-first with a 1.8-second timeout; same-scope static
+assets use stale-while-revalidate. Cache cleanup remains limited to this
+application's prefix, and an unknown offline navigation falls back to the
+cached homepage.
+
+The hosted HTTPS application is installable with stable identity
+`/Matematyka/`, but installation is never required. Keep service-worker
+registration in `pwa-register.js`, use `updateViaCache: "none"`, and activate a
+waiting worker only after the user chooses **Wczytaj** in the update banner.
+Direct `file:` play must continue to work without PWA APIs.
 
 ## Product and implementation rules
 

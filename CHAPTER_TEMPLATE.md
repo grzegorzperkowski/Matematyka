@@ -193,8 +193,9 @@ When the chapter is playable:
 2. Preserve exactly eight top-level homepage cards.
 3. Update the homepage hero only when the chapter should become the featured
    destination.
-4. Add the chapter document, `game.js` and all product assets to
-   `PUBLISHED_CHAPTERS` in `service-worker.js`.
+4. Extend `CHAPTERS` in `service-worker.js` and add any additional product
+   assets to `APP_SHELL`. The chapter document and `game.js` are derived from
+   the chapter number automatically.
 5. Do not cache `page_*.png` curriculum references.
 6. Increase `CACHE_NAME` once after all release changes are complete.
 
