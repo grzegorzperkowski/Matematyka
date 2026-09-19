@@ -34,6 +34,7 @@
     .toast { opacity:0; visibility:hidden; pointer-events:none; transform:translateY(calc(100% + 32px)); }
     .toast.visible { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); }
   </style>
+  <link rel="manifest" href="/Matematyka/manifest.webmanifest"><link rel="icon" href="../assets/icons/icon-192.png" type="image/png"><link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png"><script src="../pwa-register.js" data-pwa-register defer></script>
 </head>
 <body>
   <main class="app-shell">
@@ -58,6 +59,6 @@
     <section id="resultScreen" class="screen" hidden><div class="result-wrap"><article class="result-card"><div class="result-confetti" id="resultEmoji">🎉</div><h1 id="resultTitle" tabindex="-1">Świetna wyprawa!</h1><p id="resultMessage">Runda zakończona.</p><div class="result-score"><strong id="resultScore">0</strong><span>punktów</span></div><div class="result-stars" id="resultStars" aria-label="Ocena">★★★</div><div class="result-details"><div><strong id="resultCorrect">0/10</strong>poprawnych</div><div><strong id="resultBest">0</strong>najlepszy wynik</div></div><div class="result-actions"><button class="primary-button" id="playAgain">Jeszcze raz</button><a class="secondary-button" id="resultMenu" href="index.html">Wybierz inną stację</a></div></article></div></section>
   </main>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="../shared/game-engine.js"></script><script src="game.js"></script><script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js").catch(() => {}));</script>
+  <script src="../shared/game-engine.js"></script><script src="game.js"></script>
 </body>
 </html>

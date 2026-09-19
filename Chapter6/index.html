@@ -71,6 +71,10 @@
     @media (max-width:850px) { .hero,.game-layout { grid-template-columns:1fr; }.hero-art { min-height:290px; }.mode-grid { grid-template-columns:repeat(2,1fr); }.section-heading { display:block; }.section-heading>p { margin-top:6px; text-align:left; }.how-to { grid-template-columns:1fr; } }
     @media (max-width:560px) { .app-shell { width:min(100% - 20px,1120px); padding-top:18px; }.brand-copy span,.best-score span { display:none; }.topbar { margin-bottom:18px; }.hero-copy { padding:31px 23px; }.hero-art { min-height:250px; }.decimal-board { height:210px; }.big-decimal { font-size:48px; }.mode-grid { grid-template-columns:1fr; }.mix-card { align-items:stretch; flex-direction:column; }.mix-card .mode-icon { margin-bottom:2px; }.game-topbar { display:block; }.game-stats { justify-content:start; margin-top:9px; }.question-card { padding:22px 18px; }.answer-row,.result-actions { flex-direction:column; }.check-button,.next-button,.result-actions>* { width:100%; }.choice-grid { grid-template-columns:1fr; }.help-row { display:block; }.hint-box { margin-top:8px; } }
   </style>
+  <link rel="manifest" href="/Matematyka/manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <script src="../pwa-register.js" data-pwa-register defer></script>
 </head>
 <body>
   <main class="app-shell">
@@ -120,6 +124,5 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="../shared/game-engine.js"></script>
   <script src="game.js"></script>
-  <script>if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js").catch(() => {}));</script>
 </body>
 </html>

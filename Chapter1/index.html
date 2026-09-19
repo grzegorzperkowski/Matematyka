@@ -540,6 +540,10 @@
     .toast.visible { opacity:1; visibility:visible; pointer-events:auto; transform:translateY(0); }
   </style>
   <link rel="stylesheet" href="../shared/game.css">
+  <link rel="manifest" href="/Matematyka/manifest.webmanifest">
+  <link rel="icon" href="../assets/icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png">
+  <script src="../pwa-register.js" data-pwa-register defer></script>
 </head>
 <body>
   <main class="app-shell">
@@ -713,11 +717,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="../shared/game-engine.js"></script>
   <script src="game.js"></script>
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("../service-worker.js").catch(() => {}));
-    }
-  </script>
   <script data-goatcounter="https://matematyka.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>

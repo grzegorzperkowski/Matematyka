@@ -4,6 +4,7 @@
   const STORAGE_KEY = "matematyczneMiasteczkoState:v2";
   const LEGACY_PROGRESS_KEY = "matematyczneMiasteczkoProgress";
   const LEGACY_BEST_KEY = "matematyczneMiasteczkoBest";
+  const RESULT_KEY = "playground.result.matematyka.v1";
   const REPAIR_STAGES = ["none", "offer", "help", "retry", "completed"];
   const REPAIR_ANIMATIONS = ["folding-bridge", "method-lantern", "repair-stamp"];
   const TOAST_DIRECTIONS = ["top", "right", "bottom", "left"];
@@ -232,6 +233,20 @@
       }
     }
 
+    function persistResultSummary(mode, score) {
+      if (!available) return;
+      const completedRoutes = Object.values(data.completedRoutes).filter(Boolean).length;
+      const bestScore = Math.max(0, ...Object.values(data.bestScores).map(Number).filter(Number.isFinite));
+      const bestStreak = Math.max(0, ...Object.values(data.bestStreaks).map(Number).filter(Number.isFinite));
+      try {
+        storage.setItem(RESULT_KEY, JSON.stringify({
+          version: 1, app: "matematyka", updatedAt: Date.now(),
+          summary: { primary: `${completedRoutes} ukończonych tras`, secondary: `Rekord: ${bestScore} pkt · seria ${bestStreak}` },
+          stats: { completedRoutes, bestScore, bestStreak, bestScores: data.bestScores, bestStreaks: data.bestStreaks, last: { chapter: chapterId, mode, score, completedAt: Date.now() } }
+        }));
+      } catch { /* The main progress record remains authoritative. */ }
+    }
+
     if (available) {
       try {
         const parsed = JSON.parse(storage.getItem(STORAGE_KEY));
@@ -313,6 +328,7 @@
         data.bestScores[keyFor(mode)] = Math.max(this.getBest(mode), Number.isFinite(normalizedScore) ? normalizedScore : 0);
         data.completedRoutes[keyFor(mode)] = true;
         persist();
+        persistResultSummary(mode, data.bestScores[keyFor(mode)]);
         return data.bestScores[keyFor(mode)];
       },
       hasCompleted(mode) {
@@ -327,6 +343,7 @@
       saveBestStreak(mode, streak) {
         data.bestStreaks[keyFor(mode)] = Math.max(this.getBestStreak(mode), streak);
         persist();
+        persistResultSummary(mode, this.getBest(mode));
         return data.bestStreaks[keyFor(mode)];
       },
       getLegacyBest() {
