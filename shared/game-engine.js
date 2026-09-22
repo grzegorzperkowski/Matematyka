@@ -213,6 +213,123 @@
     return null;
   }
 
+  function roundStep(round) {
+    // The saved index is the current question, matching the homepage Dokończ chip.
+    const total = Array.isArray(round?.questions) && round.questions.length > 0 ? Math.min(round.questions.length, 100) : 10;
+    const index = Number.isInteger(round?.index) && round.index >= 0 ? round.index : 0;
+    return { current: Math.min(Math.max(index + 1, 1), total), total };
+  }
+
+  function exerciseHref(href, exerciseId, resume) {
+    const source = String(href || "");
+    const hashIndex = source.indexOf("#");
+    const withoutHash = hashIndex >= 0 ? source.slice(0, hashIndex) : source;
+    const hash = hashIndex >= 0 ? source.slice(hashIndex) : "";
+    const queryIndex = withoutHash.indexOf("?");
+    const path = queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash;
+    const params = new URLSearchParams(queryIndex >= 0 ? withoutHash.slice(queryIndex + 1) : "");
+    params.set("exercise", exerciseId);
+    if (resume) params.set("resume", "1");
+    else params.delete("resume");
+    return `${path}?${params.toString()}${hash}`;
+  }
+
+  function chapterProgressSummary(state, catalog) {
+    const usable = state && state.version === 2 ? state : null;
+    const rounds = usable && usable.rounds && typeof usable.rounds === "object" ? usable.rounds : {};
+    const bestScores = usable && usable.bestScores && typeof usable.bestScores === "object" ? usable.bestScores : {};
+    const bestStreaks = usable && usable.bestStreaks && typeof usable.bestStreaks === "object" ? usable.bestStreaks : {};
+    const completedRoutes = usable && usable.completedRoutes && typeof usable.completedRoutes === "object" ? usable.completedRoutes : {};
+    const storedBest = (key) => {
+      const value = bestScores[key];
+      return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+    };
+    const storedStreak = (key) => {
+      const value = Number(bestStreaks[key]);
+      return Number.isFinite(value) && value > 0 ? value : 0;
+    };
+    const chapters = (Array.isArray(catalog) ? catalog : []).flatMap((chapter) => {
+      if (!chapter || typeof chapter.id !== "string" || !chapter.id || typeof chapter.title !== "string" || typeof chapter.href !== "string") return [];
+      const stations = (Array.isArray(chapter.stations) ? chapter.stations : []).flatMap((station) => {
+        if (!station || typeof station.id !== "string" || !station.id || typeof station.title !== "string") return [];
+        const key = `${chapter.id}:${station.id}`;
+        const best = storedBest(key);
+        // A numeric best of zero still counts as finished, matching the chapter menu.
+        const completed = completedRoutes[key] === true || best !== null;
+        const started = roundHasProgress(rounds[key]);
+        const bestScore = best === null ? 0 : best;
+        const bestStreak = storedStreak(key);
+        const step = started ? roundStep(rounds[key]) : null;
+        const status = completed ? "completed" : started ? "started" : "new";
+        const statusLabel = completed ? "Ukończona" : started ? "Nieukończona" : "Jeszcze przed Tobą";
+        const detail = [];
+        if (completed) detail.push(`Rekord: ${bestScore} pkt`);
+        if (started && !completed && step) detail.push(`Krok ${step.current}/${step.total}`);
+        if (bestStreak > 0) detail.push(`seria ${bestStreak}`);
+        return [{
+          id: station.id,
+          title: station.title,
+          href: exerciseHref(chapter.href, station.id, false),
+          resumeHref: step ? exerciseHref(chapter.href, station.id, true) : null,
+          resumeLabel: step ? `Dokończ · krok ${step.current}/${step.total}` : "",
+          status,
+          statusLabel,
+          detailLabel: detail.join(" · "),
+          bestScore,
+          bestStreak,
+          step
+        }];
+      });
+      const completedCount = stations.filter((station) => station.status === "completed").length;
+      const inProgressCount = stations.filter((station) => station.resumeHref).length;
+      const bestScore = stations.reduce((max, station) => station.status === "completed" ? Math.max(max, station.bestScore) : max, 0);
+      const bestStreak = stations.reduce((max, station) => Math.max(max, station.bestStreak), 0);
+      return [{
+        id: chapter.id,
+        number: Number.isInteger(chapter.number) ? chapter.number : null,
+        title: chapter.title,
+        href: chapter.href,
+        tone: typeof chapter.tone === "string" ? chapter.tone : "",
+        icon: typeof chapter.icon === "string" ? chapter.icon : "",
+        completedCount,
+        stationCount: stations.length,
+        inProgressCount,
+        bestScore,
+        bestStreak,
+        progressLabel: `Ukończono ${completedCount} z ${stations.length} stacji`,
+        recordLabel: completedCount > 0 ? `Rekord: ${bestScore} pkt` : "Rekord: —",
+        streakLabel: bestStreak > 0 ? `Najdłuższa seria: ${bestStreak}` : "Najdłuższa seria: —",
+        pendingLabel: inProgressCount > 0 ? `${polishCount(inProgressCount, "stacja", "stacje", "stacji")} do dokończenia` : "",
+        stations
+      }];
+    });
+    const completedCount = chapters.reduce((sum, chapter) => sum + chapter.completedCount, 0);
+    const stationCount = chapters.reduce((sum, chapter) => sum + chapter.stationCount, 0);
+    const inProgressCount = chapters.reduce((sum, chapter) => sum + chapter.inProgressCount, 0);
+    const bestScore = chapters.reduce((max, chapter) => chapter.completedCount > 0 ? Math.max(max, chapter.bestScore) : max, 0);
+    const bestStreak = chapters.reduce((max, chapter) => Math.max(max, chapter.bestStreak), 0);
+    return {
+      chapters,
+      totals: {
+        completedCount,
+        stationCount,
+        inProgressCount,
+        bestScore,
+        bestStreak,
+        progressLabel: `Ukończono ${completedCount} z ${stationCount} stacji`,
+        recordLabel: completedCount > 0 ? `Rekord: ${bestScore} pkt` : "Rekord: —",
+        streakLabel: bestStreak > 0 ? `Najdłuższa seria: ${bestStreak}` : "Najdłuższa seria: —",
+        pendingLabel: inProgressCount > 0 ? `${polishCount(inProgressCount, "stacja", "stacje", "stacji")} do dokończenia` : "",
+        emptyMessage: completedCount === 0 && inProgressCount === 0
+          ? "Nie ma jeszcze zapisanych kroków. Wybierz rozdział i rozwiąż pierwsze zadanie."
+          : "",
+        completeMessage: stationCount > 0 && completedCount === stationCount
+          ? "Wszystkie stacje są ukończone. Możesz wracać i poprawiać rekordy."
+          : ""
+      }
+    };
+  }
+
   function createStore(storage, chapterId, validModes, roundRevisions = {}) {
     let data = emptyData();
     let available = Boolean(storage);
@@ -1862,6 +1979,6 @@
     createRepairBridge, rollRepairBridge, normalizeRepairBridge, fifthStepEncouragement, start,
     polishFew, polishCount, polishVerb, questionMethod, rememberedMethods, lastAnsweredQuestion,
     resumeSummary, omittedMixStations, normalizeHintSteps, hintHelpSummary, unfinishedHomeChips,
-    geometryDescription
+    chapterProgressSummary, geometryDescription
   };
 })(typeof window === "undefined" ? globalThis : window);

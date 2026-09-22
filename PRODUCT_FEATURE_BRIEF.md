@@ -153,6 +153,12 @@ These answers would materially improve feature proposals:
 10. Back at a chapter menu, stations the child has started or finished show
     completion and, after a finished round, their best score. Untouched
     stations stay unmarked.
+11. From the homepage the child can open **Twoje postępy**. The page shows,
+    for every published chapter, how many stations are finished, the best
+    score, the best streak and any round waiting to be resumed. Each station
+    is finished, in progress or still ahead. A station that was finished and
+    then started again stays finished and can still be resumed. The page does
+    not compare children and does not list past attempts.
 
 ## Feature inventory — available now
 
@@ -168,6 +174,11 @@ These answers would materially improve feature proposals:
 - Child-friendly Polish names and short descriptions for chapters and stations.
 - A return path from a round to its chapter menu and from a chapter to the
   homepage.
+- A personal progress page, linked from the homepage as “Twoje postępy”.
+  It summarizes every published chapter and lists each station as finished,
+  in progress or still ahead. A resume link opens the saved round directly.
+  The page is part of the cached shell. When storage cannot be read it shows
+  an empty map and says so.
 
 ### Practice and learning
 
@@ -206,6 +217,10 @@ These answers would materially improve feature proposals:
 - Completion status shown on a station card only after that station has been
   started or finished; the best score appears after a finished round. Untouched
   stations have no empty “not completed” mark.
+- The same facts gathered on Twoje postępy: finished stations, best score,
+  best streak and rounds waiting to be finished. Untouched stations are named
+  as still ahead, not as failed. A chapter’s record is the highest station
+  score, and its streak is the longest station streak.
 - No public leaderboard or child-to-child comparison.
 
 ### Continuity and persistence
@@ -227,8 +242,8 @@ These answers would materially improve feature proposals:
 
 ### Offline and install-like behavior
 
-- The homepage, shared game experience and published chapters are cached after
-  an online visit.
+- The homepage, progress page, shared game experience and published chapters
+  are cached after an online visit.
 - Previously cached published chapters and their direct station links can work
   without a network connection.
 - Unknown offline navigation falls back to the cached town homepage.
@@ -313,7 +328,8 @@ idea from an existing feature. It is not a commitment to build these items.
 - No cloud backup or synchronization between devices.
 - No teacher/parent dashboard, assignments, classroom management or progress
   export.
-- No long-term attempt history or trend view beyond completion, best score and
+- No long-term attempt history, trend chart or log of individual attempts.
+  The progress page shows only the current completion state, best score and
   best streak.
 - No formal skill-mastery model, diagnostic assessment or adaptive difficulty.
 - No personalized recommendation of what to practise next.

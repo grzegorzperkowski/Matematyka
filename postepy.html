@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f47721">
+  <title>Twoje postępy — Matematyczne miasteczko</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <script src="pwa-register.js" data-pwa-register defer></script>
+  <style>
+    :root { --ink:#28252f; --muted:#6d6875; --paper:#fffaf2; --orange:#f47721; --orange-dark:#c95016; --yellow:#ffd166; --teal:#3aa7a3; --teal-dark:#187d7c; --purple:#7b61c9; --pink:#ef6b8d; --green:#56a96f; --line:#eadcc9; --shadow:0 18px 50px rgba(116,67,25,.14); }
+    * { box-sizing:border-box; }
+    html { min-width:320px; }
+    body { margin:0; min-height:100vh; color:var(--ink); font-family:"Trebuchet MS","Segoe UI",sans-serif; background:radial-gradient(circle at 7% 5%,rgba(255,209,102,.55) 0 4px,transparent 5px),radial-gradient(circle at 95% 14%,rgba(58,167,163,.2) 0 5px,transparent 6px),linear-gradient(135deg,#fff4dc 0%,#fffaf3 47%,#f2f9f5 100%); }
+    a:focus-visible, summary:focus-visible { outline:4px solid rgba(58,167,163,.45); outline-offset:3px; }
+    .shell { width:min(1120px,calc(100% - 32px)); margin:auto; padding:28px 0 48px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:28px; flex-wrap:wrap; }
+    .brand { display:inline-flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; }
+    .brand-mark { display:grid; place-items:center; width:48px; height:48px; border-radius:15px; background:var(--orange); color:white; font-size:26px; box-shadow:0 8px 18px rgba(244,119,33,.25); transform:rotate(-4deg); }
+    .brand strong { display:block; font-size:17px; letter-spacing:.02em; }
+    .brand span { color:var(--muted); font-size:13px; }
+    .page-intro { max-width:720px; margin-bottom:22px; }
+    .eyebrow { margin:0 0 8px; color:var(--orange-dark); font-size:13px; font-weight:900; letter-spacing:.09em; text-transform:uppercase; }
+    h1 { margin:0 0 12px; font-size:clamp(34px,5vw,52px); line-height:.98; letter-spacing:-.045em; }
+    h2 { margin:0; font-size:22px; line-height:1.15; letter-spacing:-.03em; }
+    .page-intro > p { margin:0; color:var(--muted); font-size:18px; line-height:1.5; }
+    .progress-body { display:grid; gap:18px; }
+    .empty-note, .complete-note, .storage-note { margin:0; padding:14px 16px; border:1px solid var(--line); border-radius:16px; background:rgba(255,255,255,.86); line-height:1.45; }
+    .complete-note { background:#e8f6e9; }
+    .storage-note { background:#fff5d7; }
+    .totals { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:0; padding:0; list-style:none; }
+    .totals li { display:flex; flex-direction:column; justify-content:space-between; gap:8px; min-height:104px; padding:16px; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.82); box-shadow:0 8px 22px rgba(116,67,25,.06); }
+    .totals span { color:var(--muted); font-size:13px; font-weight:800; }
+    .totals strong { font-size:clamp(26px,3vw,34px); letter-spacing:-.04em; line-height:1; }
+    .chapter-list { display:grid; grid-template-columns:1fr; gap:14px; }
+    .chapter-stat { --accent:var(--orange); --accent-dark:var(--orange-dark); --tint:#fff0db; min-width:0; padding:18px; border:1px solid var(--line); border-radius:18px; background:rgba(255,255,255,.86); box-shadow:0 8px 22px rgba(116,67,25,.06); }
+    .numbers { --accent:var(--orange); --accent-dark:var(--orange-dark); --tint:#fff0db; }
+    .written { --accent:var(--pink); --accent-dark:#b34162; --tint:#ffe8ef; }
+    .geometry { --accent:var(--teal); --accent-dark:var(--teal-dark); --tint:#e1f5f1; }
+    .fractions { --accent:var(--green); --accent-dark:#337947; --tint:#e8f6e9; }
+    .decimals { --accent:var(--purple); --accent-dark:#574787; --tint:#f0eaff; }
+    .areas { --accent:#e1a824; --accent-dark:#92640e; --tint:#fff5d7; }
+    .solids { --accent:#4987d4; --accent-dark:#2860a6; --tint:#e7f1ff; }
+    .chapter-stat-head { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+    .chapter-stat-head > div { min-width:0; }
+    h1, h2, .progress-label, .station-link { overflow-wrap:break-word; }
+    .chapter-icon { display:grid; flex:0 0 56px; place-items:center; width:56px; height:56px; border:4px solid var(--ink); border-radius:16px; background:var(--tint); color:var(--accent-dark); font-family:Arial,sans-serif; font-size:22px; font-weight:900; line-height:1; box-shadow:4px 4px 0 rgba(40,37,47,.12); transform:rotate(-3deg); }
+    .chapter-stat:nth-child(even) .chapter-icon { transform:rotate(3deg); }
+    .chapter-stat .eyebrow { color:var(--accent-dark); }
+    .progress-label { margin:0 0 8px; font-size:15px; font-weight:800; }
+    .progress-track { height:12px; overflow:hidden; border-radius:999px; background:#eadfce; }
+    .progress-bar { width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--accent),var(--accent-dark)); }
+    .chapter-facts { display:flex; flex-wrap:wrap; gap:6px 16px; margin:12px 0 0; color:var(--muted); font-size:14px; font-weight:800; }
+    .chapter-pending { margin:8px 0 0; color:var(--orange-dark); font-size:14px; font-weight:900; }
+    .chapter-enter, .station-resume { display:inline-flex; align-items:center; justify-content:center; min-height:44px; margin-top:14px; padding:8px 14px; border-radius:12px; font-weight:900; text-decoration:none; }
+    .chapter-enter { background:var(--orange); color:white; box-shadow:0 5px 0 rgba(201,80,22,.18); }
+    .chapter-enter:hover { filter:brightness(1.04); }
+    .station-details { margin-top:8px; }
+    .station-details summary { display:flex; align-items:center; min-height:44px; cursor:pointer; font-weight:900; }
+    .station-list { margin:0; padding:0; list-style:none; }
+    .station { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; padding:10px 0; border-top:1px solid var(--line); }
+    .station-link { color:var(--orange-dark); font-weight:800; text-underline-offset:3px; overflow-wrap:anywhere; }
+    .station-status { font-size:13px; font-weight:900; }
+    .station-status.completed { color:var(--teal-dark); }
+    .station-status.started { color:var(--orange-dark); }
+    .station-status.new { color:var(--muted); }
+    .station-detail { color:var(--muted); font-size:14px; font-weight:700; }
+    .station-resume { margin-top:0; border:1px solid var(--line); background:white; color:var(--ink); }
+    footer { margin-top:34px; color:var(--muted); font-size:13px; text-align:center; }
+    footer a { color:var(--orange-dark); }
+    @media (min-width:900px) { .chapter-list { grid-template-columns:1fr 1fr; } }
+    @media (max-width:850px) { .totals { grid-template-columns:1fr 1fr; } }
+    @media (max-width:520px) {
+      .shell { width:min(100% - 24px,1120px); padding-top:18px; }
+      .brand > span > span { display:none; }
+      .totals { grid-template-columns:1fr; }
+      .chapter-enter, .station-resume { width:100%; }
+      .page-intro > p { font-size:16px; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      .brand-mark, .chapter-icon, .chapter-stat:nth-child(even) .chapter-icon { transform:none; }
+      .progress-bar, .chapter-enter { transition:none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Strona główna Matematycznego miasteczka"><span class="brand-mark" aria-hidden="true">✦</span><span><strong>Matematyczne miasteczko</strong><span>Graj, odkrywaj, licz!</span></span></a>
+    </header>
+    <section aria-labelledby="progress-title">
+      <div class="page-intro">
+        <p class="eyebrow">Twoja mapa</p>
+        <h1 id="progress-title">Twoje postępy</h1>
+        <p>Każdy rozdział pokazuje, ile stacji jest ukończonych, jaki jest Twój rekord punktów i jak długa była najdłuższa seria. To Twoje wyniki z tej przeglądarki.</p>
+      </div>
+      <div id="progressRoot"><p class="empty-note">Wczytuję Twoje postępy…</p></div>
+    </section>
+    <footer>Matematyczne miasteczko • małe kroki, wielkie odkrycia • <a href="/mygame/">Playground</a></footer>
+  </main>
+  <script src="shared/game-engine.js"></script>
+  <script src="shared/chapter-catalog.js"></script>
+  <script src="shared/progress-page.js"></script>
+</body>
+</html>

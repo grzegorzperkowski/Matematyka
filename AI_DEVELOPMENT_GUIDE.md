@@ -51,6 +51,7 @@ chapters remain visible as non-navigable cards with a Polish “wkrótce” labe
 
 ```text
 index.html                         Chapter-selection page
+postepy.html                       Personal progress page for the child
 assets/                            Product assets
 assets/icons/                      Install, maskable and Apple touch icons
 ChapterN/index.html                Chapter markup and local artwork/styles
@@ -59,6 +60,8 @@ ChapterN/IMPLEMENTATION_NOTES.md   Curriculum analysis and chapter decisions
 ChapterN/tests/*.test.cjs          Focused generator/offline tests
 ChapterN/page_*.png                Ignored curriculum reference pages
 shared/game-engine.js              Rounds, scoring, storage and rendering
+shared/chapter-catalog.js          Published chapter and station names for progress
+shared/progress-page.js            Progress-page rendering
 shared/game.css                    Shared controls, visuals and responsive rules
 manifest.webmanifest               Stable hosted PWA identity and install metadata
 pwa-register.js                    Scoped registration and opt-in update banner
@@ -102,6 +105,11 @@ by chapter and exercise. Keep storage optional and defensive; the game must
 still work when `localStorage` is unavailable or throws. Persist an unfinished
 round only after at least one correct answer. Clear the round that was
 completed, explicitly restarted, or left with no correct answers.
+
+`postepy.html` reads that same record. Station names on the page come from
+`shared/chapter-catalog.js` and must stay aligned with each chapter's
+`routeLabels` and `chapterTitle`. The page shows completion, best score and
+best streak only — not an attempt history.
 
 ## Offline delivery
 

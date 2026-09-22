@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "matematyczne-miasteczko-";
-const CACHE_NAME = `${CACHE_PREFIX}v27`;
+const CACHE_NAME = `${CACHE_PREFIX}v28`;
 const NETWORK_TIMEOUT_MS = 1800;
 const ROOT = new URL("./", self.registration.scope);
 const INDEX_URL = new URL("index.html", ROOT).href;
@@ -8,7 +8,7 @@ const CHAPTERS = [1, 2, 3, 4, 5, 6, 7, 8].map(number => ({
   document: new URL(`Chapter${number}/index.html`, ROOT).href
 }));
 const APP_SHELL = [
-  "./", "index.html", "shared/game-engine.js", "shared/game.css", "assets/math-town-mascot.png",
+  "./", "index.html", "postepy.html", "shared/game-engine.js", "shared/game.css", "shared/chapter-catalog.js", "shared/progress-page.js", "assets/math-town-mascot.png",
   "pwa-register.js", "manifest.webmanifest", "assets/icons/icon-192.png", "assets/icons/icon-512.png",
   "assets/icons/icon-maskable-192.png", "assets/icons/icon-maskable-512.png", "assets/icons/apple-touch-icon.png",
   ...CHAPTERS.flatMap((_, index) => [`Chapter${index + 1}/`, `Chapter${index + 1}/index.html`, `Chapter${index + 1}/game.js`])
