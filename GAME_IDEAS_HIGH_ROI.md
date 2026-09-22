@@ -1,3 +1,7 @@
+> Historical ideation snapshot (2026-09-18) exploring the aviation lens.
+> Key ideas (Most naprawczy, Przystanek po 5. kroku, Kompas sposobu, Wieża powrotu) were implemented.
+> Canonical product inventory: `PRODUCT_FEATURE_BRIEF.md`. Backlog: `REMAINING_IMPROVEMENTS.md`.
+
 # Creative lens
 
 - Selected lens: Aviation (lotnictwo).

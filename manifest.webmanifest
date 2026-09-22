@@ -1,6 +1,6 @@
 {
   "id": "/Matematyka/", "name": "Matematyczne miasteczko", "short_name": "Matematyka",
-  "description": "Siedem rozdziałów matematycznych ćwiczeń, dostępnych offline.", "lang": "pl",
+  "description": "Osiem rozdziałów matematycznych ćwiczeń, dostępnych offline.", "lang": "pl",
   "start_url": "/Matematyka/", "scope": "/Matematyka/", "display": "standalone",
   "background_color": "#fffaf2", "theme_color": "#f47721",
   "icons": [

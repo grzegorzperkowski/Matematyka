@@ -14,7 +14,7 @@ Implement the interactive game for Chapter 2 in `Chapter2/`, matching Chapter 1'
 - `Chapter2/game.js` starts the engine with `chapterId: "chapter2"` and stable route IDs.
 - Use ten questions per route. Every generated question needs an answer, hint, explanation and helpful visual where suitable.
 - Add focused Node tests for dynamic question-generation rules.
-- Update Chapter 2's homepage card to a real `Chapter2/index.html` link, remove `coming`, update its description, and point the hero's primary link to Chapter 2 (Chapter 1 is already available via its card).
+- Update Chapter 2's homepage card to a real `Chapter2/index.html` link, remove `coming`, update its description, and point the hero's primary link to Chapter 2 (Chapter 1 is already available via its card). *(Note: The homepage hero was subsequently permanently standardized to Chapter 1 ("Liczby i działania") per `AI_DEVELOPMENT_GUIDE.md` and commit `5f1b3ff`).*
 - Update `service-worker.js`: add Chapter 2 HTML and JS to `PUBLISHED_CHAPTERS`, then bump the cache version.
 
 ## Existing project decisions
