@@ -1,9 +1,9 @@
 const CACHE_PREFIX = "matematyczne-miasteczko-";
-const CACHE_NAME = `${CACHE_PREFIX}v26`;
+const CACHE_NAME = `${CACHE_PREFIX}v27`;
 const NETWORK_TIMEOUT_MS = 1800;
 const ROOT = new URL("./", self.registration.scope);
 const INDEX_URL = new URL("index.html", ROOT).href;
-const CHAPTERS = [1, 2, 3, 4, 5, 6, 7].map(number => ({
+const CHAPTERS = [1, 2, 3, 4, 5, 6, 7, 8].map(number => ({
   prefix: new URL(`Chapter${number}/`, ROOT).pathname,
   document: new URL(`Chapter${number}/index.html`, ROOT).href
 }));

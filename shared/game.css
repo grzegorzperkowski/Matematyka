@@ -233,6 +233,23 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .geometry-circle { fill: none; stroke: #187d7c; stroke-width: 5; }
 .geometry-disk { fill: rgba(255, 209, 102, .48); stroke: #187d7c; stroke-width: 5; }
 .geometry-point-p { fill: #7b61c9; }
+.cuboid-face { stroke: #28252f; stroke-linejoin: round; stroke-width: 3; }
+.cuboid-face.front { fill: rgba(255, 209, 102, .72); }
+.cuboid-face.top { fill: rgba(114, 198, 178, .78); }
+.cuboid-face.side { fill: rgba(239, 139, 168, .62); }
+.cuboid-face.highlighted { stroke: #c95016; stroke-width: 5; }
+.cuboid-hidden { fill: none; stroke: #6d6875; stroke-width: 2.4; stroke-dasharray: 5 4; }
+.cuboid-face-name { fill: #28252f; font: 800 13px "Trebuchet MS", "Segoe UI", sans-serif; text-anchor: middle; dominant-baseline: central; }
+.net-visual, .stack-plan { display: flex; flex-direction: column; align-items: center; width: min(100%, 520px); min-width: 0; }
+.net-visual svg, .stack-plan svg { display: block; width: min(100%, 440px); height: auto; max-height: 280px; }
+.net-face { fill: #fffaf2; stroke: #2860a6; stroke-width: 2.4; }
+.net-label, .stack-height { fill: #28252f; font: 900 15px "Trebuchet MS", "Segoe UI", sans-serif; text-anchor: middle; dominant-baseline: central; }
+.net-edge-label { fill: #2860a6; font: 800 12px "Trebuchet MS", "Segoe UI", sans-serif; text-anchor: middle; }
+.net-edge-label.side { text-anchor: end; }
+.net-legend, .stack-plan .visual-caption, .net-visual .visual-caption { max-width: 100%; margin: 8px 0 0; text-align: center; overflow-wrap: anywhere; }
+.stack-cell { fill: #fffaf2; stroke: #8f8173; stroke-width: 1.6; }
+.stack-cell.filled { fill: #d7e6fb; stroke: #2860a6; }
+.stack-front { fill: #2860a6; font: 800 12px "Trebuchet MS", "Segoe UI", sans-serif; text-anchor: middle; }
 .area-model { display: flex; flex-direction: column; align-items: center; width: min(100%, 560px); min-width: 0; }
 .area-model svg { display: block; width: min(100%, 390px); height: auto; max-height: 260px; }
 .area-cell { fill: #fffaf2; stroke: #8f8173; stroke-width: 1.6; vector-effect: non-scaling-stroke; }

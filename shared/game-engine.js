@@ -438,7 +438,14 @@
         if (sides.length === 0) return visual.caption || "Diagram obwodu wielokąta.";
         return `Wielokąt o bokach ${sides.map((value) => value ?? "nieznana długość").join(", ")}${visual.unit ? ` ${visual.unit}` : ""}.`;
       },
-      circle: () => `Diagram koła: zaznaczony element to ${featureNames[visual.feature] || "okrąg"}.`
+      circle: () => `Diagram koła: zaznaczony element to ${featureNames[visual.feature] || "okrąg"}.`,
+      cuboid: () => {
+        const edges = [visual.length, visual.width, visual.height].map(Number);
+        if (!edges.every((value) => Number.isFinite(value) && value > 0)) return visual.caption || "Diagram prostopadłościanu.";
+        const unit = visual.unit ? ` ${visual.unit}` : "";
+        if (edges[0] === edges[1] && edges[1] === edges[2]) return `Sześcian o krawędzi ${edges[0]}${unit}.`;
+        return `Prostopadłościan o krawędziach ${edges.join(", ")}${unit}.`;
+      }
     };
     return descriptions[shape]?.() || visual.caption || "Diagram geometryczny";
   }
@@ -830,6 +837,57 @@
           const distance = visual.pointPosition === "inside" ? 27 : visual.pointPosition === "outside" ? 72 : radius;
           dot(center[0] + distance, center[1], "geometry-point-p"); label(center[0] + distance + 6, center[1] - 7, "P");
         }
+      } else if (shape === "cuboid") {
+        const length = Number(visual.length);
+        const depth = Number(visual.width);
+        const height = Number(visual.height);
+        const validEdge = (value) => Number.isFinite(value) && value > 0 && value <= 24;
+        if (![length, depth, height].every(validEdge)) {
+          panel.hidden = true;
+          return;
+        }
+        svg.setAttribute("viewBox", "0 0 240 160");
+        const scale = 76 / Math.max(length, depth, height);
+        const faceWidth = length * scale;
+        const faceDepth = depth * scale;
+        const faceHeight = height * scale;
+        const dx = faceDepth * 0.48;
+        const dy = faceDepth * 0.3;
+        const ax = 118 - (faceWidth + dx) / 2;
+        const ay = 118;
+        const frontLeft = [ax, ay];
+        const frontRight = [ax + faceWidth, ay];
+        const frontTopRight = [ax + faceWidth, ay - faceHeight];
+        const frontTopLeft = [ax, ay - faceHeight];
+        const backLeft = [ax + dx, ay - dy];
+        const backRight = [ax + faceWidth + dx, ay - dy];
+        const backTopRight = [ax + faceWidth + dx, ay - faceHeight - dy];
+        const backTopLeft = [ax + dx, ay - faceHeight - dy];
+        const highlighted = new Set(Array.isArray(visual.highlight) ? visual.highlight : visual.highlight ? [visual.highlight] : []);
+        const drawFace = (points, name, title) => {
+          addSvg(svg, "polygon", {
+            points: points.map((point) => point.join(",")).join(" "),
+            class: `cuboid-face ${name}${highlighted.has(name) ? " highlighted" : ""}`
+          });
+          if (!highlighted.has(name)) return;
+          const centerX = points.reduce((sum, point) => sum + point[0], 0) / points.length;
+          const centerY = points.reduce((sum, point) => sum + point[1], 0) / points.length;
+          label(centerX, centerY, title, "cuboid-face-name");
+        };
+        drawFace([frontTopLeft, frontTopRight, frontRight, frontLeft], "front", "przód");
+        drawFace([frontTopLeft, backTopLeft, backTopRight, frontTopRight], "top", "góra");
+        drawFace([frontRight, backRight, backTopRight, frontTopRight], "side", "bok");
+        [[frontLeft, backLeft], [backLeft, backRight], [backLeft, backTopLeft]].forEach(([from, to]) => {
+          addSvg(svg, "line", { x1: from[0], y1: from[1], x2: to[0], y2: to[1], class: "cuboid-hidden" });
+        });
+        const unitName = visual.unit ? ` ${visual.unit}` : "";
+        const edgeText = (explicit, numeric) => typeof explicit === "string" && explicit.length > 0 ? explicit : visual.showDimensions === true ? `${numeric}${unitName}` : "";
+        const lengthText = edgeText(visual.lengthLabel, length);
+        const widthText = edgeText(visual.widthLabel, depth);
+        const heightText = edgeText(visual.heightLabel, height);
+        if (lengthText) label((frontLeft[0] + frontRight[0]) / 2, frontLeft[1] + 16, lengthText);
+        if (heightText) label(frontLeft[0] - 18, (frontLeft[1] + frontTopLeft[1]) / 2, heightText);
+        if (widthText) label((frontRight[0] + backRight[0]) / 2 + 16, (frontRight[1] + backRight[1]) / 2, widthText);
       } else {
         panel.hidden = true;
         return;
@@ -1065,6 +1123,112 @@
       panel.append(box);
     }
 
+    function netRectangles(visual) {
+      const labelOk = (value) => value === undefined || (typeof value === "string" && value.length <= 24);
+      if (Array.isArray(visual.faces)) {
+        if (visual.faces.length < 1 || visual.faces.length > 8) return null;
+        const faces = visual.faces.map((face) => ({
+          x: Number(face.x), y: Number(face.y), w: Number(face.w), h: Number(face.h),
+          label: face.label || "",
+          widthLabel: face.widthLabel || "",
+          heightLabel: face.heightLabel || ""
+        }));
+        const finite = (value) => Number.isFinite(value);
+        const valid = faces.every((face) => labelOk(face.label) && labelOk(face.widthLabel) && labelOk(face.heightLabel) && finite(face.x) && finite(face.y) && finite(face.w) && finite(face.h) && face.x >= 0 && face.y >= 0 && face.x <= 40 && face.y <= 40 && face.w > 0 && face.h > 0 && face.w <= 30 && face.h <= 30);
+        if (!valid) return null;
+        return faces;
+      }
+      if (!Array.isArray(visual.cells) || visual.cells.length < 1 || visual.cells.length > 12) return null;
+      const cells = visual.cells.map((cell) => ({
+        x: Number(cell.col), y: Number(cell.row), w: 1, h: 1, label: cell.label || "", widthLabel: "", heightLabel: ""
+      }));
+      const seen = new Set();
+      const valid = cells.every((cell) => {
+        const key = `${cell.x},${cell.y}`;
+        const unique = !seen.has(key);
+        seen.add(key);
+        return unique && labelOk(cell.label) && Number.isInteger(cell.x) && Number.isInteger(cell.y) && cell.x >= 0 && cell.y >= 0 && cell.x <= 11 && cell.y <= 11;
+      });
+      return valid ? cells : null;
+    }
+
+    function rectanglesOverlap(rects) {
+      return rects.some((first, index) => rects.slice(index + 1).some((second) => {
+        const overlapX = Math.min(first.x + first.w, second.x + second.w) - Math.max(first.x, second.x);
+        const overlapY = Math.min(first.y + first.h, second.y + second.h) - Math.max(first.y, second.y);
+        return overlapX > 1e-6 && overlapY > 1e-6;
+      }));
+    }
+
+    function renderNet(visual, panel) {
+      const rects = netRectangles(visual);
+      if (!rects || rectanglesOverlap(rects) || (visual.legend !== undefined && typeof visual.legend !== "string")) {
+        panel.hidden = true;
+        return;
+      }
+      const maxX = Math.max(...rects.map((rect) => rect.x + rect.w));
+      const maxY = Math.max(...rects.map((rect) => rect.y + rect.h));
+      const pad = 22;
+      const scale = Math.min(320 / maxX, 168 / maxY);
+      const box = document.createElement("div");
+      box.className = "net-visual";
+      const svg = addSvg(box, "svg", {
+        viewBox: `0 0 ${maxX * scale + pad * 2} ${maxY * scale + pad * 2}`,
+        role: "img",
+        "aria-label": visual.alt || "Siatka bryły.",
+        focusable: "false"
+      });
+      rects.forEach((rect) => {
+        const x = pad + rect.x * scale;
+        const y = pad + rect.y * scale;
+        const width = rect.w * scale;
+        const height = rect.h * scale;
+        addSvg(svg, "rect", { x, y, width, height, class: "net-face" });
+        if (rect.label) addSvg(svg, "text", { x: x + width / 2, y: y + height / 2, class: "net-label" }, rect.label);
+        if (rect.widthLabel) addSvg(svg, "text", { x: x + width / 2, y: y + height - 8, class: "net-edge-label" }, rect.widthLabel);
+        if (rect.heightLabel) addSvg(svg, "text", { x: x + 8, y: y + height / 2, class: "net-edge-label side" }, rect.heightLabel);
+      });
+      box.append(svg);
+      if (visual.legend) addText(box, "p", visual.legend, "net-legend");
+      addText(box, "p", visual.caption || "Siatka bryły.", "visual-caption");
+      panel.append(box);
+    }
+
+    function renderStackPlan(visual, panel) {
+      const columns = Number(visual.columns);
+      const rows = Number(visual.rows);
+      const heights = Array.isArray(visual.heights) ? visual.heights.map(Number) : [];
+      const validHeight = (value) => Number.isInteger(value) && value >= 0 && value <= 6;
+      if (!Number.isInteger(columns) || columns < 1 || columns > 6 || !Number.isInteger(rows) || rows < 1 || rows > 5 || heights.length !== columns * rows || !heights.every(validHeight)) {
+        panel.hidden = true;
+        return;
+      }
+      const cellSize = 36;
+      const margin = 16;
+      const width = columns * cellSize;
+      const height = rows * cellSize;
+      const box = document.createElement("div");
+      box.className = "stack-plan";
+      const svg = addSvg(box, "svg", {
+        viewBox: `0 0 ${width + margin * 2} ${height + margin * 2 + 18}`,
+        role: "img",
+        "aria-label": visual.alt || "Plan wysokości kolumn. Dolny rząd to przód bryły.",
+        focusable: "false"
+      });
+      heights.forEach((value, index) => {
+        const row = Math.floor(index / columns);
+        const column = index % columns;
+        const x = margin + column * cellSize;
+        const y = margin + (rows - 1 - row) * cellSize;
+        addSvg(svg, "rect", { x, y, width: cellSize, height: cellSize, class: `stack-cell${value > 0 ? " filled" : ""}` });
+        if (value > 0 && visual.showHeights !== false) addSvg(svg, "text", { x: x + cellSize / 2, y: y + cellSize / 2, class: "stack-height" }, value);
+      });
+      addSvg(svg, "text", { x: margin + width / 2, y: margin + height + 16, class: "stack-front" }, "przód");
+      box.append(svg);
+      addText(box, "p", visual.caption || "Liczby oznaczają, ile kostek stoi w kolumnie. Dolny rząd to przód.", "visual-caption");
+      panel.append(box);
+    }
+
     function renderVisual(visual) {
       const panel = document.createElement("div");
       panel.id = "visualPanel";
@@ -1077,6 +1241,10 @@
       const legacyDivision = visual.type === "equation" && typeof visual.expression === "string" && /^(.+)\s⟌\s(.+)$/.test(visual.expression);
       if (visual.type === "area-model") {
         renderAreaModel(visual, panel);
+      } else if (visual.type === "net") {
+        renderNet(visual, panel);
+      } else if (visual.type === "stack-plan") {
+        renderStackPlan(visual, panel);
       } else if (visual.type === "fraction-model") {
         renderFractionModel(visual, panel);
       } else if (visual.type === "fraction-numberline") {

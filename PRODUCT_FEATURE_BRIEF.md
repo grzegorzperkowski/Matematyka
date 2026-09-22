@@ -117,8 +117,8 @@ These answers would materially improve feature proposals:
 ## Core user journey available now
 
 1. The child opens a town-style homepage and chooses one of eight visible
-   curriculum chapters. Seven are playable; one is marked as coming soon. The
-   hero action starts Chapter 1, “Liczby i działania”.
+   curriculum chapters. All eight are playable. The hero action starts
+   Chapter 1, “Liczby i działania”.
 2. Inside a published chapter, the child chooses a focused station or a mixed
    station covering that chapter.
 3. Each station starts a ten-question round. Questions ask the child either to
@@ -159,7 +159,7 @@ These answers would materially improve feature proposals:
 ### Navigation and content choice
 
 - Homepage with eight chapter cards, a hero action into Chapter 1, and clear
-  published/coming-soon status.
+  published/coming-soon status. All eight current chapters are playable.
 - A chapter menu with focused practice stations and one mixed station.
 - Direct links to individual stations, so a specific exercise can be shared or
   reopened as `ChapterN/index.html?exercise=…`. Directory addresses such as
@@ -264,8 +264,8 @@ These answers would materially improve feature proposals:
 
 ## Curriculum coverage
 
-There are currently **67 focused practice stations** across seven published
-chapters, plus one mixed station per chapter (**74 playable stations in all**).
+There are currently **77 focused practice stations** across eight published
+chapters, plus one mixed station per chapter (**85 playable stations in all**).
 
 | Chapter | Status | Focused skills available now |
 | --- | --- | --- |
@@ -276,7 +276,7 @@ chapters, plus one mixed station per chapter (**74 playable stations in all**).
 | 5. Ułamki zwykłe | Available now | equal parts of a whole; mixed numbers; fraction number line; comparison; equivalent/simplified fractions; improper fractions and wholes; fraction as quotient; addition; subtraction; fraction problems |
 | 6. Ułamki dziesiętne | Available now | decimal notation and place value; decimal number line; length and mass conversions; equivalent decimal notation; comparison; addition; subtraction; shopping/money; decimal problems |
 | 7. Pola figur | Available now | unit squares; area units; rectangle and square area; missing side; composite figures; area-unit conversions; ares and hectares; cutting/rearranging shapes; practical area problems |
-| 8. Prostopadłościany i sześciany | Planned | cuboids, cubes, nets and surface area; no playable stations yet |
+| 8. Prostopadłościany i sześciany | Available now | recognising cuboids and cubes; faces, edges and vertices; dimensions and edge totals; parallel and perpendicular faces; cube nets and opposite faces; reading a cuboid net; buildings made of unit cubes; total surface area; wrapping, painting and tiling selected faces |
 
 ## Product rules that new feature ideas must respect
 
@@ -309,7 +309,6 @@ These constraints materially shape feature design:
 This list records the product boundary so an AI can distinguish a genuinely new
 idea from an existing feature. It is not a commitment to build these items.
 
-- No chapter 8 gameplay.
 - No user account, named profile or multiple-child profile on one device.
 - No cloud backup or synchronization between devices.
 - No teacher/parent dashboard, assignments, classroom management or progress
@@ -395,4 +394,4 @@ Also update this brief when a target-user fact, known problem or meaningful
 research finding changes. Do not update it for refactors, file moves, CSS
 changes, test changes, cache versions or other implementation-only work.
 
-Last verified against the current application source: **2026-09-19**.
+Last verified against the current application source: **2026-09-22**.

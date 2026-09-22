@@ -19,7 +19,8 @@ Already shipped (do not redo):
 - Hint-used marks on the 10-step bar; result screen treats them as help
 - Chapter 1 mix rotates the omitted station and names it
 - Homepage “Dokończ: …” chip for an unfinished round
-- Station-specific Mała ściąga (Chapter 1 `routeHelp`)
+- Station-specific Mała ściąga (Chapter 1 `routeHelp`, and Chapter 8 when a round is open)
+- Chapter 8, Prostopadłościany i sześciany: ten focused stations plus a mixed round
 - CI job, `package.json` test script, shared cache-name assertion, Chapter 1
   mix-coverage test, Polish helpers on `MathTownGame`, dead-code tails
   removed, Chapter 1 `IMPLEMENTATION_NOTES.md`, engagement audit marked
@@ -30,7 +31,6 @@ Already shipped (do not redo):
 ## Then — still worth doing
 
 - One optional **check ticket** per round (unit / estimate) — still cheaper than a new mode.
-- **Chapter 8 (bryły)** when the goal is curriculum coverage rather than loop polish.
 - Chapter 1 HTML still forks a lot of CSS. Stop adding local duplicates; migrate
   Ch1 controls to shared styles on the next touch.
 

@@ -119,7 +119,7 @@ incomplete.
 
 Available visual types are `story`, `equation`, `column`, `division`, `array`,
 `sequence`, `difference`, `number`, `numberline`, `geometry`, `area-model`,
-`fraction-model` and `fraction-numberline`.
+`fraction-model`, `fraction-numberline`, `net` and `stack-plan`.
 
 Always pass explicit mathematical data:
 
@@ -144,6 +144,19 @@ Always pass explicit mathematical data:
 - `fraction-numberline`: positive integer `denominator`, integer
   `minNumerator`, `maxNumerator` and a `markedNumerators` array. Positions are
   numerator steps over the shared denominator, never floating-point values.
+- `net`: either `cells` or `faces`, plus optional `legend`, `alt` and
+  `caption`. `cells` is an array of 1–12 unit squares `{ col, row, label? }`
+  with integer coordinates from 0 to 11 and no repeated position. `faces` is
+  an array of 1–8 rectangles `{ x, y, w, h, label?, widthLabel?, heightLabel? }`;
+  coordinates are finite, sizes are positive and at most 30, and rectangles may
+  touch but must not overlap in area. Every label is a string of at most 24
+  characters. `legend`, when present, is visible text and is not inferred from
+  the prompt.
+- `stack-plan`: integer `columns` from 1 to 6, integer `rows` from 1 to 5, and
+  a row-major `heights` array of exactly `columns * rows` integers from 0 to 6.
+  Row 0 is the front of the solid and is drawn at the bottom of the plan.
+  `showHeights: false` shades occupied columns without writing the numbers.
+  Optional `alt` and `caption` describe the plan.
 
 Geometry shapes currently include:
 
@@ -156,7 +169,16 @@ Geometry shapes currently include:
   draw a four-sided equal-length counterexample without implying right angles;
 - `rectangle`: numeric `width` and `height`;
 - `perimeter`: a `sides` array;
-- `circle`: `feature`.
+- `circle`: `feature`;
+- `cuboid`: positive finite `length`, `width` and `height`, each at most 24.
+  They are the three edges that meet at the front-bottom-left vertex: length
+  across the front, width into the depth, height upward. Optional `unit` is
+  only a label suffix. Optional `lengthLabel`, `widthLabel` and `heightLabel`
+  are explicit strings drawn instead of the numbers. `showDimensions: true`
+  draws any missing numeric label. Optional `highlight` is `"front"`, `"top"`,
+  `"side"`, or an array of those; a highlighted face is also named in words
+  (`przód`, `góra`, `bok`). The three edges at the hidden back-left corner are
+  dashed. Supply `alt` when a label hides an unknown value.
 
 Rectangle visuals may use `widthLabel` and `heightLabel` to show pedagogical
 labels such as `9 m` and `? m` without deriving them from prompt text,

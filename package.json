@@ -4,6 +4,6 @@
   "description": "Polish maths practice game for children around 10.",
   "scripts": {
     "test": "node --test **/*.test.cjs",
-    "check": "node --check shared/game-engine.js && node --check service-worker.js && node --check Chapter1/game.js && node --check Chapter2/game.js && node --check Chapter3/game.js && node --check Chapter4/game.js && node --check Chapter5/game.js && node --check Chapter6/game.js && node --check Chapter7/game.js"
+    "check": "node --check shared/game-engine.js && node --check service-worker.js && node --check Chapter1/game.js && node --check Chapter2/game.js && node --check Chapter3/game.js && node --check Chapter4/game.js && node --check Chapter5/game.js && node --check Chapter6/game.js && node --check Chapter7/game.js && node --check Chapter8/game.js"
   }
 }
