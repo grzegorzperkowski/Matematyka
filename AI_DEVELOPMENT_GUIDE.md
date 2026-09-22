@@ -111,6 +111,12 @@ completed, explicitly restarted, or left with no correct answers.
 `routeLabels` and `chapterTitle`. The page shows completion, best score and
 best streak only — not an attempt history.
 
+Playground serves this game from `/mygame/apps/matematyka/` and copies only
+the files named in the mygame `scripts/sync-apps.ps1` allowlist. That list
+must include `postepy.html`, `shared/chapter-catalog.js`, and
+`shared/progress-page.js`. Pushing this repository does not update that URL
+until the Playground workflow runs.
+
 ## Offline delivery
 
 `service-worker.js` atomically precaches the shared application shell, PWA
