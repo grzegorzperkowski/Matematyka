@@ -8,6 +8,7 @@
   const REPAIR_STAGES = ["none", "offer", "help", "retry", "completed"];
   const REPAIR_ANIMATIONS = ["folding-bridge", "method-lantern", "repair-stamp"];
   const TOAST_DIRECTIONS = ["top", "right", "bottom", "left"];
+  const MILESTONE_TOAST_MS = 8800;
   const FIFTH_STEP_MESSAGES = [
     "Pięć kroków już za Tobą — jeszcze pięć. Tak trzymaj!",
     "Świetnie Ci idzie! Meta jest coraz bliżej.",
@@ -657,7 +658,7 @@
       el.milestoneToast.classList.add(`from-${encouragement.direction}`, "visible");
       showFifthStepEncouragement.timer = global.setTimeout(() => {
         el.milestoneToast.classList.remove("visible", ...TOAST_DIRECTIONS.map((direction) => `from-${direction}`));
-      }, 6600);
+      }, MILESTONE_TOAST_MS + 200);
     }
 
     function updateStats() {

@@ -209,7 +209,8 @@
 
   function timesMoreQuestions() {
     return Array.from({ length: 10 }, (_, index) => {
-      const factor = rand(2, 9), base = rand(2, 30); let prompt, answer, hint, explanation;
+      // Both factors stay in the multiplication table, so "razy mniej" never asks for 203 : 7.
+      const factor = rand(2, 9), base = rand(2, 10); let prompt, answer, hint, explanation;
       if (index % 3 === 0) { answer = base * factor; prompt = `Jaka liczba jest ${factor} razy większa niż ${base}?`; hint = `Pomnóż ${base} przez ${factor}.`; explanation = `${factor} · ${base} = ${answer}.`; }
       else if (index % 3 === 1) { answer = base; prompt = `Jaka liczba jest ${factor} razy mniejsza niż ${base * factor}?`; hint = `Podziel ${base * factor} przez ${factor}.`; explanation = `${base * factor} : ${factor} = ${answer}.`; }
       else { answer = factor; prompt = `Ile razy liczba ${base * factor} jest większa niż ${base}?`; hint = `Podziel ${base * factor} przez ${base}.`; explanation = `${base * factor} : ${base} = ${answer}.`; }
