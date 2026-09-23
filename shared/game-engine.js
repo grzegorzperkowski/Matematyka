@@ -17,15 +17,28 @@
     "Brawo za wytrwałość! Zostało tylko pięć małych kroków.",
     "Masz już pół rundy! Spokojnie działaj dalej."
   ];
+  const HALFWAY_STEP_MESSAGES = [
+    "Sześć kroków już za Tobą — jeszcze sześć. Tak trzymaj!",
+    "Świetnie Ci idzie! Meta jest coraz bliżej.",
+    "Dobra robota: pierwsza połowa gotowa. Ruszaj dalej!",
+    "Każdy kolejny krok przybliża Cię do mety.",
+    "Brawo za wytrwałość! Zostało sześć małych kroków.",
+    "Masz już pół rundy! Spokojnie działaj dalej."
+  ];
 
   function randomItem(items, random) {
     return items[Math.floor(random() * items.length)];
   }
 
   function fifthStepEncouragement(completed, total, random = Math.random) {
-    if (completed !== 5 || total !== 10) return null;
+    const messages = total === 10 && completed === 5
+      ? FIFTH_STEP_MESSAGES
+      : total === 12 && completed === 6
+        ? HALFWAY_STEP_MESSAGES
+        : null;
+    if (!messages) return null;
     return {
-      message: randomItem(FIFTH_STEP_MESSAGES, random),
+      message: randomItem(messages, random),
       direction: randomItem(TOAST_DIRECTIONS, random)
     };
   }

@@ -11,8 +11,12 @@ vm.runInNewContext(engineSource, engineContext);
 let config;
 vm.runInNewContext(source, { MathTownGame: { ...engineContext.MathTownGame, start(value) { config = value; } } });
 
-test("every route builds the advertised ten-question round", () => {
-  for (const mode of Object.keys(config.routeLabels)) assert.equal(config.buildQuestions(mode).length, 10, mode);
+test("every route builds its advertised round length", () => {
+  const twelve = new Set(["plusminus", "moreless", "multdiv", "by10", "timesmore", "remainder", "powers", "word", "order"]);
+  for (const mode of Object.keys(config.routeLabels)) {
+    const expected = mode === "mix" || !twelve.has(mode) ? 10 : 12;
+    assert.equal(config.buildQuestions(mode).length, expected, mode);
+  }
 });
 
 test("generated park and word-problem prompts agree with Polish number forms", () => {

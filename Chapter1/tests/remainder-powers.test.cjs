@@ -19,7 +19,7 @@ test("remainders, independent stories, cyclic colors and smallest solutions are 
   let lastColorSeen = false, puzzles = 0;
   for (let round = 0; round < 100; round += 1) {
     const questions = remainderQuestions();
-    assert.equal(questions.length, 10);
+    assert.equal(questions.length, 12);
     for (const q of questions) {
       const [a, b, c, d] = q.prompt.match(/\d+/g).map(Number);
       let expected;
@@ -34,8 +34,15 @@ test("remainders, independent stories, cyclic colors and smallest solutions are 
       } else if (q.prompt.startsWith("Czy")) {
         expected = Number(a % b === 0);
         divisibilityAnswers.add(expected);
+      } else if (q.prompt.startsWith("Jaki jest iloraz")) {
+        expected = Math.floor(a / b);
+        assert.ok(a % b !== 0);
+      } else if (q.prompt.startsWith("Jaką liczbę dzielono")) {
+        expected = a * b + c;
+        assert.ok(c > 0 && c < a);
       } else {
         expected = q.prompt.includes("każde dziecko") ? Math.floor(a / b) : a % b;
+        if (q.prompt.includes("przez 10")) assert.equal(expected, a % 10);
       }
       assert.equal(q.answer, expected, q.prompt);
       for (const match of q.explanation.matchAll(/(\d+) : (\d+) = (\d+) r (\d+)/g)) {
@@ -53,14 +60,26 @@ test("powers and story answers match their generated inputs", () => {
   const prompts = new Set();
   for (let round = 0; round < 100; round += 1) {
     const questions = powersQuestions();
-    assert.equal(questions.length, 10);
+    assert.equal(questions.length, 12);
     for (const q of questions) {
       prompts.add(q.prompt);
       const power = q.explanation.match(/(\d+)([²³⁴⁵])/);
       const numbers = q.prompt.match(/\d+/g).map(Number);
-      const expected = power ? Number(power[1]) ** ({ "²": 2, "³": 3, "⁴": 4, "⁵": 5 }[power[2]]) : numbers[0] * numbers[1];
+      const exponent = power ? { "²": 2, "³": 3, "⁴": 4, "⁵": 5 }[power[2]] : 0;
+      let expected;
+      if (q.prompt.startsWith("Czy")) {
+        const base = numbers[0];
+        const timesFactor = numbers[numbers.length - 1];
+        expected = base ** exponent === base * timesFactor ? 1 : 0;
+        assert.equal(q.kind, "choice");
+        assert.equal(q.options.map((option) => option.label).sort().join("|"), "NIE|TAK");
+      } else if (q.prompt.startsWith("Ile jednakowych")) {
+        expected = exponent;
+      } else {
+        expected = power ? Number(power[1]) ** exponent : numbers[0] * numbers[1];
+      }
       assert.equal(q.answer, expected, q.prompt);
-      assert.ok(q.answer > 0 && q.answer <= 10000);
+      assert.ok(q.answer >= 0 && q.answer <= 10000);
       assert.ok(q.hint && !/undefined|NaN/.test(q.explanation));
     }
   }

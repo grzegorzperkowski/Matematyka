@@ -70,7 +70,7 @@ test("random rounds keep answers, hints and context consistent", () => {
   const lotteryPrompts = new Set();
   for (let round = 0; round < 2000; round += 1) {
     const questions = make();
-    assert.equal(questions.length, 10);
+    assert.equal(questions.length, 12);
     for (const q of questions) {
       checkQuestion(q);
       prompts.add(q.prompt);

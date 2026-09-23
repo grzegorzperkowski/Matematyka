@@ -63,7 +63,9 @@ Keep them in a separate discovery or prioritization document until implemented.
 for children around 10 years old. It turns primary-school textbook topics into
 short interactive challenges. A child chooses a maths chapter, selects a
 focused practice station or a mixed round, and completes a predictable round
-of ten questions with immediate teaching feedback.
+of questions with immediate teaching feedback. Ten questions is the usual
+length. In Chapter 1, nine stations have twelve questions; the funfair, the
+number line and the mixed ride stay at ten.
 
 The curriculum sources determine topic order, terminology and age-appropriate
 limits, while the playable questions and visuals are original rather than
@@ -182,7 +184,9 @@ These answers would materially improve feature proposals:
 
 ### Practice and learning
 
-- Fixed, predictable rounds of ten questions.
+- Fixed, predictable rounds. Ten questions is the usual length. Chapter 1's
+  deepened stations have twelve questions; its funfair, number line and mixed
+  ride stay at ten.
 - Procedurally generated question values, allowing a station to be replayed
   with fresh examples.
 - Two main response formats: typed answers and multiple choice.
@@ -205,8 +209,9 @@ These answers would materially improve feature proposals:
 
 ### Motivation and progress
 
-- Visible ten-step progress, including completed and current steps, with a
-  discreet mark on steps where a hint was used.
+- Visible progress through the round, including completed and current steps,
+  with a discreet mark on steps where a hint was used. A halfway encouragement
+  appears after five of ten questions, or after six of twelve.
 - Score, correct-answer count and current answer streak.
 - Personal best streak for each station.
 - Streak milestones and varied supportive feedback.

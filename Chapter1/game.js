@@ -39,13 +39,52 @@
   }
 
   function plusMinusQuestions() {
-    return Array.from({ length: 10 }, (_, index) => {
+    const smart = (index) => {
       let prompt, answer, hint, explanation;
       if (index % 3 === 0) { const a = rand(10, 99), b = rand(10, 99), complement = 100 - b; answer = a + 100; prompt = `${a} + ${b} + ${complement}`; hint = `Połącz ${b} i ${complement}, aby otrzymać 100.`; explanation = `${a} + ${b} + ${complement} = ${a} + 100 = ${answer}.`; }
       else if (index % 3 === 1) { const base = rand(2, 9) * 100, difference = rand(1, 99), smaller = base - difference, larger = base + rand(1, 99); answer = larger - smaller; prompt = `${larger} − ${smaller}`; hint = `Dojdź od ${smaller} do ${base}, a potem do ${larger}.`; explanation = `${larger} − ${smaller} = ${answer}.`; }
       else { const tens = rand(2, 90) * 10, subtract = rand(1, 9); answer = tens - subtract; prompt = `${tens} − ${subtract}`; hint = `Odejmij 10, a potem dodaj ${10 - subtract}.`; explanation = `${tens} − ${subtract} = ${answer}.`; }
       return question({ label: "Dodawanie i odejmowanie", prompt: `Oblicz sprytnie: ${prompt} = ?`, answer, hint, explanation, visual: { type: "equation", expression: prompt, caption: "Znajdź wygodną parę liczb." } });
-    });
+    };
+    const compensationAdd = () => {
+      const aRound = rand(2, 7) * 10, bRound = rand(2, 7) * 10, aExtra = rand(1, 9), bExtra = rand(1, 9);
+      const a = aRound + aExtra, b = bRound + bExtra, answer = a + b;
+      const expression = `${a} + ${b}`;
+      return question({ label: "Dodawanie i odejmowanie", method: "najpierw okrągła suma", prompt: `Oblicz sprytnie: ${expression} = ?`, answer, hint: `Najpierw ${aRound} + ${bRound} = ${aRound + bRound}, potem dodaj ${aExtra} i ${bExtra}.`, explanation: `${aRound} + ${bRound} = ${aRound + bRound}, a ${aExtra} + ${bExtra} = ${aExtra + bExtra}, więc ${expression} = ${answer}.`, visual: { type: "equation", expression, caption: "Najpierw dziesiątki, potem jedności." } });
+    };
+    const compensationSub = () => {
+      const roundSub = rand(2, 6) * 10, extra = rand(1, 9), sub = roundSub + extra, base = rand(sub + 5, 99), answer = base - sub;
+      const expression = `${base} − ${sub}`;
+      return question({ label: "Dodawanie i odejmowanie", method: "najpierw okrągła różnica", prompt: `Oblicz sprytnie: ${expression} = ?`, answer, hint: `Najpierw ${base} − ${roundSub} = ${base - roundSub}, potem odejmij jeszcze ${extra}.`, explanation: `${base} − ${roundSub} = ${base - roundSub}, a ${base - roundSub} − ${extra} = ${answer}.`, visual: { type: "equation", expression, caption: "Odejmij dziesiątki, a potem jeszcze kilka jedności." } });
+    };
+    const missingAddend = () => {
+      const known = rand(12, 80), hidden = rand(3, 25), sum = known + hidden;
+      return question({ label: "Dodawanie i odejmowanie", method: "szukaj brakującej liczby", prompt: `Jaką liczbą zastąpić znak ?: ${known} + ? = ${sum}`, answer: hidden, hint: `Od ${sum} odejmij ${known}.`, explanation: `${known} + ${hidden} = ${sum}, więc ? = ${hidden}.`, visual: { type: "equation", expression: `${known} + ? = ${sum}`, caption: "Brakujący składnik to różnica." } });
+    };
+    const missingSubtrahend = () => {
+      const known = rand(30, 99), hidden = rand(3, 20), result = known - hidden;
+      return question({ label: "Dodawanie i odejmowanie", method: "szukaj brakującej liczby", prompt: `Jaką liczbą zastąpić znak ?: ${known} − ? = ${result}`, answer: hidden, hint: `Od ${known} odejmij ${result}.`, explanation: `${known} − ${hidden} = ${result}, więc ? = ${hidden}.`, visual: { type: "equation", expression: `${known} − ? = ${result}`, caption: "Odjemnik to różnica odjemnej i wyniku." } });
+    };
+    const missingMinuend = () => {
+      const hiddenPart = rand(8, 40), result = rand(10, 60), hidden = result + hiddenPart;
+      return question({ label: "Dodawanie i odejmowanie", method: "szukaj brakującej liczby", prompt: `Jaką liczbą zastąpić znak ?: ? − ${hiddenPart} = ${result}`, answer: hidden, hint: `Do ${result} dodaj ${hiddenPart}.`, explanation: `${hidden} − ${hiddenPart} = ${result}, więc ? = ${hidden}.`, visual: { type: "equation", expression: `? − ${hiddenPart} = ${result}`, caption: "Odjemna jest sumą odjemnika i wyniku." } });
+    };
+    const arrow = (sign) => {
+      const step = rand(3, 25);
+      const start = sign === "+" ? rand(15, 80) : rand(step + 10, 120);
+      const answer = sign === "+" ? start + step : start - step;
+      const expression = sign === "+" ? `${start} + ${step}` : `${start} − ${step}`;
+      return question({ label: "Dodawanie i odejmowanie", method: "idź wzdłuż strzałki", prompt: `Strzałka ${sign} ${step} prowadzi od liczby ${start}. Jaka liczba jest na jej końcu?`, answer, hint: sign === "+" ? `Dodaj ${step} do ${start}.` : `Odejmij ${step} od ${start}.`, explanation: `${expression} = ${answer}.`, visual: { type: "equation", expression, caption: sign === "+" ? "Strzałka ze znakiem + zwiększa liczbę." : "Strzałka ze znakiem − zmniejsza liczbę." } });
+    };
+    const missing = shuffle([missingAddend, missingSubtrahend, missingMinuend]).slice(0, 2).map((make) => make());
+    return shuffle([
+      ...Array.from({ length: 6 }, (_, index) => smart(index)),
+      compensationAdd(),
+      compensationSub(),
+      ...missing,
+      arrow("+"),
+      arrow("−")
+    ]);
   }
 
   function moreLessQuestions() {
@@ -113,14 +152,51 @@
   }
 
   function multDivQuestions() {
-    return Array.from({ length: 10 }, (_, index) => {
-      const a = rand(2, 9), b = rand(2, 9);
-      if (index === 0) return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${a} · 0 = ?`, answer: 0, hint: "Każda liczba pomnożona przez zero daje zero.", explanation: `${a} · 0 = 0.`, visual: { type: "equation", expression: `${a} · 0`, caption: "Mnożenie przez zero." } });
-      if (index % 3 === 0) { const c = rand(2, 5), answer = a * b * c; return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${a} · ${b} · ${c} = ?`, answer, hint: "Pomnóż kolejno dwa czynniki, a potem trzeci.", explanation: `${a} · ${b} · ${c} = ${answer}.`, visual: { type: "equation", expression: `${a} · ${b} · ${c}`, caption: "Grupuj czynniki wygodnie." } }); }
-      if (index % 2) { const answer = a * b; return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${a} · ${b} = ?`, answer, hint: `To ${a} grup po ${b}.`, explanation: `${a} · ${b} = ${answer}.`, visual: { type: "array", groups: a, itemsPerGroup: b, caption: `${a} równych grup po ${b} elementów.` } }); }
-      const answer = a, dividend = a * b;
-      return question({ label: "Mnożenie i dzielenie", prompt: `Oblicz: ${dividend} : ${b} = ?`, answer, hint: `Pomyśl: ${b} · ? = ${dividend}.`, explanation: `${dividend} : ${b} = ${answer}, bo ${b} · ${answer} = ${dividend}.`, visual: { type: "equation", expression: `${dividend} : ${b}`, caption: "Dzielenie sprawdzaj mnożeniem." } });
-    });
+    const label = "Mnożenie i dzielenie";
+    const zeroProduct = () => {
+      const a = rand(2, 9);
+      return question({ label, prompt: `Oblicz: ${a} · 0 = ?`, answer: 0, hint: "Każda liczba pomnożona przez zero daje zero.", explanation: `${a} · 0 = 0.`, visual: { type: "equation", expression: `${a} · 0`, caption: "Mnożenie przez zero." } });
+    };
+    const tableProduct = () => {
+      const a = rand(2, 9), b = rand(2, 9), answer = a * b;
+      return question({ label, prompt: `Oblicz: ${a} · ${b} = ?`, answer, hint: `To ${a} grup po ${b}.`, explanation: `${a} · ${b} = ${answer}.`, visual: { type: "array", groups: a, itemsPerGroup: b, caption: `${a} równych grup po ${b} elementów.` } });
+    };
+    const tableQuotient = () => {
+      const a = rand(2, 9), b = rand(2, 9), dividend = a * b;
+      return question({ label, prompt: `Oblicz: ${dividend} : ${b} = ?`, answer: a, hint: `Pomyśl: ${b} · ? = ${dividend}.`, explanation: `${dividend} : ${b} = ${a}, bo ${b} · ${a} = ${dividend}.`, visual: { type: "equation", expression: `${dividend} : ${b}`, caption: "Dzielenie sprawdzaj mnożeniem." } });
+    };
+    const threeFactors = () => {
+      const a = rand(2, 9), b = rand(2, 9), c = rand(2, 5), answer = a * b * c;
+      return question({ label, prompt: `Oblicz: ${a} · ${b} · ${c} = ?`, answer, hint: "Pomnóż kolejno dwa czynniki, a potem trzeci.", explanation: `${a} · ${b} · ${c} = ${answer}.`, visual: { type: "equation", expression: `${a} · ${b} · ${c}`, caption: "Grupuj czynniki wygodnie." } });
+    };
+    const splitProduct = () => {
+      const factor = rand(2, 9), ones = rand(1, 9), teen = 10 + ones, answer = factor * teen;
+      const expression = `${factor} · ${teen}`;
+      return question({ label, method: "rozdziel liczbę", prompt: `Oblicz sprytnie: ${expression} = ?`, answer, hint: `Rozdziel ${teen} na 10 i ${ones}: ${factor} · 10 + ${factor} · ${ones}.`, explanation: `${expression} = ${factor} · 10 + ${factor} · ${ones} = ${factor * 10} + ${factor * ones} = ${answer}.`, visual: { type: "equation", expression, caption: "Mnożenie przez liczbę od 11 do 19 rozdziel na dziesiątkę i jedności." } });
+    };
+    const splitQuotient = () => {
+      const divisor = rand(2, 9), tensQuotient = rand(1, 5) * 10, onesQuotient = rand(1, 9);
+      const left = divisor * tensQuotient, right = divisor * onesQuotient, dividend = left + right, answer = tensQuotient + onesQuotient;
+      const expression = `${dividend} : ${divisor}`;
+      return question({ label, method: "rozdziel dzielną", prompt: `Oblicz sprytnie: ${expression} = ?`, answer, hint: `Rozdziel ${dividend} na ${left} i ${right}. Obie części dzielą się przez ${divisor}.`, explanation: `${expression} = ${left} : ${divisor} + ${right} : ${divisor} = ${tensQuotient} + ${onesQuotient} = ${answer}.`, visual: { type: "equation", expression, caption: "Dziel osobno obie części, potem dodaj ilorazy." } });
+    };
+    const missingFactor = () => {
+      const factor = rand(2, 9), other = rand(2, 9), product = factor * other;
+      return question({ label, method: "brakujący czynnik", prompt: `Jaką liczbą zastąpić znak ?: ${factor} · ? = ${product}`, answer: other, hint: `Podziel ${product} przez ${factor}.`, explanation: `${factor} · ${other} = ${product}, więc ? = ${other}.`, visual: { type: "equation", expression: `${factor} · ? = ${product}`, caption: "Brakujący czynnik sprawdzisz dzieląc." } });
+    };
+    const missingDividend = () => {
+      const divisor = rand(2, 9), quotient = rand(2, 9), dividend = divisor * quotient;
+      return question({ label, method: "brakująca dzielna", prompt: `Jaką liczbą zastąpić znak ?: ? : ${divisor} = ${quotient}`, answer: dividend, hint: `Pomnóż ${quotient} przez ${divisor}.`, explanation: `${dividend} : ${divisor} = ${quotient}, więc ? = ${dividend}.`, visual: { type: "equation", expression: `? : ${divisor} = ${quotient}`, caption: "Dzielna to iloraz razy dzielnik." } });
+    };
+    return shuffle([
+      zeroProduct(),
+      tableProduct(), tableProduct(), tableProduct(),
+      tableQuotient(), tableQuotient(),
+      threeFactors(),
+      splitProduct(), splitProduct(),
+      splitQuotient(), splitQuotient(),
+      pick([missingFactor, missingDividend])()
+    ]);
   }
 
   function by10Questions() {
@@ -201,21 +277,67 @@
           `${a} · ${b} · 25 = ${grouped} · ${b} = ${grouped * b}.`];
       }
     ];
-    return shuffle(templates).slice(0, 10).map((make) => {
-      const [prompt, answer, hint, explanation] = make();
+    const missingTensFactor = () => {
+      const factor = rand(2, 9), scale = pick([10, 100]), shown = factor * scale;
+      return [`Jaką liczbą zastąpić znak ?: ${shown} = ${product(scale, "?")}`, factor,
+        `Szukana liczba razy ${scale} daje ${shown}.`,
+        `${shown} = ${product(scale, factor)}, więc ? = ${factor}.`];
+    };
+    const timesTens = () => {
+      const n = rand(3, 12), small = pick([2, 3]), scale = small * 10, answer = n * scale;
+      return [`Oblicz: ${n} · ${scale} = ?`, answer,
+        `${scale} = ${product(small, 10)}. Najpierw pomnóż przez ${small}, potem dopisz jedno zero.`,
+        `${n} · ${scale} = ${n} · ${small} · 10 = ${n * small} · 10 = ${answer}.`];
+    };
+    const core = shuffle(templates).slice(0, 10).map((make) => make());
+    return shuffle([...core, missingTensFactor(), timesTens()]).map(([prompt, answer, hint, explanation]) => {
       return question({ label: "Mnożenie i dzielenie przez 10, 100, ...", prompt, answer, hint, explanation, visual: { type: "equation", expression: by10Tip, caption: "Zerami można sprytnie ułatwiać rachunki." } });
     });
   }
 
   function timesMoreQuestions() {
-    return Array.from({ length: 10 }, (_, index) => {
+    const label = "Razy więcej, razy mniej";
+    const visual = { type: "equation", expression: "× lub :", caption: "„Razy więcej” łączymy z mnożeniem, a „razy mniej” z dzieleniem." };
+    const classic = (index) => {
       // Both factors stay in the multiplication table, so "razy mniej" never asks for 203 : 7.
       const factor = rand(2, 9), base = rand(2, 10); let prompt, answer, hint, explanation;
       if (index % 3 === 0) { answer = base * factor; prompt = `Jaka liczba jest ${factor} razy większa niż ${base}?`; hint = `Pomnóż ${base} przez ${factor}.`; explanation = `${factor} · ${base} = ${answer}.`; }
       else if (index % 3 === 1) { answer = base; prompt = `Jaka liczba jest ${factor} razy mniejsza niż ${base * factor}?`; hint = `Podziel ${base * factor} przez ${factor}.`; explanation = `${base * factor} : ${factor} = ${answer}.`; }
       else { answer = factor; prompt = `Ile razy liczba ${base * factor} jest większa niż ${base}?`; hint = `Podziel ${base * factor} przez ${base}.`; explanation = `${base * factor} : ${base} = ${answer}.`; }
-      return question({ label: "Razy więcej, razy mniej", prompt, answer, hint, explanation, visual: { type: "equation", expression: "× lub :", caption: "„Razy więcej” łączymy z mnożeniem, a „razy mniej” z dzieleniem." } });
-    });
+      return question({ label, prompt, answer, hint, explanation, visual });
+    };
+    const missingSlot = () => {
+      const factor = rand(2, 9), base = rand(2, 10), product = base * factor;
+      if (rand(0, 1) === 0) {
+        return question({ label, method: "uzupełnij brak", prompt: `Uzupełnij zdanie. ${factor} razy więcej niż jaka liczba to ${product}?`, answer: base, hint: `Podziel ${product} przez ${factor}.`, explanation: `${product} : ${factor} = ${base}.`, visual: { type: "equation", expression: `${factor} · ? = ${product}`, caption: "„Razy więcej” sprawdzaj mnożeniem." } });
+      }
+      return question({ label, method: "uzupełnij brak", prompt: `Uzupełnij zdanie. Jaka liczba razy więcej niż ${base} daje ${product}?`, answer: factor, hint: `Podziel ${product} przez ${base}.`, explanation: `${product} : ${base} = ${factor}.`, visual: { type: "equation", expression: `? · ${base} = ${product}`, caption: "Szukany czynnik to wynik dzielenia." } });
+    };
+    const chain = () => {
+      const start = rand(2, 5), first = rand(2, 3), second = rand(2, 3);
+      const middle = start * first, end = middle * second;
+      return question({ label, method: "dwa mnożenia po kolei", prompt: `Bilet kosztuje ${start} zł. Karnet kosztuje ${first} razy więcej niż bilet, a wycieczka ${second} razy więcej niż karnet. Ile złotych kosztuje wycieczka?`, answer: end, hint: `Najpierw ${first} · ${start}, potem pomnóż wynik przez ${second}.`, explanation: `${first} · ${start} = ${middle}, a ${second} · ${middle} = ${end} zł.`, visual: { type: "equation", expression: `${start} · ${first} · ${second}`, caption: "Każde „razy więcej” to kolejne mnożenie." } });
+    };
+    const scaleWord = () => {
+      const kind = pick(["podwojona", "potrojona", "połowa"]);
+      if (kind === "połowa") {
+        const base = rand(2, 10) * 2, answer = base / 2;
+        return question({ label, method: "połowa liczby", prompt: `Jaka jest połowa liczby ${base}?`, answer, hint: `Podziel ${base} przez 2.`, explanation: `${base} : 2 = ${answer}.`, visual });
+      }
+      const factor = kind === "podwojona" ? 2 : 3, base = rand(2, 10), answer = base * factor;
+      return question({ label, method: kind === "podwojona" ? "podwojona liczba" : "potrojona liczba", prompt: `Jaka jest ${kind} liczba ${base}?`, answer, hint: `Pomnóż ${base} przez ${factor}.`, explanation: `${factor} · ${base} = ${answer}.`, visual });
+    };
+    const classicQuestions = [];
+    const seen = new Set();
+    let spins = 0;
+    while (classicQuestions.length < 9 && spins < 60) {
+      const item = classic(classicQuestions.length);
+      spins += 1;
+      if (seen.has(item.prompt) && spins < 50) continue;
+      seen.add(item.prompt);
+      classicQuestions.push(item);
+    }
+    return shuffle([...classicQuestions, missingSlot(), chain(), scaleWord()]);
   }
 
   function remainderQuestions() {
@@ -257,7 +379,28 @@
     exercises.push([`Podaj najmniejszą liczbę dwucyfrową, która przy dzieleniu przez ${first} daje resztę ${r1}, a przez ${second} daje resztę ${r2}.`, smallest,
       `Sprawdzaj liczby od 10 do 99. Najpierw wybierz te, które przy dzieleniu przez ${first} dają resztę ${r1}.`,
       `${smallest} : ${first} = ${Math.floor(smallest / first)} r ${r1} oraz ${smallest} : ${second} = ${Math.floor(smallest / second)} r ${r2}. To najmniejsza liczba dwucyfrowa spełniająca oba warunki.`]);
-    return shuffle(exercises).slice(0, 10).map(([prompt, answer, hint, explanation]) => question({ label: "Dzielenie z resztą", prompt, answer, hint, explanation, visual: { type: "equation", expression: "dzielna : dzielnik = iloraz r reszta", caption: "Reszta jest zawsze mniejsza od dzielnika." } }));
+    const explicitQuotient = () => {
+      const divisor = rand(2, 9), quotient = rand(2, 9), remainder = rand(1, divisor - 1);
+      const total = divisor * quotient + remainder;
+      return [`Jaki jest iloraz całkowity z dzielenia ${total} przez ${divisor}?`, quotient,
+        `Weź pełne porcje: ${divisor} · ${quotient} = ${divisor * quotient}.`,
+        `${total} : ${divisor} = ${quotient} r ${remainder}.`];
+    };
+    const reconstructDividend = () => {
+      const divisor = rand(2, 9), quotient = rand(2, 9), remainder = rand(1, divisor - 1);
+      const total = divisor * quotient + remainder;
+      return [`Jaką liczbę dzielono, jeśli dzielnik to ${divisor}, iloraz to ${quotient}, a reszta to ${remainder}?`, total,
+        `Oblicz ${divisor} · ${quotient} + ${remainder}.`,
+        `${divisor} · ${quotient} + ${remainder} = ${total}. ${total} : ${divisor} = ${quotient} r ${remainder}.`];
+    };
+    const remainderBy10 = () => {
+      const total = rand(11, 99), remainder = total % 10, quotient = Math.floor(total / 10);
+      return [`Jaka jest reszta z dzielenia ${total} przez 10?`, remainder,
+        "Reszta z dzielenia przez 10 to ostatnia cyfra.",
+        `${total} : 10 = ${quotient} r ${remainder}.`];
+    };
+    const core = shuffle(exercises).slice(0, 9);
+    return shuffle([...core, explicitQuotient(), reconstructDividend(), remainderBy10()]).map(([prompt, answer, hint, explanation]) => question({ label: "Dzielenie z resztą", prompt, answer, hint, explanation, visual: { type: "equation", expression: "dzielna : dzielnik = iloraz r reszta", caption: "Reszta jest zawsze mniejsza od dzielnika." } }));
   }
 
   function powersQuestions() {
@@ -270,8 +413,8 @@
     };
     // Distinct bases avoid repeating the same square or cube within a round.
     const exercises = [
-      ...shuffle(Array.from({ length: 11 }, (_, i) => i + 2)).slice(0, 4).map((base, i) => power(base, 2, i === 3)),
-      ...shuffle(Array.from({ length: 8 }, (_, i) => i + 2)).slice(0, 4).map((base, i) => power(base, 3, i === 3)),
+      ...shuffle([0, 1, ...Array.from({ length: 11 }, (_, i) => i + 2)]).slice(0, 4).map((base, i) => power(base, 2, i === 3)),
+      ...shuffle([0, 1, ...Array.from({ length: 8 }, (_, i) => i + 2)]).slice(0, 4).map((base, i) => power(base, 3, i === 3)),
       power(rand(2, 4), rand(4, 5)),
       power(10, rand(3, 4))
     ];
@@ -282,42 +425,125 @@
     exercises.push([`Prostokątną kartkę złożono ${folds} razy na pół, za każdym razem wzdłuż linii równoległej do krawędzi. Ile prostokątnych części wyznaczają zgięcia po rozłożeniu?`, 2 ** folds,
       `Każde złożenie podwaja liczbę części: ${Array.from({ length: folds }, (_, i) => 2 ** (i + 1)).join(", ")}.`,
       `Liczba części po rozłożeniu: 2${superscript[folds]} = ${2 ** folds}.`]);
-    return shuffle(exercises).slice(0, 10).map(([prompt, answer, hint, explanation]) => question({ label: "Kwadraty i sześciany", prompt, answer, hint, explanation, visual: { type: "equation", expression: "a² = a · a   •   a³ = a · a · a", caption: "Wykładnik mówi, ile razy używamy tej samej liczby jako czynnika." } }));
+    const standard = { type: "equation", expression: "a² = a · a   •   a³ = a · a · a", caption: "Wykładnik mówi, ile razy używamy tej samej liczby jako czynnika." };
+    const core = shuffle(exercises).slice(0, 10).map(([prompt, answer, hint, explanation]) => question({ label: "Kwadraty i sześciany", prompt, answer, hint, explanation, visual: standard }));
+    const contrast = () => {
+      const exponent = pick([2, 3]);
+      const base = exponent === 2 ? pick([2, 2, 3, 4, 5, 6, 7, 8, 9]) : rand(2, 9);
+      const times = base * exponent, value = base ** exponent, same = value === times;
+      const mark = superscript[exponent];
+      return question({
+        kind: "choice", label: "Kwadraty i sześciany", method: "potęga to nie mnożenie przez wykładnik",
+        prompt: `Czy ${base}${mark} oznacza to samo co ${base} · ${exponent}? Wybierz TAK albo NIE.`,
+        answer: same ? 1 : 0,
+        options: [{ value: 1, label: "TAK" }, { value: 0, label: "NIE" }],
+        hint: exponent === 2 ? `${base}${mark} to ${base} · ${base}.` : `${base}${mark} to ${base} · ${base} · ${base}.`,
+        explanation: same
+          ? `${base}${mark} = ${value} i ${base} · ${exponent} = ${times}. Tak, wyniki są równe.`
+          : `${base}${mark} = ${value}, a ${base} · ${exponent} = ${times}. Nie, to różne wyniki.`,
+        visual: { type: "equation", expression: `${base}${mark}   oraz   ${base} · ${exponent}`, caption: "Wykładnik liczy czynniki, a nie mówi, przez ile pomnożyć." }
+      });
+    };
+    const factorCount = () => {
+      const base = rand(2, 9), exponent = pick([2, 3, 4]), mark = superscript[exponent];
+      return question({
+        label: "Kwadraty i sześciany", method: "policz równe czynniki",
+        prompt: `Ile jednakowych czynników ma iloczyn równy ${base}${mark}?`,
+        answer: exponent,
+        hint: `Wykładnik mówi, ile razy ${base} jest czynnikiem.`,
+        explanation: `${base}${mark} = ${Array(exponent).fill(base).join(" · ")}. Czynników jest ${exponent}.`,
+        visual: { type: "equation", expression: `${base}${mark}`, caption: "Policz czynniki, nie obliczaj potęgi." }
+      });
+    };
+    return shuffle([...core, contrast(), factorCount()]);
   }
 
   function wordProblemQuestions() {
-    return Array.from({ length: 10 }, (_, index) => {
+    const story = { type: "story", items: [["📖", "czytaj"], ["🧩", "połącz informacje"]], caption: "Zapisz w głowie dane i wybierz działania." };
+    const classic = Array.from({ length: 10 }, (_, index) => {
       let prompt, answer, hint, explanation;
       if (index % 5 === 0) { const remaining = rand(10, 80), shown = rand(20, 120), total = remaining + shown; prompt = `Serial ma ${total} odcinków. Nadano już ${shown}. Ile odcinków pokaże jeszcze telewizja?`; answer = remaining; hint = "Od wszystkich odcinków odejmij te już pokazane."; explanation = `${total} − ${shown} = ${answer} odcinków.`; }
       else if (index % 5 === 1) { const price = rand(2, 10), sold = rand(10, 60), total = price * sold; prompt = `Jeden los kosztował ${price} zł. Uczniowie zebrali ${total} zł. Ile losów sprzedali?`; answer = sold; hint = "Podziel zebrane pieniądze przez cenę jednego losu."; explanation = `${total} : ${price} = ${answer} losów.`; }
       else if (index % 5 === 2) { const smaller = rand(20, 90), difference = rand(5, 30), larger = smaller + difference; prompt = `Duży plik zajmuje ${larger} MB, a mały jest o ${difference} MB mniejszy. Ile zajmuje mały plik?`; answer = smaller; hint = "„O mniej” oznacza odejmowanie."; explanation = `${larger} − ${difference} = ${answer} MB.`; }
       else if (index % 5 === 3) { const daily = rand(2, 9), days = rand(4, 20), total = daily * days; prompt = `Opakowanie ma ${total} tabletek. Dziecko bierze ${polishCount(daily, "tabletkę", "tabletki", "tabletek")} dziennie. Na ile dni wystarczy opakowanie?`; answer = days; hint = "Podziel liczbę tabletek przez dzienną dawkę."; explanation = `${total} : ${daily} = ${answer} dni.`; }
       else { const count = rand(2, 9), price = rand(3, 20), extra = rand(1, 10); answer = count * price + extra; prompt = `W kwiaciarni ${polishVerb(count, "jest", "są")} ${polishCount(count, "róża", "róże", "róż")} po ${price} zł i jedna wstążka za ${extra} zł. Ile kosztuje bukiet?`; hint = "Pomnóż cenę róży przez ich liczbę i dodaj wstążkę."; explanation = `${count} · ${price} + ${extra} = ${answer} zł.`; }
-      return question({ label: "Zadania tekstowe", prompt, answer, hint, explanation, visual: { type: "story", items: [["📖", "czytaj"], ["🧩", "połącz informacje"]], caption: "Zapisz w głowie dane i wybierz działania." } });
+      return question({ label: "Zadania tekstowe", prompt, answer, hint, explanation, visual: story });
     });
+    const twoStep = (prompt, answer, hint, explanation, method = "dwa działania") => question({
+      label: "Zadania tekstowe", method, prompt, answer, hint, explanation, visual: story
+    });
+    const makers = shuffle([
+      () => {
+        const papers = rand(3, 9), factor = rand(2, 4), total = papers * factor, bag = total - papers;
+        return twoStep(
+          `Na stole ${polishVerb(papers, "leży", "leżą")} ${polishCount(papers, "papierek", "papierki", "papierków")} po cukierkach. Wszystkich cukierków było ${factor} razy więcej niż papierków, a każdy papierek zostawił jeden zjedzony cukierek. Ile cukierków zostało w torebce?`,
+          bag,
+          `Najpierw oblicz ${factor} · ${papers}, potem odejmij zjedzone.`,
+          `${factor} · ${papers} = ${total}, a ${total} − ${papers} = ${bag}. W torebce zostało ${bag} cukierków.`
+        );
+      },
+      () => {
+        const youngest = rand(6, 10), extra = rand(3, 6), middle = youngest * 2, oldest = middle + extra;
+        return twoStep(
+          `Marek ma ${youngest} lat. Ewa jest od niego 2 razy starsza, a Adam jest od Ewy o ${polishCount(extra, "rok", "lata", "lat")} starszy. Ile lat ma Adam?`,
+          oldest,
+          `Najpierw 2 · ${youngest}, potem dodaj ${extra}.`,
+          `2 · ${youngest} = ${middle}, a ${middle} + ${extra} = ${oldest}. Adam ma ${oldest} lat.`
+        );
+      },
+      () => {
+        const ola = rand(18, 40), less = rand(3, 9), iwo = ola - less, sum = ola + iwo;
+        return twoStep(
+          `Ola zebrała ${ola} autografów, a Iwo o ${less} mniej. Ile autografów zebrali razem?`,
+          sum,
+          `Najpierw odejmij ${less} od ${ola}, potem dodaj obie liczby.`,
+          `${ola} − ${less} = ${iwo}, a ${ola} + ${iwo} = ${sum}.`
+        );
+      },
+      () => {
+        const one = rand(6, 14), extra = rand(2, 8), two = one + extra, total = one + 2 * two;
+        return twoStep(
+          `W karawanie jest ${polishCount(one, "wielbłąd jednogarbny", "wielbłądy jednogarbne", "wielbłądów jednogarbnych")} i o ${extra} więcej dwugarbnych. Ile garbów mają wszystkie wielbłądy razem?`,
+          total,
+          `Dwugarbnych jest ${one} + ${extra}. Każdy z nich ma 2 garby, a jednogarbny ma 1.`,
+          `Dwugarbnych: ${one} + ${extra} = ${two}. Garby: ${one} + 2 · ${two} = ${total}.`
+        );
+      },
+      () => {
+        const count = rand(4, 12), gap = rand(2, 5), spaces = count - 1, answer = spaces * gap;
+        return twoStep(
+          `Ogrodnik sadzi ${polishCount(count, "drzewko", "drzewka", "drzewek")} w jednej linii. Między sąsiednimi drzewkami jest ${gap} m. Jaka jest odległość od pierwszego do ostatniego drzewka?`,
+          answer,
+          `Między ${count} drzewkami jest ${spaces} odstępów, nie ${count}.`,
+          `Odstępów jest ${count} − 1 = ${spaces}. ${spaces} · ${gap} = ${answer} m.`,
+          "odcinki między drzewami"
+        );
+      },
+      () => {
+        const between = rand(2, 6), behindJacek = rand(2, 8), behindBeata = between + 1 + behindJacek, frontOfJacek = rand(6, 14);
+        const total = frontOfJacek + 1 + behindJacek;
+        return twoStep(
+          `Beata siedzi bliżej ekranu niż Jacek. Między nimi ${polishVerb(between, "jest", "są")} ${polishCount(between, "rząd", "rzędy", "rzędów")}. Przed Jackiem jest ${frontOfJacek} rzędów, a za Beatą ${behindBeata} rzędów. Ile rzędów ma ta sala?`,
+          total,
+          `Za Jackiem zostaje ${behindBeata} − ${between} − 1. Potem dodaj rzędy przed nim i jego własny rząd.`,
+          `Za Jackiem: ${behindBeata} − ${between} − 1 = ${behindJacek}. Razem: ${frontOfJacek} + 1 + ${behindJacek} = ${total} rzędów.`
+        );
+      },
+      () => {
+        const bronze = rand(6, 12), gap = rand(2, 5), silver = bronze + gap, total = bronze + silver + silver;
+        return twoStep(
+          `Drużyna zdobyła ${bronze} brązowych medali. Srebrnych ma o ${gap} więcej niż brązowych, a złotych tyle samo co srebrnych. Ile medali zdobyła razem?`,
+          total,
+          `Srebrne: ${bronze} + ${gap}. Złote są takie same. Dodaj trzy liczby.`,
+          `Srebrne i złote: po ${silver}. Razem ${bronze} + ${silver} + ${silver} = ${total}.`
+        );
+      }
+    ]);
+    return shuffle([...classic, ...makers.slice(0, 2).map((make) => make())]);
   }
 
   function orderQuestions() {
-    const fixed = [
-      ["Oblicz: 4 · (7 + 1) = ?", 32, "Najpierw policz działanie w nawiasie.", "7 + 1 = 8, a 4 · 8 = 32."],
-      ["Oblicz: (4 · 7) + 1 = ?", 29, "Najpierw wykonaj mnożenie.", "4 · 7 + 1 = 28 + 1 = 29."],
-      ["Oblicz: (6 + 8) : 2 = ?", 7, "Najpierw dodaj liczby w nawiasie.", "(6 + 8) : 2 = 14 : 2 = 7."],
-      ["Oblicz: (3 + 5) · (2 + 4) = ?", 48, "Oblicz oba nawiasy, a potem pomnóż wyniki.", "8 · 6 = 48."],
-      ["Oblicz: 1 + 4 · 7 = ?", 29, "Mnożenie wykonujemy przed dodawaniem.", "4 · 7 = 28, a 1 + 28 = 29."],
-      ["Oblicz: 2 · 16 − 6 = ?", 26, "Najpierw pomnóż, potem odejmij.", "2 · 16 − 6 = 32 − 6 = 26."],
-      ["Oblicz: 6 − 8 : 2 = ?", 2, "Najpierw podziel 8 przez 2.", "6 − 4 = 2."],
-      ["Oblicz: 32 : 2 + 4 = ?", 20, "Najpierw wykonaj dzielenie.", "32 : 2 + 4 = 16 + 4 = 20."],
-      ["Oblicz: 14 − 7 + 3 = ?", 10, "Dodawanie i odejmowanie wykonuj od lewej do prawej.", "14 − 7 = 7, a 7 + 3 = 10."],
-      ["Oblicz: 9 + 10 − 5 − 7 = ?", 7, "Dodawanie i odejmowanie wykonaj po kolei od lewej.", "9 + 10 − 5 − 7 = 19 − 5 − 7 = 7."],
-      ["Oblicz: 24 : 8 · 5 = ?", 15, "Dzielenie i mnożenie mają ten sam priorytet: licz od lewej.", "24 : 8 · 5 = 3 · 5 = 15."],
-      ["Oblicz: 30 : 5 · 7 = ?", 42, "Wykonuj działania od lewej do prawej.", "30 : 5 · 7 = 6 · 7 = 42."],
-      ["Oblicz: 4² − 3² = ?", 7, "Najpierw oblicz obie potęgi.", "16 − 9 = 7."],
-      ["Oblicz: 5 · 3² − 3 = ?", 42, "Potęga jest przed mnożeniem i odejmowaniem.", "3² = 9, więc 5 · 9 − 3 = 42."],
-      ["Oblicz: 2³ : 4 + 9 = ?", 11, "Najpierw potęga, potem dzielenie.", "8 : 4 + 9 = 2 + 9 = 11."],
-      ["Oblicz: 10 − 4³ : 8 = ?", 2, "Najpierw potęga, potem dzielenie.", "10 − 64 : 8 = 10 − 8 = 2."],
-      ["Oblicz: 5 · (6 + 9 : 3) = ?", 45, "Najpierw dzielenie w nawiasie, potem dodawanie.", "5 · (6 + 3) = 5 · 9 = 45."]
-    ];
-    const generated = Array.from({ length: 10 }, (_, index) => {
+    const generated = Array.from({ length: 8 }, (_, index) => {
       const a = rand(2, 9), b = rand(2, 9), c = rand(2, 9); let prompt, answer, hint, explanation;
       if (index % 4 === 0) { answer = a * (b + c); prompt = `${a} · (${b} + ${c})`; hint = "Najpierw policz działanie w nawiasie."; explanation = `${b} + ${c} = ${b + c}, a ${a} · ${b + c} = ${answer}.`; }
       else if (index % 4 === 1) { answer = a + b * c; prompt = `${a} + ${b} · ${c}`; hint = "Mnożenie wykonujemy przed dodawaniem."; explanation = `${b} · ${c} = ${b * c}, a ${a} + ${b * c} = ${answer}.`; }
@@ -325,7 +551,24 @@
       else { const base = rand(2, 9), subtract = rand(1, base * base - 1); answer = base * base - subtract; prompt = `${base}² − ${subtract}`; hint = "Najpierw oblicz potęgę."; explanation = `${base}² = ${base * base}, więc ${base * base} − ${subtract} = ${answer}.`; }
       return [prompt, answer, hint, explanation];
     });
-    return generated.map(([prompt, answer, hint, explanation]) => question({ label: "Kolejność działań", prompt: `Oblicz: ${prompt} = ?`, answer, hint, explanation, visual: { type: "equation", expression: "( )  →  potęgi  →  · :  →  + −", caption: "Kolejność pomaga uniknąć pomyłek." } }));
+    const visual = { type: "equation", expression: "( )  →  potęgi  →  · :  →  + −", caption: "Kolejność pomaga uniknąć pomyłek." };
+    const plain = generated.map(([prompt, answer, hint, explanation]) => question({ label: "Kolejność działań", prompt: `Oblicz: ${prompt} = ?`, answer, hint, explanation, visual }));
+    const inner = rand(2, 4);
+    const divisor = inner * rand(2, 3);
+    const multiplier = rand(2, 4);
+    const dividend = divisor * inner * multiplier;
+    const bracketed = dividend / (divisor / inner);
+    const leftToRight = multiplier;
+    const divisionContrast = [
+      question({ label: "Kolejność działań", method: "nawias zmienia kolejność", prompt: `Oblicz: ${dividend} : (${divisor} : ${inner}) = ?`, answer: bracketed, hint: "Najpierw podziel w nawiasie.", explanation: `${divisor} : ${inner} = ${divisor / inner}, a ${dividend} : ${divisor / inner} = ${bracketed}. Bez nawiasu ${dividend} : ${divisor} : ${inner} = ${leftToRight}.`, visual: { type: "equation", expression: `${dividend} : (${divisor} : ${inner})`, caption: "Nawias każe najpierw policzyć dzielenie w środku." } }),
+      question({ label: "Kolejność działań", method: "dzielenia od lewej", prompt: `Oblicz: ${dividend} : ${divisor} : ${inner} = ?`, answer: leftToRight, hint: "Dzielenia wykonuj po kolei od lewej do prawej.", explanation: `${dividend} : ${divisor} = ${dividend / divisor}, a ${dividend / divisor} : ${inner} = ${leftToRight}. Z nawiasem ${dividend} : (${divisor} : ${inner}) byłoby ${bracketed}.`, visual: { type: "equation", expression: `${dividend} : ${divisor} : ${inner}`, caption: "Bez nawiasu dzielenia idą od lewej." } })
+    ];
+    const total = rand(20, 60), left = rand(2, 9), right = rand(2, 9);
+    const subtractionContrast = [
+      question({ label: "Kolejność działań", method: "nawias zmienia kolejność", prompt: `Oblicz: ${total} − (${left} + ${right}) = ?`, answer: total - left - right, hint: "Najpierw dodaj liczby w nawiasie, potem odejmij sumę.", explanation: `${left} + ${right} = ${left + right}, a ${total} − ${left + right} = ${total - left - right}. Bez nawiasu ${total} − ${left} + ${right} = ${total - left + right}.`, visual: { type: "equation", expression: `${total} − (${left} + ${right})`, caption: "Nawias łączy dodawanie przed odejmowaniem." } }),
+      question({ label: "Kolejność działań", method: "dodawanie i odejmowanie od lewej", prompt: `Oblicz: ${total} − ${left} + ${right} = ?`, answer: total - left + right, hint: "Dodawanie i odejmowanie wykonuj od lewej do prawej.", explanation: `${total} − ${left} = ${total - left}, a ${total - left} + ${right} = ${total - left + right}. Z nawiasem ${total} − (${left} + ${right}) byłoby ${total - left - right}.`, visual: { type: "equation", expression: `${total} − ${left} + ${right}`, caption: "Bez nawiasu idziemy od lewej." } })
+    ];
+    return shuffle([...plain, ...divisionContrast, ...subtractionContrast]);
   }
 
   function numberLineQuestions() {
@@ -385,6 +628,26 @@
     });
   }
 
+  function comparisonChain() {
+    const step1 = rand(3, 12), step2 = rand(3, 12);
+    if (rand(0, 1) === 0) {
+      const base = rand(12, 40), middle = base + step1, last = middle + step2;
+      return question({ label: "O ile więcej, o ile mniej", method: "porównanie w dwóch krokach", prompt: `Cebula waży ${base} dag. Marchew waży o ${step1} dag więcej niż cebula, a seler o ${step2} dag więcej niż marchew. Ile dag waży seler?`, answer: last, hint: `Najpierw dodaj ${step1} do ${base}, potem jeszcze ${step2}.`, explanation: `${base} + ${step1} = ${middle}, a ${middle} + ${step2} = ${last} dag.`, visual: { type: "equation", expression: `${base} → +${step1} → +${step2}`, caption: "Każdy kolejny krok dodaje podaną różnicę." } });
+    }
+    const last = rand(8, 30), middle = last + step2, base = middle + step1;
+    return question({ label: "O ile więcej, o ile mniej", method: "porównanie w dwóch krokach", prompt: `Seler waży ${base} dag. Marchew waży o ${step1} dag mniej niż seler, a cebula o ${step2} dag mniej niż marchew. Ile dag waży cebula?`, answer: last, hint: `Najpierw odejmij ${step1} od ${base}, potem jeszcze ${step2}.`, explanation: `${base} − ${step1} = ${middle}, a ${middle} − ${step2} = ${last} dag.`, visual: { type: "equation", expression: `${base} → −${step1} → −${step2}`, caption: "Każdy kolejny krok odejmuje podaną różnicę." } });
+  }
+
+  function missingComparison() {
+    const difference = rand(3, 18);
+    if (rand(0, 1) === 0) {
+      const start = rand(20, 70), result = start + difference;
+      return question({ label: "O ile więcej, o ile mniej", method: "uzupełnij porównanie", prompt: `O ${difference} zł więcej od jakiej kwoty to ${result} zł?`, answer: start, hint: `Od ${result} odejmij ${difference}.`, explanation: `${start} + ${difference} = ${result}, więc szukana kwota to ${start} zł.`, visual: { type: "difference", answer: start } });
+    }
+    const result = rand(15, 60), start = result + difference;
+    return question({ label: "O ile więcej, o ile mniej", method: "uzupełnij porównanie", prompt: `O ${difference} zł mniej od jakiej kwoty to ${result} zł?`, answer: start, hint: `Do ${result} dodaj ${difference}.`, explanation: `${start} − ${difference} = ${result}, więc szukana kwota to ${start} zł.`, visual: { type: "difference", answer: start } });
+  }
+
   const stationMethods = {
     park: "policz dane z historii",
     plusminus: "szukaj wygodnej pary",
@@ -406,39 +669,39 @@
     },
     plusminus: {
       intro: "Szukaj wygodnej pary, zanim policzysz wszystko po kolei.",
-      items: ["liczby dopełniające do 100 łącz razem", "do okrągłej setki dochodź małymi krokami", "odejmując od dziesiątki, odejmij 10 i dodaj resztę"]
+      items: ["liczby dopełniające do 100 łącz razem", "najpierw policz okrągłą sumę albo różnicę", "brakującą liczbę znajdź odwrotnym działaniem", "przy strzałce + dodaj, przy strzałce − odejmij"]
     },
     moreless: {
       intro: "„O ile więcej” i „o ile mniej” to zawsze szukanie różnicy.",
-      items: ["większa minus mniejsza", "„jest o … większa” oznacza dodawanie", "„jest o … mniejsza” oznacza odejmowanie"]
+      items: ["większa minus mniejsza", "„jest o … większa” oznacza dodawanie", "łańcuszek licz krok po kroku", "gdy brakuje kwoty początkowej, cofnij różnicę"]
     },
     multdiv: {
       intro: "Mnożenie to równe grupy, a dzielenie sprawdzaj mnożeniem.",
-      items: ["a · 0 = 0", "mnożenie łącz w wygodne pary", "dzielna : dzielnik = ? oznacza dzielnik · ? = dzielna"]
+      items: ["a · 0 = 0", "liczbę od 11 do 19 rozdziel na 10 i jedności", "brakujący czynnik znajdziesz dzieląc"]
     },
     by10: {
       intro: "Przy 10, 100 i 1000 pracuj zerami, nie długim mnożeniem.",
-      items: ["· 10 dopisz jedno zero", ": 10 skreśl jedno zero", "połącz czynniki, które dają 10 albo 100"]
+      items: ["· 10 dopisz jedno zero", ": 10 skreśl jedno zero", "20 = 2 · 10, a 30 = 3 · 10", "brakujący czynnik przy 10 lub 100 znajdziesz, skreślając zera"]
     },
     timesmore: {
       intro: "„Razy więcej” łączy się z mnożeniem, „razy mniej” z dzieleniem.",
-      items: ["razy większa — pomnóż", "razy mniejsza — podziel", "ile razy większa — podziel większą przez mniejszą"]
+      items: ["razy większa — pomnóż", "razy mniejsza — podziel", "połowa, podwojona i potrojona to też dzielenie albo mnożenie", "w łańcuszku każde „razy więcej” licz osobno"]
     },
     remainder: {
       intro: "Przy dzieleniu z resztą najpierw pełne porcje, potem to, co zostaje.",
-      items: ["reszta jest mniejsza od dzielnika", "sprawdź: dzielnik · iloraz + reszta = dzielna", "reszta 0 oznacza, że dzieli się równo"]
+      items: ["reszta jest mniejsza od dzielnika", "sprawdź: dzielnik · iloraz + reszta = dzielna", "reszta z dzielenia przez 10 to ostatnia cyfra"]
     },
     powers: {
       intro: "Wykładnik mówi, ile razy ta sama liczba jest czynnikiem.",
-      items: ["a² = a · a", "a³ = a · a · a", "kwadrat i sześcian to nie to samo co a · 2 albo a · 3"]
+      items: ["a² = a · a", "a³ = a · a · a", "kwadrat i sześcian to nie to samo co a · 2 albo a · 3", "wykładnik mówi, ile jest równych czynników"]
     },
     word: {
       intro: "Najpierw zaznacz w głowie, jakie działanie pasuje do treści.",
-      items: ["„razem” oznacza dodawanie", "„po tyle samo” oznacza mnożenie", "wypisz dane, zanim liczysz"]
+      items: ["„razem” oznacza dodawanie", "„po tyle samo” oznacza mnożenie", "w zadaniu na dwa kroki zapisz oba działania", "między drzewkami odstępów jest o jeden mniej niż drzewek"]
     },
     order: {
       intro: "Kolejność działań chroni przed pomyłką.",
-      items: ["najpierw nawiasy", "potem potęgi", "potem mnożenie i dzielenie, na końcu dodawanie i odejmowanie"]
+      items: ["najpierw nawiasy", "potem potęgi", "potem mnożenie i dzielenie, na końcu dodawanie i odejmowanie", "ten sam zapis z nawiasem może dać inny wynik"]
     },
     numberline: {
       intro: "Na osi równe kreski oznaczają równe odległości.",
@@ -453,7 +716,7 @@
   const builders = {
     park: () => shuffle(parkQuestions()).slice(0, 10).concat(plusMinusQuestions().slice(0, 4)).slice(0, 10),
     plusminus: plusMinusQuestions,
-    moreless: () => shuffle([...moreLessQuestions().slice(0, 8), patternQuestions(), ...extraChallengeQuestions().slice(0, 1)]),
+    moreless: () => shuffle([...moreLessQuestions().slice(0, 8), patternQuestions(), ...extraChallengeQuestions().slice(0, 1), comparisonChain(), missingComparison()]),
     multdiv: multDivQuestions,
     by10: by10Questions,
     timesmore: timesMoreQuestions,

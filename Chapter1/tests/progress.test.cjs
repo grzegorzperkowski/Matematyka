@@ -149,10 +149,12 @@ test("hint steps are saved with the round and default to false on old data", () 
   assert.deepEqual(Array.from(store.getRound("mix").hintSteps), [false]);
 });
 
-test("encouragement is randomized and offered only after step five of a ten-step round", () => {
+test("encouragement is randomized and offered at the halfway step", () => {
   assert.equal(fifthStepEncouragement(4, 10, () => 0), null);
   assert.equal(fifthStepEncouragement(5, 8, () => 0), null);
+  assert.equal(fifthStepEncouragement(5, 12, () => 0), null);
   assert.equal(fifthStepEncouragement(6, 10, () => 0), null);
+  assert.equal(fifthStepEncouragement(7, 12, () => 0), null);
 
   const first = fifthStepEncouragement(5, 10, () => 0);
   const last = fifthStepEncouragement(5, 10, () => 0.999);
@@ -160,4 +162,13 @@ test("encouragement is randomized and offered only after step five of a ten-step
   assert.equal(last.direction, "left");
   assert.ok(first.message.length > 0);
   assert.notEqual(first.message, last.message);
+  assert.match(first.message, /pięć/);
+
+  for (let step = 0; step < 6; step += 1) {
+    const item = fifthStepEncouragement(6, 12, () => step / 6);
+    assert.ok(["top", "right", "bottom", "left"].includes(item.direction));
+    assert.doesNotMatch(item.message, /pięć/);
+  }
+  assert.match(fifthStepEncouragement(6, 12, () => 0).message, /sześć/);
+  assert.notEqual(fifthStepEncouragement(6, 12, () => 0).message, fifthStepEncouragement(6, 12, () => 0.999).message);
 });
