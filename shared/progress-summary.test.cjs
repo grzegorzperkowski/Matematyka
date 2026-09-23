@@ -238,6 +238,13 @@ test("the progress page renders text, resume links and a storage warning without
   assert.equal(nodes.find((node) => node.className === "progress-track").attributes["aria-hidden"], "true");
   assert.match(text, /Ukończono 1 z 3 stacji/);
   assert.match(text, /1 stacja do dokończenia/);
+  const summaries = nodes.filter((node) => node.tagName === "SUMMARY");
+  assert.equal(summaries.length, 1);
+  assert.equal(summaries[0].className, "station-summary");
+  assert.equal(summaries[0].children[0].textContent, "Stacje");
+  assert.equal(summaries[0].children[1].textContent, "3");
+  assert.equal(summaries[0].children[2].className, "station-summary-chevron");
+  assert.equal(summaries[0].children[2].attributes["aria-hidden"], "true");
 });
 
 test("the homepage links to the progress page and the offline shell caches it", () => {
@@ -246,6 +253,8 @@ test("the homepage links to the progress page and the offline shell caches it", 
   assert.match(progressSource, /src="shared\/game-engine\.js"/);
   assert.match(progressSource, /src="shared\/chapter-catalog\.js"/);
   assert.match(progressSource, /src="shared\/progress-page\.js"/);
+  assert.match(progressSource, /\.station-summary-chevron::before/);
+  assert.match(progressSource, /summary::-webkit-details-marker/);
   const context = {
     URL, Response, AbortController, setTimeout, clearTimeout,
     self: {

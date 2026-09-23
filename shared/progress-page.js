@@ -78,10 +78,19 @@
       enter.href = chapter.href;
       card.append(enter);
 
+      const stationItems = Array.isArray(chapter.stations) ? chapter.stations : [];
       const details = element(document, "details", "station-details");
-      details.append(element(document, "summary", "", "Stacje"));
+      const summary = element(document, "summary", "station-summary");
+      summary.append(
+        element(document, "span", "station-summary-label", "Stacje"),
+        element(document, "span", "station-summary-count", String(stationItems.length))
+      );
+      const chevron = element(document, "span", "station-summary-chevron");
+      chevron.setAttribute("aria-hidden", "true");
+      summary.append(chevron);
+      details.append(summary);
       const stations = element(document, "ul", "station-list");
-      (Array.isArray(chapter.stations) ? chapter.stations : []).forEach((station) => {
+      stationItems.forEach((station) => {
         const item = element(document, "li", "station");
         const link = element(document, "a", "station-link", station.title);
         link.href = station.href;
