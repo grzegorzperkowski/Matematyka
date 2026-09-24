@@ -290,7 +290,7 @@ chapters, plus one mixed station per chapter (**85 playable stations in all**).
 | Chapter | Status | Focused skills available now |
 | --- | --- | --- |
 | 1. Liczby i działania | Available now | addition and subtraction; comparisons such as “how many more”; multiplication and division; multiplying/dividing by 10, 100 and similar powers; times more/times less; division with remainder; squares and cubes; word problems; order of operations; number lines and puzzles. Mixed rounds use ten of the eleven stations and rotate which one rests. |
-| 2. Systemy zapisywania liczb | Available now | decimal place value and reading numbers; comparing numbers; large-number calculations; money; length; mass; Roman numerals; calendar; clocks and elapsed time |
+| 2. Systemy zapisywania liczb | Available now | decimal place value through millions, expanded sums and the short forms tys., mln and mld; comparing numbers, counts of the integers between two values, and comparisons that do not need the whole calculation; large-number arithmetic, missing addends and cancelling trailing zeros; złoty and grosz both ways, change and a half-kilogram price; length and mass conversions in both directions, mixed measures and how many times longer or heavier; Roman numerals and an illegal string; months, quarters, leap years and dates; quarter-hours, Polish clock phrases and elapsed time |
 | 3. Działania pisemne | Available now | written addition; written subtraction; multiplication by one digit; longer multiplication; division by one digit; longer division; written-method word problems |
 | 4. Figury geometryczne | Available now | points, lines, segments, rays and broken lines; parallel/perpendicular relations; lengths; angle types and measurement; polygons; rectangles and squares; perimeter; circles; scale |
 | 5. Ułamki zwykłe | Available now | equal parts of a whole; mixed numbers; fraction number line; comparison; equivalent/simplified fractions; improper fractions and wholes; fraction as quotient; addition; subtraction; fraction problems |
@@ -415,4 +415,4 @@ Also update this brief when a target-user fact, known problem or meaningful
 research finding changes. Do not update it for refactors, file moves, CSS
 changes, test changes, cache versions or other implementation-only work.
 
-Last verified against the current application source: **2026-09-22**.
+Last verified against the current application source: **2026-09-24**.

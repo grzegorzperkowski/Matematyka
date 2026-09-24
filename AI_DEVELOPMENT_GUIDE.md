@@ -18,6 +18,8 @@ follow `CHAPTER_TEMPLATE.md`.
   checklist for a chapter.
 - `NEW_CHAPTER_PROMPT_TEMPLATE.md` is only a short launcher for a new agent
   session. Do not copy detailed rules into it.
+- `EXPAND_CHAPTER_PROMPT_TEMPLATE.md` is the same kind of launcher for adding
+  exercises to a chapter that already exists. Do not copy detailed rules into it.
 - `ChapterN/IMPLEMENTATION_NOTES.md` records curriculum analysis and decisions
   specific to one chapter.
 
