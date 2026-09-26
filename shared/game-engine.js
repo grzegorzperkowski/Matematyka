@@ -140,7 +140,7 @@
   }
 
   function emptyData() {
-    return { version: 2, rounds: {}, bestScores: {}, bestStreaks: {}, completedRoutes: {}, legacyBestScores: {} };
+    return { version: 2, rounds: {}, roundTokens: {}, bestScores: {}, bestStreaks: {}, completedRoutes: {}, legacyBestScores: {} };
   }
 
   function isQuestion(value) {
@@ -347,16 +347,59 @@
   function createStore(storage, chapterId, validModes, roundRevisions = {}) {
     let data = emptyData();
     let available = Boolean(storage);
+    let needsStorageMigration = false;
+    const newToken = () => `${Date.now()}:${Math.random().toString(36).slice(2)}`;
     const revisionFor = (mode) => {
       const value = Number(roundRevisions[mode]);
       return Number.isInteger(value) && value > 0 ? value : 1;
     };
     const savedRevision = (round) => Number.isInteger(round?.revision) && round.revision > 0 ? round.revision : 1;
 
-    function persist() {
+    function readCurrent() {
       if (!available) return false;
       try {
+        const raw = storage.getItem(STORAGE_KEY);
+        if (raw === null) {
+          data = emptyData();
+          needsStorageMigration = false;
+          return true;
+        }
+        const parsed = JSON.parse(raw);
+        const record = (value) => value && typeof value === "object" && !Array.isArray(value);
+        if (parsed?.version !== 2 || !record(parsed.rounds) || !record(parsed.bestScores)) {
+          available = false;
+          return false;
+        }
+        data = {
+          ...parsed,
+          roundTokens: record(parsed.roundTokens) ? parsed.roundTokens : {},
+          bestStreaks: record(parsed.bestStreaks) ? parsed.bestStreaks : {},
+          completedRoutes: record(parsed.completedRoutes) ? parsed.completedRoutes : {},
+          legacyBestScores: record(parsed.legacyBestScores) ? parsed.legacyBestScores : {}
+        };
+        needsStorageMigration = !record(parsed.roundTokens) || !record(parsed.bestStreaks)
+          || !record(parsed.completedRoutes) || !record(parsed.legacyBestScores)
+          || Object.keys(data.rounds).some((key) => typeof data.roundTokens[key] !== "string" || !data.roundTokens[key]);
+        return true;
+      } catch {
+        available = false;
+        return false;
+      }
+    }
+
+    function persist(change) {
+      // Each chapter page has its own store instance. Reload before changing one
+      // entry so an older open tab cannot replace another tab's newer progress.
+      if (!readCurrent()) return false;
+      change(data);
+      // Old version 2 saves have no tokens. Give every existing round one
+      // before writing so two updated windows can safely resume it.
+      Object.keys(data.rounds).forEach((key) => {
+        if (typeof data.roundTokens[key] !== "string" || !data.roundTokens[key]) data.roundTokens[key] = newToken();
+      });
+      try {
         storage.setItem(STORAGE_KEY, JSON.stringify(data));
+        needsStorageMigration = false;
         return true;
       } catch {
         available = false;
@@ -378,53 +421,45 @@
       } catch { /* The main progress record remains authoritative. */ }
     }
 
-    if (available) {
-      try {
-        const parsed = JSON.parse(storage.getItem(STORAGE_KEY));
-        if (parsed?.version === 2 && parsed.rounds && parsed.bestScores && parsed.legacyBestScores) {
-          data = {
-            ...parsed,
-            bestStreaks: parsed.bestStreaks && typeof parsed.bestStreaks === "object" ? parsed.bestStreaks : {},
-            completedRoutes: parsed.completedRoutes && typeof parsed.completedRoutes === "object" ? parsed.completedRoutes : {}
-          };
-        }
-      } catch {
-        data = emptyData();
-      }
-    }
+    readCurrent();
+    if (needsStorageMigration) persist(() => {});
 
     function migrateLegacy() {
       if (!available) return;
-      let changed = false;
       let legacyRound = null;
       try { legacyRound = JSON.parse(storage.getItem(LEGACY_PROGRESS_KEY)); } catch { /* Ignore malformed legacy data. */ }
       if (isRound({ ...legacyRound, answered: Boolean(legacyRound?.answered), hintUsed: Boolean(legacyRound?.hintUsed), currentAnswer: String(legacyRound?.currentAnswer ?? "") }, validModes)) {
         const normalized = { ...legacyRound, answered: Boolean(legacyRound.answered), hintUsed: Boolean(legacyRound.hintUsed), currentAnswer: String(legacyRound.currentAnswer ?? "") };
         const key = `${chapterId}:${normalized.mode}`;
-        if (!data.rounds[key]) {
-          data.rounds[key] = normalized;
-          changed = true;
-        }
-      }
+        if (!data.rounds[key]) legacyRound = { key, round: normalized };
+        else legacyRound = null;
+      } else legacyRound = null;
+      let legacyBest = 0;
       try {
-        const legacyBest = Number(storage.getItem(LEGACY_BEST_KEY));
-        if (legacyBest > 0 && !Number.isFinite(data.legacyBestScores[chapterId])) {
-          data.legacyBestScores[chapterId] = legacyBest;
-          changed = true;
-        }
+        legacyBest = Number(storage.getItem(LEGACY_BEST_KEY));
       } catch { /* Storage is optional. */ }
-      if (changed && persist()) {
-        try {
-          storage.removeItem(LEGACY_PROGRESS_KEY);
-          storage.removeItem(LEGACY_BEST_KEY);
-        } catch { /* The replacement is already safely stored. */ }
+      if (legacyRound || (legacyBest > 0 && !Number.isFinite(data.legacyBestScores[chapterId]))) {
+        if (persist((current) => {
+          if (legacyRound && !current.rounds[legacyRound.key]) current.rounds[legacyRound.key] = legacyRound.round;
+          if (legacyBest > 0 && !Number.isFinite(current.legacyBestScores[chapterId])) current.legacyBestScores[chapterId] = legacyBest;
+        })) {
+          try {
+            storage.removeItem(LEGACY_PROGRESS_KEY);
+            storage.removeItem(LEGACY_BEST_KEY);
+          } catch { /* The replacement is already safely stored. */ }
+        }
       }
     }
 
     migrateLegacy();
     const keyFor = (mode) => `${chapterId}:${mode}`;
     return {
+      getRoundToken(mode) {
+        readCurrent();
+        return data.roundTokens[keyFor(mode)] || null;
+      },
       getRound(mode) {
+        readCurrent();
         const round = data.rounds[keyFor(mode)];
         return isRound(round, validModes) && round.mode === mode && savedRevision(round) === revisionFor(mode)
           ? {
@@ -437,47 +472,63 @@
       listRounds() {
         return validModes.map((mode) => this.getRound(mode)).filter(roundHasProgress);
       },
-      saveRound(round) {
+      saveRound(round, expectedToken) {
         if (!isRound(round, validModes) || savedRevision(round) !== revisionFor(round.mode)) return false;
-        data.rounds[keyFor(round.mode)] = {
+        const normalized = {
           ...round,
+          updatedAt: Date.now(),
           repairBridge: normalizeRepairBridge(round.repairBridge, round.questions.length, round.index),
           hintSteps: normalizeHintSteps(round.hintSteps, round.questions.length)
         };
-        return persist();
+        if (expectedToken !== undefined && !readCurrent()) return false;
+        if (expectedToken !== undefined && (data.roundTokens[keyFor(round.mode)] || null) !== expectedToken) return false;
+        return persist((current) => {
+          current.rounds[keyFor(round.mode)] = normalized;
+          current.roundTokens[keyFor(round.mode)] = newToken();
+        });
       },
-      clearRound(mode) {
-        delete data.rounds[keyFor(mode)];
-        persist();
+      clearRound(mode, expectedToken) {
+        if (expectedToken !== undefined && !readCurrent()) return false;
+        if (expectedToken !== undefined && (data.roundTokens[keyFor(mode)] || null) !== expectedToken) return false;
+        return persist((current) => {
+          delete current.rounds[keyFor(mode)];
+          current.roundTokens[keyFor(mode)] = newToken();
+        });
       },
       getBest(mode) {
+        readCurrent();
         const value = Number(data.bestScores[keyFor(mode)]);
         return Number.isFinite(value) && value > 0 ? value : 0;
       },
       saveBest(mode, score) {
         const normalizedScore = Number(score);
-        data.bestScores[keyFor(mode)] = Math.max(this.getBest(mode), Number.isFinite(normalizedScore) ? normalizedScore : 0);
-        data.completedRoutes[keyFor(mode)] = true;
-        persist();
-        persistResultSummary(mode, data.bestScores[keyFor(mode)]);
-        return data.bestScores[keyFor(mode)];
+        const fallback = Math.max(Number(data.bestScores[keyFor(mode)]) || 0, Number.isFinite(normalizedScore) ? normalizedScore : 0);
+        if (persist((current) => {
+          current.bestScores[keyFor(mode)] = Math.max(Number(current.bestScores[keyFor(mode)]) || 0, Number.isFinite(normalizedScore) ? normalizedScore : 0);
+          current.completedRoutes[keyFor(mode)] = true;
+        })) persistResultSummary(mode, data.bestScores[keyFor(mode)]);
+        return data.bestScores[keyFor(mode)] ?? fallback;
       },
       hasCompleted(mode) {
+        readCurrent();
         const key = keyFor(mode);
         const savedBest = data.bestScores[key];
         return data.completedRoutes[key] === true || (typeof savedBest === "number" && Number.isFinite(savedBest) && savedBest >= 0);
       },
       getBestStreak(mode) {
+        readCurrent();
         const value = Number(data.bestStreaks[keyFor(mode)]);
         return Number.isFinite(value) && value > 0 ? value : 0;
       },
       saveBestStreak(mode, streak) {
-        data.bestStreaks[keyFor(mode)] = Math.max(this.getBestStreak(mode), streak);
-        persist();
-        persistResultSummary(mode, this.getBest(mode));
-        return data.bestStreaks[keyFor(mode)];
+        const fallback = Math.max(Number(data.bestStreaks[keyFor(mode)]) || 0, streak);
+        if (persist((current) => {
+          current.bestStreaks[keyFor(mode)] = Math.max(Number(current.bestStreaks[keyFor(mode)]) || 0, streak);
+        })) persistResultSummary(mode, this.getBest(mode));
+        return data.bestStreaks[keyFor(mode)] ?? fallback;
       },
       getLegacyBest() {
+        readCurrent();
         return Number(data.legacyBestScores[chapterId]) || 0;
       },
       getRevision(mode) { return revisionFor(mode); },
@@ -634,10 +685,7 @@
     }
 
     function saveProgress() {
-      if (!(Number(state.correct) > 0)) {
-        store.clearRound(state.mode);
-        return;
-      }
+      if (!(Number(state.correct) > 0)) return;
       const round = {
         mode: state.mode, questions: state.questions, index: state.index, score: state.score, streak: state.streak, bestStreak: state.bestStreak,
         correct: state.correct, answered: state.answered, hintUsed: state.hintUsed, currentAnswer: state.currentAnswer,
@@ -645,7 +693,25 @@
         hintSteps: normalizeHintSteps(state.hintSteps, state.questions.length),
         revision: store.getRevision(state.mode)
       };
-      store.saveRound(round);
+      if (store.saveRound(round, state.roundToken)) state.roundToken = store.getRoundToken(state.mode);
+      else syncCurrentRound();
+    }
+
+    function syncCurrentRound() {
+      if (screens.game.hidden || !store.isAvailable()) return false;
+      const token = store.getRoundToken(state.mode);
+      if (token === state.roundToken) return false;
+      const latest = store.getRound(state.mode);
+      if (latest) {
+        startGame(state.mode, latest);
+        showToast("Wczytano nowszy postęp z drugiego okna.", 4500);
+      } else {
+        showScreen("start");
+        renderRouteProgress();
+        renderSavedRounds();
+        showToast("Ta runda została zakończona lub rozpoczęta od nowa w drugim oknie.", 4500);
+      }
+      return true;
     }
 
     function hideToast() {
@@ -1692,7 +1758,9 @@
     }
 
     function startGame(mode, saved) {
-      const progress = saved && isRound(saved, validModes) ? saved : null;
+      const stored = saved ? null : store.getRound(mode);
+      const current = saved || (roundHasProgress(stored) ? stored : null);
+      const progress = current && isRound(current, validModes) ? current : null;
       const questions = progress ? progress.questions : config.buildQuestions(mode);
       const freshRound = {
         mode, questions, index: 0, score: 0, streak: 0, bestStreak: 0,
@@ -1702,6 +1770,7 @@
         hintSteps: normalizeHintSteps(progress && progress.hintSteps, questions.length)
       };
       Object.assign(state, freshRound, progress || {});
+      state.roundToken = store.getRoundToken(mode);
       state.repairBridge = normalizeRepairBridge(state.repairBridge, state.questions.length, state.index);
       state.hintSteps = normalizeHintSteps(state.hintSteps, state.questions.length);
       if (state.hintUsed) state.hintSteps[state.index] = true;
@@ -1724,7 +1793,27 @@
       } else if (state.repairBridge.granted) showToast("W tej wyprawie masz jeden Most naprawczy. Jeśli utkniesz, pomoże Ci poprawić jeden przykład po podpowiedzi.");
     }
 
+    function restartRound(mode, expectedToken) {
+      if (store.clearRound(mode, expectedToken)) startGame(mode);
+      else {
+        renderRouteProgress();
+        renderSavedRounds(mode);
+        showToast("Postęp zmienił się w drugim oknie. Wybierz rundę ponownie.", 4500);
+      }
+    }
+
+    function resumeRound(mode) {
+      const latest = store.getRound(mode);
+      if (latest) startGame(mode, latest);
+      else {
+        renderRouteProgress();
+        renderSavedRounds(mode);
+        showToast("Ta runda zmieniła się w drugim oknie. Wybierz stację ponownie.", 4500);
+      }
+    }
+
     function askHowToStart(mode, saved) {
+      const savedToken = store.getRoundToken(mode);
       const dialog = document.createElement("dialog");
       dialog.className = "round-choice-dialog";
       dialog.setAttribute("aria-labelledby", "round-choice-title");
@@ -1778,8 +1867,8 @@
       }
 
       close.addEventListener("click", dismiss);
-      resume.addEventListener("click", () => choose(() => startGame(mode, store.getRound(mode) || saved)));
-      restart.addEventListener("click", () => choose(() => { store.clearRound(mode); startGame(mode); }));
+      resume.addEventListener("click", () => choose(() => resumeRound(mode)));
+      restart.addEventListener("click", () => choose(() => restartRound(mode, savedToken)));
       dialog.addEventListener("close", () => {
         dialog.remove();
         if (!decided) stayOnMenu();
@@ -1790,6 +1879,7 @@
     }
 
     function finishGame() {
+      if (syncCurrentRound()) return;
       hideToast();
       if (el.milestoneToast) el.milestoneToast.classList.remove("visible", ...TOAST_DIRECTIONS.map((direction) => `from-${direction}`));
       const total = state.questions.length;
@@ -1797,7 +1887,11 @@
       const isNewBest = state.score > state.best;
       state.best = store.saveBest(state.mode, state.score);
       state.recordStreak = store.saveBestStreak(state.mode, state.bestStreak);
-      store.clearRound(state.mode);
+      if (!store.clearRound(state.mode, state.roundToken)) {
+        syncCurrentRound();
+        return;
+      }
+      state.roundToken = store.getRoundToken(state.mode);
       el.resultEmoji.textContent = level.tone === "great" ? "🎉" : level.tone === "good" ? "🌟" : "💪";
       el.resultTitle.textContent = level.ratio === 1 ? "Mistrzowska jazda!" : level.tone === "great" ? "Świetna jazda!" : level.tone === "good" ? "Dobra próba!" : "Każdy trening pomaga!";
       const achievement = `${state.correct} z ${total} odpowiedzi poprawnych, najdłuższa seria: ${state.bestStreak}.`;
@@ -1839,6 +1933,7 @@
       el.savedRounds.hidden = rounds.length === 0;
       el.savedRoundsList.replaceChildren();
       rounds.sort((a, b) => Number(b.mode === preferredMode) - Number(a.mode === preferredMode)).forEach((round) => {
+        const savedToken = store.getRoundToken(round.mode);
         const item = document.createElement("div"); item.className = "saved-round";
         const copy = document.createElement("div");
         addText(copy, "strong", config.routeLabels[round.mode]);
@@ -1846,9 +1941,9 @@
         addText(copy, "span", `Krok ${round.index + 1}/${round.questions.length}, ${round.score} pkt${lastMethod ? ` · ${lastMethod}` : ""}`);
         const actions = document.createElement("div"); actions.className = "saved-round-actions";
         const resume = addText(actions, "button", "Kontynuuj", "primary-button"); resume.type = "button";
-        resume.addEventListener("click", () => startGame(round.mode, store.getRound(round.mode)));
+        resume.addEventListener("click", () => resumeRound(round.mode));
         const restart = addText(actions, "button", "Zacznij od nowa", "secondary-button"); restart.type = "button";
-        restart.addEventListener("click", () => { store.clearRound(round.mode); startGame(round.mode); });
+        restart.addEventListener("click", () => restartRound(round.mode, savedToken));
         item.append(copy, actions); el.savedRoundsList.append(item);
       });
       return rounds;
@@ -1883,6 +1978,7 @@
 
     function rawAnswer() { return $("#answerInput")?.value.trim() || $(".choice-button.selected")?.dataset.choice || ""; }
     function checkAnswer(raw) {
+      if (syncCurrentRound()) return;
       if (state.answered) return;
       const question = state.questions[state.index];
       if (!String(raw).trim()) { showToast("Najpierw wpisz albo wybierz odpowiedź."); return; }
@@ -1923,6 +2019,7 @@
 
     el.answerForm.addEventListener("submit", (event) => {
       event.preventDefault();
+      if (syncCurrentRound()) return;
       if (state.answered) {
         if (repairStageIs("completed")) {
           state.repairBridge.stage = "none";
@@ -1938,12 +2035,14 @@
       else checkAnswer(rawAnswer());
     });
     el.answerArea.addEventListener("click", (event) => {
+      if (syncCurrentRound()) return;
       const choice = event.target.closest(".choice-button"); if (!choice || state.answered) return;
       document.querySelectorAll(".choice-button").forEach((button) => { button.classList.remove("selected"); button.setAttribute("aria-pressed", "false"); });
       choice.classList.add("selected"); choice.setAttribute("aria-pressed", "true"); state.currentAnswer = choice.dataset.choice; saveProgress();
     });
-    el.answerArea.addEventListener("input", (event) => { if (event.target.id === "answerInput" && !state.answered) { state.currentAnswer = event.target.value; saveProgress(); } });
+    el.answerArea.addEventListener("input", (event) => { if (syncCurrentRound()) return; if (event.target.id === "answerInput" && !state.answered) { state.currentAnswer = event.target.value; saveProgress(); } });
     el.feedback.addEventListener("click", (event) => {
+      if (syncCurrentRound()) return;
       if (event.target.closest("#repairUseButton") && repairStageIs("offer")) {
         state.repairBridge.available = false;
         state.repairBridge.stage = "help";
@@ -1961,6 +2060,7 @@
       }
     });
     el.hintButton.addEventListener("click", () => {
+      if (syncCurrentRound()) return;
       if (state.answered || repairStageIs("retry")) return;
       state.hintUsed = true;
       state.hintSteps = normalizeHintSteps(state.hintSteps, state.questions.length);
@@ -1968,8 +2068,17 @@
       el.hintBox.hidden = false; el.hintButton.disabled = true; el.hintButton.textContent = "💡 Podpowiedź pokazana";
       updateStats(); saveProgress(); el.hintBox.focus();
     });
-    $("#backToMenu")?.addEventListener("click", saveProgress);
-    $("#playAgain").addEventListener("click", () => { store.clearRound(state.mode); startGame(state.mode); });
+    $("#backToMenu")?.addEventListener("click", () => { if (!syncCurrentRound()) saveProgress(); });
+    $("#playAgain").addEventListener("click", () => startGame(state.mode));
+
+    global.addEventListener?.("focus", syncCurrentRound);
+    global.addEventListener?.("storage", (event) => {
+      if (event.key !== STORAGE_KEY) return;
+      if (screens.game.hidden) {
+        renderRouteProgress();
+        renderSavedRounds();
+      } else syncCurrentRound();
+    });
 
     prepareEngagementUi();
     const requested = exerciseFromAddress();

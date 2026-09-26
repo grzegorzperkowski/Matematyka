@@ -37,6 +37,130 @@ test("rounds and best scores are isolated by chapter and exercise", () => {
   assert.equal(store.getRound("mix").currentAnswer, "2");
 });
 
+test("open chapter pages merge writes into the latest saved record", () => {
+  const storage = memoryStorage();
+  const first = createStore(storage, "chapter1", ["mix"]);
+  const second = createStore(storage, "chapter2", ["mix"]);
+  assert.equal(first.saveRound(round("mix", "first")), true);
+  assert.equal(second.saveRound(round("mix", "second")), true);
+  first.saveBest("mix", 42);
+  second.saveBestStreak("mix", 3);
+  first.clearRound("mix");
+
+  const saved = JSON.parse(storage.values.get("matematyczneMiasteczkoState:v2"));
+  assert.equal(saved.rounds["chapter1:mix"], undefined);
+  assert.equal(saved.rounds["chapter2:mix"].currentAnswer, "second");
+  assert.equal(saved.bestScores["chapter1:mix"], 42);
+  assert.equal(saved.bestStreaks["chapter2:mix"], 3);
+  assert.equal(second.getBest("mix"), 0);
+  assert.equal(first.getBestStreak("mix"), 0);
+});
+
+test("unreadable or newer records are preserved instead of overwritten", () => {
+  for (const original of ["{broken", JSON.stringify({ version: 3, rounds: {}, bestScores: {} })]) {
+    const storage = memoryStorage({ "matematyczneMiasteczkoState:v2": original });
+    const store = createStore(storage, "chapter1", ["mix"]);
+    assert.equal(store.saveRound(round("mix")), false);
+    store.saveBest("mix", 10);
+    store.clearRound("mix");
+    assert.equal(storage.values.get("matematyczneMiasteczkoState:v2"), original);
+  }
+});
+
+test("older version 2 records without optional maps retain progress", () => {
+  const storage = memoryStorage({
+    "matematyczneMiasteczkoState:v2": JSON.stringify({ version: 2, rounds: { "chapter1:mix": round("mix", "saved") }, bestScores: { "chapter1:mix": 15 } })
+  });
+  const store = createStore(storage, "chapter1", ["mix"]);
+  assert.equal(store.getRound("mix").currentAnswer, "saved");
+  store.saveBestStreak("mix", 2);
+  assert.equal(store.getBest("mix"), 15);
+  assert.equal(store.getRound("mix").currentAnswer, "saved");
+});
+
+test("opening an old version 2 save migrates it once and preserves every result", () => {
+  const oldRound = round("mix", "unfinished");
+  oldRound.correct = 1;
+  oldRound.answered = true;
+  const oldSave = {
+    version: 2,
+    rounds: { "chapter1:mix": oldRound },
+    bestScores: { "chapter1:mix": 75, "chapter2:mix": 40 },
+    bestStreaks: { "chapter1:mix": 6 },
+    completedRoutes: { "chapter1:mix": true },
+    legacyBestScores: { chapter1: 90 }
+  };
+  const storage = memoryStorage({ "matematyczneMiasteczkoState:v2": JSON.stringify(oldSave) });
+  let writes = 0;
+  const originalSet = storage.setItem;
+  storage.setItem = (key, value) => { writes += 1; originalSet(key, value); };
+
+  const store = createStore(storage, "chapter1", ["mix"]);
+  const migrated = JSON.parse(storage.values.get("matematyczneMiasteczkoState:v2"));
+  assert.equal(writes, 1);
+  assert.equal(migrated.version, 2);
+  assert.deepEqual(migrated.rounds, oldSave.rounds);
+  assert.deepEqual(migrated.bestScores, oldSave.bestScores);
+  assert.deepEqual(migrated.bestStreaks, oldSave.bestStreaks);
+  assert.deepEqual(migrated.completedRoutes, oldSave.completedRoutes);
+  assert.deepEqual(migrated.legacyBestScores, oldSave.legacyBestScores);
+  assert.equal(typeof migrated.roundTokens["chapter1:mix"], "string");
+  assert.equal(store.getBest("mix"), 75);
+  assert.equal(store.getBestStreak("mix"), 6);
+  assert.equal(store.getRound("mix").currentAnswer, "unfinished");
+
+  createStore(storage, "chapter1", ["mix"]);
+  assert.equal(writes, 1);
+  assert.equal(store.getRoundToken("mix"), migrated.roundTokens["chapter1:mix"]);
+});
+
+test("two windows can hand the same round back and forth without stale overwrites", () => {
+  const storage = memoryStorage();
+  const first = createStore(storage, "chapter1", ["mix"]);
+  const second = createStore(storage, "chapter1", ["mix"]);
+  const initial = first.getRoundToken("mix");
+  assert.equal(second.getRoundToken("mix"), initial);
+  assert.equal(first.saveRound(round("mix", "window 1"), initial), true);
+  const firstToken = first.getRoundToken("mix");
+  assert.equal(second.saveRound(round("mix", "stale window 2"), initial), false);
+  assert.equal(second.getRound("mix").currentAnswer, "window 1");
+
+  assert.equal(second.saveRound(round("mix", "window 2"), firstToken), true);
+  const secondToken = second.getRoundToken("mix");
+  assert.notEqual(secondToken, firstToken);
+  assert.equal(first.saveRound(round("mix", "stale window 1"), firstToken), false);
+  assert.equal(first.getRound("mix").currentAnswer, "window 2");
+
+  assert.equal(first.saveRound(round("mix", "window 1 again"), secondToken), true);
+  const saved = JSON.parse(storage.values.get("matematyczneMiasteczkoState:v2"));
+  assert.equal(saved.rounds["chapter1:mix"].currentAnswer, "window 1 again");
+  assert.equal(typeof saved.rounds["chapter1:mix"].updatedAt, "number");
+});
+
+test("a cleared round cannot be resurrected by a stale window", () => {
+  const storage = memoryStorage();
+  const first = createStore(storage, "chapter1", ["mix"]);
+  const second = createStore(storage, "chapter1", ["mix"]);
+  first.saveRound(round("mix", "old"), first.getRoundToken("mix"));
+  const oldToken = second.getRoundToken("mix");
+  assert.equal(first.clearRound("mix", oldToken), true);
+  assert.equal(second.saveRound(round("mix", "resurrected"), oldToken), false);
+  assert.equal(second.clearRound("mix", oldToken), false);
+  assert.equal(second.getRound("mix"), null);
+  assert.notEqual(second.getRoundToken("mix"), oldToken);
+});
+
+test("a stale restart cannot delete progress saved in another window", () => {
+  const storage = memoryStorage();
+  const first = createStore(storage, "chapter1", ["mix"]);
+  const second = createStore(storage, "chapter1", ["mix"]);
+  first.saveRound(round("mix", "first step"), first.getRoundToken("mix"));
+  const staleToken = first.getRoundToken("mix");
+  second.saveRound(round("mix", "continued"), second.getRoundToken("mix"));
+  assert.equal(first.clearRound("mix", staleToken), false);
+  assert.equal(first.getRound("mix").currentAnswer, "continued");
+});
+
 test("best streaks are optional, isolated and only increase", () => {
   const oldV2Data = {
     version: 2,
