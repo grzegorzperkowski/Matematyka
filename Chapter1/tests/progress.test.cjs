@@ -282,15 +282,13 @@ test("encouragement is randomized and offered at the halfway step", () => {
 
   const first = fifthStepEncouragement(5, 10, () => 0);
   const last = fifthStepEncouragement(5, 10, () => 0.999);
-  assert.equal(first.direction, "top");
-  assert.equal(last.direction, "left");
   assert.ok(first.message.length > 0);
   assert.notEqual(first.message, last.message);
   assert.match(first.message, /pięć/);
 
   for (let step = 0; step < 6; step += 1) {
     const item = fifthStepEncouragement(6, 12, () => step / 6);
-    assert.ok(["top", "right", "bottom", "left"].includes(item.direction));
+    assert.ok(item.message.length > 0);
     assert.doesNotMatch(item.message, /pięć/);
   }
   assert.match(fifthStepEncouragement(6, 12, () => 0).message, /sześć/);

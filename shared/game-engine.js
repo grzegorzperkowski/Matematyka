@@ -7,8 +7,7 @@
   const RESULT_KEY = "playground.result.matematyka.v1";
   const REPAIR_STAGES = ["none", "offer", "help", "retry", "completed"];
   const REPAIR_ANIMATIONS = ["folding-bridge", "method-lantern", "repair-stamp"];
-  const TOAST_DIRECTIONS = ["top", "right", "bottom", "left"];
-  const MILESTONE_TOAST_MS = 8800;
+  const MILESTONE_EXIT_MS = 650;
   const FIFTH_STEP_MESSAGES = [
     "Pięć kroków już za Tobą — jeszcze pięć. Tak trzymaj!",
     "Świetnie Ci idzie! Meta jest coraz bliżej.",
@@ -37,10 +36,7 @@
         ? HALFWAY_STEP_MESSAGES
         : null;
     if (!messages) return null;
-    return {
-      message: randomItem(messages, random),
-      direction: randomItem(TOAST_DIRECTIONS, random)
-    };
+    return { message: randomItem(messages, random) };
   }
 
   function polishFew(count) {
@@ -729,15 +725,60 @@
 
     function showFifthStepEncouragement() {
       const encouragement = fifthStepEncouragement(state.index, state.questions.length);
-      if (!encouragement || !el.milestoneToast) return;
-      el.milestoneToast.classList.remove("visible", ...TOAST_DIRECTIONS.map((direction) => `from-${direction}`));
+      if (!encouragement || !el.milestoneToast || el.milestoneToast.open) return;
       el.milestoneMessage.textContent = encouragement.message;
-      global.clearTimeout(showFifthStepEncouragement.timer);
-      void el.milestoneToast.offsetWidth;
-      el.milestoneToast.classList.add(`from-${encouragement.direction}`, "visible");
-      showFifthStepEncouragement.timer = global.setTimeout(() => {
-        el.milestoneToast.classList.remove("visible", ...TOAST_DIRECTIONS.map((direction) => `from-${direction}`));
-      }, MILESTONE_TOAST_MS + 200);
+      el.milestoneToast.showModal();
+      el.milestoneClose.focus({ preventScroll: true });
+
+      const reducedMotion = global.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const dialog = el.milestoneToast;
+      let frames;
+      if (reducedMotion) {
+        frames = [{ opacity: 0 }, { opacity: 1 }];
+      } else {
+        const box = dialog.getBoundingClientRect();
+        const maxX = Math.max(0, (global.innerWidth - box.width) / 2 - 12);
+        const maxY = Math.max(0, (global.innerHeight - box.height) / 2 - 12);
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 0.45 + Math.random() * 0.4;
+        frames = Array.from({ length: 25 }, (_, index) => {
+          const t = index / 24;
+          const turn = angle + t * Math.PI * 4;
+          const reach = radius * Math.pow(1 - t, 1.2);
+          const x = Math.cos(turn) * maxX * reach;
+          const y = Math.sin(turn) * maxY * reach;
+          const scale = t < .85 ? .78 + .22 * t / .85 : t < .94 ? 1 + .025 * (t - .85) / .09 : 1.025 - .025 * (t - .94) / .06;
+          return {
+            opacity: Math.min(1, t * 8),
+            transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale})`,
+            offset: t
+          };
+        });
+      }
+      el.milestoneEntrance = dialog.animate(frames, { duration: reducedMotion ? 220 : 1250, easing: "ease-out" });
+    }
+
+    function closeMilestone() {
+      const dialog = el.milestoneToast;
+      if (!dialog?.open || dialog.classList.contains("closing")) return;
+      dialog.classList.add("closing");
+      const currentStyle = global.getComputedStyle(dialog);
+      const currentOpacity = currentStyle.opacity;
+      const currentTransform = currentStyle.transform;
+      el.milestoneEntrance?.cancel();
+      const reducedMotion = global.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const frames = reducedMotion
+        ? [{ opacity: currentOpacity }, { opacity: 0 }]
+        : [
+          { opacity: currentOpacity, transform: currentTransform },
+          { opacity: 0, transform: "translate(-50%, -50%) scale(.96)" }
+        ];
+      const animation = dialog.animate(frames, { duration: reducedMotion ? 220 : MILESTONE_EXIT_MS, easing: "ease-in-out", fill: "forwards" });
+      animation.finished.then(() => {
+        if (dialog.open) dialog.close();
+        animation.cancel();
+        dialog.classList.remove("closing");
+      }).catch(() => {});
     }
 
     function updateStats() {
@@ -823,17 +864,23 @@
         el.resultMessage.after(el.resultMethods);
       }
 
-      el.milestoneToast = document.createElement("div");
+      el.milestoneToast = document.createElement("dialog");
       el.milestoneToast.className = "milestone-toast";
-      el.milestoneToast.setAttribute("role", "status");
-      el.milestoneToast.setAttribute("aria-live", "polite");
-      el.milestoneToast.setAttribute("aria-atomic", "true");
+      el.milestoneToast.setAttribute("aria-labelledby", "milestone-title");
+      el.milestoneToast.setAttribute("aria-describedby", "milestone-message");
       const milestoneBadge = addText(el.milestoneToast, "span", "★", "milestone-badge");
       milestoneBadge.setAttribute("aria-hidden", "true");
       const milestoneCopy = document.createElement("div");
-      addText(milestoneCopy, "strong", "Półmetek!", "milestone-title");
+      const milestoneTitle = addText(milestoneCopy, "strong", "Półmetek!", "milestone-title");
+      milestoneTitle.id = "milestone-title";
       el.milestoneMessage = addText(milestoneCopy, "span", "", "milestone-message");
+      el.milestoneMessage.id = "milestone-message";
       el.milestoneToast.append(milestoneCopy);
+      el.milestoneClose = addText(el.milestoneToast, "button", "×", "milestone-close");
+      el.milestoneClose.type = "button";
+      el.milestoneClose.setAttribute("aria-label", "Kontynuuj grę");
+      el.milestoneToast.addEventListener("click", closeMilestone);
+      el.milestoneToast.addEventListener("cancel", (event) => { event.preventDefault(); closeMilestone(); });
       document.body.append(el.milestoneToast);
     }
 
@@ -1881,7 +1928,7 @@
     function finishGame() {
       if (syncCurrentRound()) return;
       hideToast();
-      if (el.milestoneToast) el.milestoneToast.classList.remove("visible", ...TOAST_DIRECTIONS.map((direction) => `from-${direction}`));
+      if (el.milestoneToast?.open) el.milestoneToast.close();
       const total = state.questions.length;
       const level = resultLevel(state.correct, total);
       const isNewBest = state.score > state.best;
