@@ -78,6 +78,10 @@ questions. `park`, `numberline` and `mix` stay at 10. The halfway encouragement
 fires in the middle of the round: after question 5 when there are 10, and after
 question 6 when there are 12.
 
+Chapter 3 is also a published exception: all seven focused routes and `mix`
+return 12 questions. Existing unfinished ten-question rounds remain valid and
+resumable; new rounds use 12. The mix includes every focused station.
+
 When a published generator change makes already serialized questions visually
 or mathematically incompatible, keep the route ID stable and set a larger
 positive integer in `roundRevisions`, for example
@@ -231,7 +235,7 @@ When the chapter is playable:
 
 Add focused tests for each non-trivial generator rule. At minimum verify:
 
-- every advertised route returns 10 valid questions;
+- every advertised route returns the chapter's documented number of valid questions;
 - generated answers match their inputs;
 - important boundaries and exactness rules;
 - special visuals contain every value required by their renderer.

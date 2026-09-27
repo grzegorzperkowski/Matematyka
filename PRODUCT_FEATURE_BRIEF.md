@@ -65,7 +65,7 @@ short interactive challenges. A child chooses a maths chapter, selects a
 focused practice station or a mixed round, and completes a predictable round
 of questions with immediate teaching feedback. Ten questions is the usual
 length. In Chapter 1, nine stations have twelve questions; the funfair, the
-number line and the mixed ride stay at ten.
+number line and the mixed ride stay at ten. All Chapter 3 rounds have twelve.
 
 The curriculum sources determine topic order, terminology and age-appropriate
 limits, while the playable questions and visuals are original rather than
@@ -123,7 +123,7 @@ These answers would materially improve feature proposals:
    Chapter 1, “Liczby i działania”.
 2. Inside a published chapter, the child chooses a focused station or a mixed
    station covering that chapter.
-3. Each station starts a ten-question round. Questions ask the child either to
+3. Each station starts a ten- or twelve-question round. Questions ask the child either to
    enter an answer or choose from supplied answers. Many topics include a
    mathematical visual.
 4. During the round the child sees the route name, current step, completed
@@ -185,8 +185,8 @@ These answers would materially improve feature proposals:
 ### Practice and learning
 
 - Fixed, predictable rounds. Ten questions is the usual length. Chapter 1's
-  deepened stations have twelve questions; its funfair, number line and mixed
-  ride stay at ten.
+  deepened stations and every Chapter 3 route have twelve questions; Chapter 1's
+  funfair, number line and mixed ride stay at ten.
 - Procedurally generated question values, allowing a station to be replayed
   with fresh examples.
 - Two main response formats: typed answers and multiple choice.
@@ -291,7 +291,7 @@ chapters, plus one mixed station per chapter (**85 playable stations in all**).
 | --- | --- | --- |
 | 1. Liczby i działania | Available now | addition and subtraction; comparisons such as “how many more”; multiplication and division; multiplying/dividing by 10, 100 and similar powers; times more/times less; division with remainder; squares and cubes; word problems; order of operations; number lines and puzzles. Mixed rounds use ten of the eleven stations and rotate which one rests. |
 | 2. Systemy zapisywania liczb | Available now | decimal place value through millions, expanded sums and the short forms tys., mln and mld; comparing numbers, counts of the integers between two values, and comparisons that do not need the whole calculation; large-number arithmetic, missing addends and cancelling trailing zeros; złoty and grosz both ways, change and a half-kilogram price; length and mass conversions in both directions, mixed measures and how many times longer or heavier; Roman numerals and an illegal string; months, quarters, leap years and dates; quarter-hours, Polish clock phrases and elapsed time |
-| 3. Działania pisemne | Available now | written addition; written subtraction; multiplication by one digit; longer multiplication; division by one digit; longer division; written-method word problems |
+| 3. Działania pisemne | Available now | written addition with three addends and missing addends; subtraction with borrowing through zeroes and finding an increase; one-digit multiplication and missing factors; longer multiplication including trailing zeroes and three-digit factors; one-digit division with and without remainders; longer exact division; multi-step written-method word problems |
 | 4. Figury geometryczne | Available now | points, lines, segments, rays and broken lines; parallel/perpendicular relations; lengths; angle types and measurement; polygons; rectangles and squares; perimeter; circles; scale |
 | 5. Ułamki zwykłe | Available now | equal parts of a whole; mixed numbers; fraction number line; comparison; equivalent/simplified fractions; improper fractions and wholes; fraction as quotient; addition; subtraction; fraction problems |
 | 6. Ułamki dziesiętne | Available now | decimal notation and place value; decimal number line; length and mass conversions; equivalent decimal notation; comparison; addition; subtraction; shopping/money; decimal problems |
@@ -353,7 +353,7 @@ idea from an existing feature. It is not a commitment to build these items.
 What the source confirms well:
 
 - current chapters and practice coverage;
-- the ten-question learning loop;
+- the ten- or twelve-question learning loop;
 - help, explanation, scoring, streak and saved-progress behavior;
 - offline, accessibility and privacy boundaries.
 
@@ -415,4 +415,4 @@ Also update this brief when a target-user fact, known problem or meaningful
 research finding changes. Do not update it for refactors, file moves, CSS
 changes, test changes, cache versions or other implementation-only work.
 
-Last verified against the current application source: **2026-09-24**.
+Last verified against the current application source: **2026-09-27**.
