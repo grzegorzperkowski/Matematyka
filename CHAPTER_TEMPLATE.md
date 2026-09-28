@@ -82,6 +82,11 @@ Chapter 3 is also a published exception: all seven focused routes and `mix`
 return 12 questions. Existing unfinished ten-question rounds remain valid and
 resumable; new rounds use 12. The mix includes every focused station.
 
+Chapter 4 is a published exception: all ten focused routes and `mix` return 12
+questions. Existing unfinished ten-question rounds remain valid and resumable;
+new rounds use 12. The mix includes one question from every focused station
+and two more from different stations.
+
 When a published generator change makes already serialized questions visually
 or mathematically incompatible, keep the route ID stable and set a larger
 positive integer in `roundRevisions`, for example
@@ -177,9 +182,19 @@ Geometry shapes currently include:
 - `angle`: `degrees`;
 - `polygon`: `sides`; optional `variant: "rhombus"` and `markEqualSides: true`
   draw a four-sided equal-length counterexample without implying right angles;
-- `rectangle`: numeric `width` and `height`;
+  `variant: "curved"` draws a closed figure with one arc, and `markedPoint:
+  "inside"` draws P inside a polygon;
+- `rectangle`: numeric `width` and `height`; optional `rotation` turns the
+  diagram without changing its dimensions or right-angle marks;
 - `perimeter`: a `sides` array;
-- `circle`: `feature`;
+- `circle`: `feature`, including `points` (A on the circle, B inside, C outside)
+  and `two-radii` (SA and SB);
+- `ruler`: integer `start` and `end` centimetre marks from 0 to 10, with
+  `end > start`; the segment length is their difference;
+- `protractor`: integer `degrees` from 0 to 180; the diagram begins at 0° on
+  the right and shows the second arm at that value;
+- `step-perimeter`: positive numeric `width` and `height` of an orthogonal
+  stepped outline with perimeter `2 * (width + height)`;
 - `cuboid`: positive finite `length`, `width` and `height`, each at most 24.
   They are the three edges that meet at the front-bottom-left vertex: length
   across the front, width into the depth, height upward. Optional `unit` is

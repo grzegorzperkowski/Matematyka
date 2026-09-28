@@ -2,7 +2,7 @@
 
 ## Status
 
-- Etap: implementacja i integracja zakończone; testy automatyczne zakończone; testy ręczne oczekują na dostępną przeglądarkę.
+- Etap: rozbudowa o nowe strony zeszytu ćwiczeń zakończona; testy rozdziału i składni zaliczone; testy ręczne oczekują na dostępną przeglądarkę.
 - Tytuł rozdziału ustalony ze strony otwierającej: **Figury geometryczne**.
 - Źródło: 39 plików `page_0119.png`–`page_0157.png`, obejrzanych w całości 2026-09-16.
 - Obrazy są wyłącznie materiałem programowym. Nie będą publikowane, buforowane ani kopiowane do gry.
@@ -125,3 +125,37 @@ Interfejs Computer Use zwrócił pustą listę przeglądarek i aplikacji; próby
 - Pierwsze pięć pytań trasy zawiera teraz komplet zdań prawda/fałsz w kolejności ze źródła, z odpowiedziami: fałsz, prawda, prawda, fałsz, fałsz.
 - Dodano jednoznaczny diagram rombu jako kontrprzykład dla czworokąta o czterech równych bokach, który nie ma kątów prostych.
 - Test regresyjny sprawdza obecność, kolejność i odpowiedzi wszystkich pięciu zdań; trasa nadal ma dokładnie 10 pytań.
+
+## 2026-09-28 — mapa nowych stron ćwiczeniowych przed rozbudową
+
+Obejrzano wszystkie 24 nowe obrazy `page_0049.png`–`page_0072.png` (drukowane strony 47–70). To zeszyt ćwiczeń utrwalający dziesięć opublikowanych tematów, a nie nowy dział. Obrazy pozostają ignorowanymi materiałami źródłowymi; treść pytań i diagramy w grze muszą być autorskie.
+
+| Strony | Ćwiczona umiejętność i język | Istniejąca stacja i luka |
+| --- | --- | --- |
+| `page_0049.png`–`page_0051.png` | Nazywanie punktu, prostej, półprostej, odcinka i łamanej; rozstrzyganie, czy punkt należy do odcinka, prostej lub półprostej; kierunek półprostej; jedna prosta przez dwa punkty, wiele przez jeden. | `linie` uczy nazw, końców, łamanej i jednego prostego przypadku należenia. Brakuje wyboru przynależności do różnych figur, zwłaszcza półprostej i punktów poza odcinkiem na tej samej prostej. |
+| `page_0052.png`–`page_0055.png` | Rozpoznawanie prostych i odcinków prostopadłych lub równoległych, również bez widocznego przecięcia odcinków; zapis symbolami `⊥` i `∥`; relacje na siatce. | `polozenie` klasyfikuje relacje i zawiera wnioskowanie. Brakuje zadania, w którym krótkie odcinki są prostopadłe przez swoje proste nośne, oraz odczytywania symboli. |
+| `page_0056.png`–`page_0057.png` | Odczyt długości z linijki bez początku w zerze, sumy i różnice długości, wielokrotność, przeliczenia `mm`, `cm`, `dm`, `m`, `km` oraz mieszanych jednostek; sprawdzanie poprawności zamiany. | `dlugosci` ma przeliczenia, łamaną, różnicę i mnożenie. Brakuje odczytu z dwóch oznaczonych kresek linijki, szerszych jednostek mieszanych i oceny błędnej zamiany. |
+| `page_0058.png` | Rozpoznawanie kąta ostrego, prostego, rozwartego i wklęsłego w różnych ustawieniach; porównanie kąta niezależnie od długości ramion lub wielkości rysunku. | `katy` klasyfikuje głównie z podanej miary i pokazuje jeden kąt. Brakuje rozpoznania z samego rysunku i odporności na zmianę orientacji lub długości ramion. |
+| `page_0059.png`–`page_0061.png` | Odczytywanie stopni z właściwej skali kątomierza; sprawdzanie błędnego odczytu; miara kąta na zegarze i czas po obrocie wskazówki minutowej. | `mierzenie-katow` liczy dopełnienia, obroty i stopnie wskazówki. Brakuje czytania kątomierza i zamiany obrotu wskazówki na nową godzinę. |
+| `page_0062.png` | Rozróżnianie zamkniętych figur o prostych/krzywych brzegach; boki, wierzchołki i punkty wewnątrz lub na brzegu wielokąta, także wklęsłego. | `wielokaty` ćwiczy nazwy i liczenie oraz jedną otwartą łamaną. Brakuje figur z łukiem, wklęsłych wielokątów i położenia punktów. |
+| `page_0063.png` | Prostokąt i kwadrat w różnych orientacjach; równoległość przeciwległych boków, prostopadłość sąsiednich; dzielenie prostokąta na mniejsze prostokąty. | `prostokaty` uczy własności i klasyfikacji. Brakuje rozpoznania po obrocie; otwartych konstrukcji i podziału nie da się uczciwie sprowadzić do jednej odpowiedzi bez nowego diagramu. |
+| `page_0064.png`–`page_0065.png` | Obwód prostokąta i kwadratu, brakujący bok, mieszane jednostki, wielokrotny obchód oraz obwód figury schodkowej z siatki lub znanej szerokości i wysokości. | `obwody` ma sumowanie, odwrócone zadania i jeden przykład mieszanych jednostek. Brakuje figury schodkowej i wielokrotnego obejścia z kontrolą jednostek. |
+| `page_0066.png`–`page_0068.png` | Różnica koło/okrąg; promień, średnica, cięciwa; punkty na okręgu i we wnętrzu koła; jednakowa odległość punktów okręgu od środka. | `kola` ma po jednym pytaniu o części figury i pojedynczy punkt. Brakuje porównania kilku punktów względem koła i okręgu oraz rozpoznania kilku promieni tej samej długości. |
+| `page_0069.png`–`page_0072.png` | Odczyt skali z porównania długości, skala `1:1`, pomniejszanie i powiększanie wymiarów w obu kierunkach, rozmiar obiektu i odległości na planie, także dla `1 mm` i mieszanych długości. | `skala` liczy oba kierunki, skalę planu i jedną skalę wynikającą z wymiarów. Brakuje wizualnego porównania kilku długości, skali `1:1` i wyboru poprawnego rysunku o dwóch wymiarach. |
+
+Warto dodać przede wszystkim nowe *sposoby rozumowania*: przynależność punktu do półprostej, odczyt z linijki i kątomierza, rozpoznawanie kąta i wielokąta z diagramu, obwód figury schodkowej, kilka punktów na kole oraz skalowanie obu boków prostokąta. Rozszerzenia należą do wymienionych opublikowanych stacji; żaden temat nie wymaga nowego identyfikatora trasy. `mix` powinien nadal obejmować wszystkie dziesięć stacji.
+
+Pominąć lub przełożyć na podpowiedzi należy zadania z fizycznym mierzeniem kartki/przedmiotów, swobodnym rysowaniem linijką, ekierką i cyrklem, kolorowaniem, ozdabianiem mozaiki oraz otwarte podziały figur. Wynik zależałby od druku, narzędzia lub wielu poprawnych rysunków. Nie kopiować podanych liczb, ilustracji, sformułowań ani znaku wodnego.
+
+**Decyzja użytkownika:** rundy mogą wzrosnąć do 12 pytań. Każda stacja otrzyma dwa autorskie zadania dotyczące nowych umiejętności; `mix` też będzie miał 12 pytań, z każdej stacji co najmniej jedno i dwa dodatkowe z różnych stacji. Stabilne identyfikatory oraz najlepsze wyniki pozostają. Istniejące, zapisane rundy dziesięciopytaniowe nadal można dokończyć; nowe rundy będą dwunastopytaniowe.
+
+Plan nowych wariantów: `linie` — należenie do półprostej i odcinka; `polozenie` — symbole relacji i prostopadłość krótkich odcinków; `dlugosci` — różnica odczytów linijki i mieszane jednostki; `katy` — klasyfikacja z rysunku i niezależność miary od długości ramion; `mierzenie-katow` — odczyt kątomierza i czas po obrocie wskazówki; `wielokaty` — brzeg z łukiem i punkt wewnątrz figury; `prostokaty` — rozpoznawanie po obrocie i własność sąsiednich boków; `obwody` — figura schodkowa i wielokrotne obejście; `kola` — kilka punktów względem koła i jednakowe promienie; `skala` — dwa wymiary prostokąta i skala `1:1`. Liczby całkowite, krótkie obliczenia, diagramy SVG z jawnymi danymi. Pominąć zadania wymagające fizycznego pomiaru lub swobodnego rysowania.
+
+### 2026-09-28 — wynik wdrożenia i kontrole
+
+- Dodano po dwa zadania do każdej z dziesięciu opublikowanych stacji. Każda nowa runda ma 12 pytań. `mix` losuje jedno z każdej stacji oraz po jednym dodatkowym z dwóch różnych stacji; pytania mają jawne pole `station` do sprawdzenia pokrycia. Stare niedokończone rundy z 10 pytaniami pozostają czytelne przez wspólny silnik, a identyfikatory tras i rekordy nie uległy zmianie.
+- Dodano do wspólnego renderera trzy diagramy `ruler`, `protractor`, `step-perimeter` oraz warianty istniejących diagramów: figura z łukiem, punkt w wielokącie, obrócony prostokąt, kilka punktów i promieni na kole. Poprawiono rysunek krótkich odcinków prostopadłych: oddzielne odcinki i przerywane przedłużenia pokazują sens relacji. Dane matematyczne przekazywane są wprost, a podpisy i tekst dostępności nie zdradzają odpowiedzi w nowych zadaniach.
+- Uaktualniono opis rund w HTML, kontrakt rozdziału i brief produktu. Cache offline zwiększono raz: `v37` → `v38`; referencyjne PNG nie są w aplikacji ani w cache.
+- `node --test Chapter4/tests/*.test.cjs`: 12/12 zaliczone, w tym nowe reguły i pokrycie `mix`. `npm run check` oraz `git diff --check`: zaliczone.
+- `npm test` po zmianie wspólnego renderera: końcowy przebieg 131/131 zaliczonych. Wcześniejszy przebieg miał niestabilną porażkę istniejącego nieśledzonego testu `Chapter1/tests/expansion.test.cjs` (linia 123, warunek losowego pokrycia); ponowne uruchomienie bez zmian w Chapter1 zakończyło się powodzeniem. Nie modyfikowano cudzych plików Chapter1.
+- Computer Use zwrócił pusty wykaz przeglądarek; otwarcie `iab` zakończyło się „Browser is not available: iab”. Nie wykonano testów `file:`, HTTP, interakcji, klawiatury, 320 px ani prawdziwego offline. Test Node potwierdza obsługę bezpośredniego adresu offline na poziomie service workera. Po udostępnieniu przeglądarki należy wykonać ręczną listę z sekcji „Pozostałe testy ręczne” także dla nowych tras i diagramów.

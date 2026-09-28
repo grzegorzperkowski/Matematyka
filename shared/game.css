@@ -203,6 +203,7 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 4px solid 
 .geometry-visual svg { display: block; width: min(100%, 360px); height: auto; max-height: 210px; overflow: visible; }
 .geometry-visual .visual-caption { max-width: 100%; margin: 6px 0 0; text-align: center; overflow-wrap: anywhere; }
 .geometry-stroke, .geometry-angle-ray, .geometry-split-ray, .geometry-feature { fill: none; stroke: #28252f; stroke-linecap: round; stroke-linejoin: round; stroke-width: 4; }
+.geometry-extension { fill: none; stroke: #7b61c9; stroke-width: 2; stroke-dasharray: 5 4; }
 .geometry-angle-ray { stroke: #187d7c; stroke-width: 5; }
 .geometry-split-ray { stroke: #ef6b8d; stroke-dasharray: 5 4; }
 .geometry-feature { stroke: #ef6b8d; stroke-width: 5; }

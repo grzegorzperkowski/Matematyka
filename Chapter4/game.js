@@ -232,7 +232,76 @@
     ];
   }
 
-  const builders = {
+  function extensionQuestions(mode) {
+    const yesNo = ["tak", "nie"];
+    switch (mode) {
+      case "linie": {
+        return [
+          choice("tak", yesNo, { label: "Punkty na półprostej", prompt: "Półprosta AB biegnie od A przez B i dalej przez C. Czy C należy do półprostej AB?", hint: "Półprosta nie kończy się w punkcie B.", explanation: "Tak. C leży za B w kierunku biegu półprostej AB.", visual: geometry("line", { extent: "ray", pointNames: ["A", "B", "C"] }, "Punkty A, B, C leżą kolejno na jednej linii.") }),
+          choice("nie", yesNo, { label: "Punkty na odcinku", prompt: "Punkty A, B, C leżą kolejno na jednej prostej. Czy C należy do odcinka AB?", hint: "Odcinek AB kończy się w B.", explanation: "Nie. C leży za punktem B, więc jest poza odcinkiem AB.", visual: geometry("line", { extent: "infinite", pointNames: ["A", "B", "C"] }, "Porównaj położenie C z końcami odcinka AB.") })
+        ];
+      }
+      case "polozenie":
+        return [
+          choice("a ⊥ b", ["a ⊥ b", "a ∥ b", "a = b"], { label: "Zapis położenia", prompt: "Jak zapiszesz, że proste a i b są prostopadłe?", hint: "Wybierz znak oznaczający kąt prosty.", explanation: "Zapis a ⊥ b oznacza, że proste przecinają się pod kątem 90°.", visual: geometry("lines", { relation: "perpendicular", names: ["a", "b"] }, "Wybierz znak odpowiedni do rysunku.") }),
+          choice("prostopadłe", ["prostopadłe", "równoległe", "żadne z nich"], { label: "Krótkie odcinki", prompt: "Odcinki AB i CD nie stykają się, ale leżą na prostych przecinających się pod kątem prostym. Jak położone są te odcinki?", hint: "Dla odcinków liczy się położenie prostych, na których leżą.", explanation: "Odcinki są prostopadłe, choć same nie muszą się przecinać.", visual: geometry("lines", { relation: "perpendicular", names: ["AB", "CD"], segments: true, alt: "Dwa oddzielne odcinki i ich przerywane przedłużenia przecinające się pod kątem prostym." }, "Przedłuż oba odcinki do prostych.") })
+        ];
+      case "dlugosci": {
+        const start = rand(1, 5), end = start + rand(2, 5), metres = rand(2, 8), centimetres = rand(1, 9);
+        return [
+          question({ label: "Odczyt z linijki", prompt: `Początek odcinka wskazuje ${start} cm, a koniec ${end} cm na linijce. Ile centymetrów ma odcinek?`, answer: end - start, hint: "Odejmij odczyt przy początku od odczytu przy końcu.", explanation: `${end} − ${start} = ${end - start} cm. Linijka nie musi zaczynać się przy zerze.`, visual: geometry("ruler", { start, end }, "Długość to odstęp między dwoma kreskami.") }),
+          question({ label: "Mieszane jednostki", prompt: `Ile centymetrów to ${metres} m ${centimetres} cm?`, answer: metres * 100 + centimetres, hint: "Każdy metr ma 100 cm. Dodaj pozostałe centymetry.", explanation: `${metres} · 100 + ${centimetres} = ${metres * 100 + centimetres} cm.`, visual: equation(`${metres} m ${centimetres} cm = ? cm`, "Zapisz obie części w centymetrach.") })
+        ];
+      }
+      case "katy": {
+        const degrees = pick([40, 60, 90, 120, 150]);
+        return [
+          choice(angleName(degrees), ["ostry", "prosty", "rozwarty"], { label: "Kąt na rysunku", prompt: "Jaki rodzaj kąta zaznaczono na rysunku?", hint: "Porównaj rozwarcie z kątem prostym.", explanation: `Zaznaczony kąt ma ${degrees}°, więc jest ${angleName(degrees)}.`, visual: geometry("angle", { degrees, alt: "Zaznaczony kąt; porównaj jego rozwarcie z kątem prostym." }, "Oceń rozwarcie kąta, bez odczytu miary z podpisu.") }),
+          choice("nie", yesNo, { label: "Porównywanie kątów", prompt: "Dwa kąty mają takie samo rozwarcie, lecz jeden ma dłuższe ramiona. Czy ich miary są różne?", hint: "Miara kąta zależy od obrotu jednego ramienia do drugiego.", explanation: "Nie. Długość narysowanych ramion nie zmienia miary kąta.", visual: geometry("angle", { degrees: 70 }, "Rozwarcie pozostaje takie samo przy zmianie długości ramion.") })
+        ];
+      }
+      case "mierzenie-katow": {
+        const degrees = pick([30, 60, 120, 150]), minutes = pick([5, 10, 15, 20, 30]);
+        return [
+          question({ label: "Odczyt kątomierza", prompt: "Ile stopni ma zaznaczony kąt? Odczytaj skalę od prawego ramienia.", answer: degrees, hint: "Zacznij od 0° po prawej stronie kątomierza.", explanation: `Od prawego ramienia do drugiego odczytujesz ${degrees}°.`, visual: geometry("protractor", { degrees, alt: "Kątomierz z jednym ramieniem na zerze po prawej i drugim przy kresce skali." }, "Odczytaj skalę rosnącą od 0° po prawej.") }),
+          question({ label: "Zegar po obrocie", prompt: `Jest 14:00. Która minuta będzie po obrocie wskazówki minutowej o ${minutes * 6}°?`, answer: minutes, hint: "Wskazówka pokonuje 6° w minutę.", explanation: `${minutes * 6}° : 6° = ${minutes} minut, więc będzie 14:${String(minutes).padStart(2, "0")}.`, visual: equation(`${minutes * 6}° : 6° = ? min`, "Od godziny 14:00 mija tyle minut.") })
+        ];
+      }
+      case "wielokaty":
+        return [
+          choice("nie", yesNo, { label: "Granica wielokąta", prompt: "Czy zamknięta figura, której jeden bok jest łukiem, jest wielokątem?", hint: "Wielokąt ma brzeg złożony tylko z odcinków.", explanation: "Nie. Łuk nie jest odcinkiem, więc taka figura nie jest wielokątem.", visual: geometry("polygon", { sides: 4, variant: "curved" }, "Przyjrzyj się całej granicy figury.") }),
+          choice("wewnątrz", ["wewnątrz", "na brzegu", "na zewnątrz"], { label: "Punkt i wielokąt", prompt: "Gdzie leży punkt P względem wielokąta na rysunku?", hint: "Sprawdź, czy P jest otoczony przez boki.", explanation: "Punkt P leży wewnątrz wielokąta.", visual: geometry("polygon", { sides: 5, markedPoint: "inside" }, "Porównaj położenie P z brzegiem figury.") })
+        ];
+      case "prostokaty":
+        return [
+          choice("prostokąt", ["prostokąt", "trapez", "trójkąt"], { label: "Obrócona figura", prompt: "Jaką figurę pokazuje obrócony rysunek?", hint: "Obrót kartki nie zmienia kątów ani długości boków.", explanation: "To prostokąt: ma cztery kąty proste i równe boki przeciwległe.", visual: geometry("rectangle", { width: 8, height: 4, rotation: 25, rightMarks: true, alt: "Obrócony czworokąt z czterema zaznaczonymi kątami prostymi." }, "Obrót nie zmienia własności figury.") }),
+          choice("nie", yesNo, { label: "Boki sąsiednie", prompt: "Czy dwa sąsiednie boki każdego prostokąta muszą mieć jednakową długość?", hint: "Pomyśl o prostokącie, który nie jest kwadratem.", explanation: "Nie. Sąsiednie boki są prostopadłe, lecz mogą mieć różne długości.", visual: geometry("rectangle", { width: 9, height: 4, showDimensions: true }, "Sąsiednie boki mają długości 9 i 4.") })
+        ];
+      case "obwody": {
+        const width = rand(4, 12), height = rand(3, 9), lapWidth = rand(8, 25), lapHeight = rand(5, 18), laps = rand(2, 4);
+        return [
+          question({ label: "Figura schodkowa", prompt: `Figura schodkowa ma całkowitą szerokość ${width} cm i wysokość ${height} cm. Jaki ma obwód?`, answer: 2 * (width + height), hint: "Poziome części brzegu razem mają dwa razy szerokość; pionowe — dwa razy wysokość.", explanation: `2 · (${width} + ${height}) = ${2 * (width + height)} cm. Wcięcie przesuwa fragment brzegu, ale nie zmienia sumy.`, visual: geometry("step-perimeter", { width, height }, "Zlicz poziome i pionowe odcinki brzegu.") }),
+          question({ label: "Kilka okrążeń", prompt: `Prostokątny plac ma boki ${lapWidth} m i ${lapHeight} m. Ile metrów przejdzie dziecko, obchodząc go ${laps} razy?`, answer: 2 * (lapWidth + lapHeight) * laps, hint: "Najpierw policz obwód jednego okrążenia, potem pomnóż przez liczbę okrążeń.", explanation: `2 · (${lapWidth} + ${lapHeight}) · ${laps} = ${2 * (lapWidth + lapHeight) * laps} m.`, visual: geometry("rectangle", { width: lapWidth, height: lapHeight, showDimensions: true, widthLabel: `${lapWidth} m`, heightLabel: `${lapHeight} m` }, "Jedno okrążenie biegnie po czterech bokach.") })
+        ];
+      }
+      case "kola":
+        return [
+          choice("A i B", ["A i B", "B i C", "A i C"], { label: "Punkty koła", prompt: "Które punkty należą do koła, łącznie z jego brzegiem?", hint: "Koło obejmuje wnętrze oraz okrąg.", explanation: "A jest na okręgu, B wewnątrz, a C na zewnątrz. Do koła należą A i B.", visual: geometry("circle", { feature: "points" }, "Porównaj punkty A, B i C z linią okręgu.") }),
+          choice("tak", yesNo, { label: "Równe promienie", prompt: "Punkty A i B leżą na tym samym okręgu o środku S. Czy odcinki SA i SB są równe?", hint: "Każdy punkt okręgu jest tak samo daleko od środka.", explanation: "Tak. SA i SB są promieniami tego samego okręgu, więc mają tę samą długość.", visual: geometry("circle", { feature: "two-radii" }, "Porównaj odcinki SA i SB.") })
+        ];
+      case "skala": {
+        const factor = pick([2, 3, 4]), width = rand(2, 5), height = rand(2, 4);
+        return [
+          choice(`${width} cm × ${height} cm`, [`${width} cm × ${height} cm`, `${width * factor} cm × ${height * factor} cm`, `${width} cm × ${height * factor} cm`], { label: "Dwa wymiary w skali", prompt: `Prostokąt ma w rzeczywistości ${width * factor} cm szerokości i ${height * factor} cm wysokości. Narysowano go w skali 1:${factor}. Jakie ma wymiary na rysunku?`, hint: `Podziel każdy rzeczywisty wymiar przez ${factor}.`, explanation: `Szerokość: ${width * factor} : ${factor} = ${width} cm. Wysokość: ${height * factor} : ${factor} = ${height} cm.`, visual: geometry("rectangle", { width, height, showDimensions: true, widthLabel: "? cm", heightLabel: "? cm", alt: "Prostokąt z dwiema nieznanymi długościami boków na rysunku." }, "Oba wymiary prostokąta zmieniają się w tej samej skali.") }),
+          choice("1:1", ["1:1", "1:2", "2:1"], { label: "Skala naturalna", prompt: "Rysunek odcinka ma taką samą długość jak prawdziwy odcinek. W jakiej jest skali?", hint: "Nie został ani zmniejszony, ani powiększony.", explanation: "Jednakowe wymiary na rysunku i w rzeczywistości oznaczają skalę 1:1.", visual: equation("rysunek : rzeczywistość = 1 : 1", "Oba wymiary są jednakowe.") })
+        ];
+      }
+      default:
+        return [];
+    }
+  }
+
+  const originalBuilders = {
     linie: lineQuestions,
     polozenie: positionQuestions,
     dlugosci: lengthQuestions,
@@ -245,9 +314,15 @@
     skala: scaleQuestions
   };
 
+  const builders = Object.fromEntries(Object.entries(originalBuilders).map(([id, build]) => [id, () => [...build(), ...extensionQuestions(id)].map((item) => ({ ...item, station: id }))]));
+
   function buildQuestions(mode) {
     if (builders[mode]) return builders[mode]();
-    return shuffle(Object.values(builders).map((build) => pick(build())));
+    const rounds = Object.values(builders).map((build) => build());
+    const selected = rounds.map((round) => pick(round));
+    const extraStations = shuffle(rounds.map((_, index) => index)).slice(0, 2);
+    const extras = extraStations.map((index) => pick(rounds[index].filter((item) => item !== selected[index])));
+    return shuffle([...selected, ...extras]);
   }
 
   MathTownGame.start({

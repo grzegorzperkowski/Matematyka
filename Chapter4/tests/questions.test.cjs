@@ -59,8 +59,19 @@ function validateGeometry(visual) {
       assert.ok(visual.sides.every((value) => value === null || (Number.isFinite(value) && value > 0)));
       break;
     case "circle":
-      assert.ok(["radius", "diameter", "circumference", "disk", "center", "chord", "point"].includes(visual.feature));
+      assert.ok(["radius", "diameter", "circumference", "disk", "center", "chord", "point", "points", "two-radii"].includes(visual.feature));
       if (visual.feature === "point") assert.ok(["inside", "on", "outside"].includes(visual.pointPosition));
+      break;
+    case "ruler":
+      assert.ok(Number.isInteger(visual.start) && Number.isInteger(visual.end));
+      assert.ok(visual.start >= 0 && visual.end <= 10 && visual.end > visual.start);
+      break;
+    case "protractor":
+      assert.ok(Number.isInteger(visual.degrees) && visual.degrees >= 0 && visual.degrees <= 180);
+      break;
+    case "step-perimeter":
+      assert.ok(Number.isInteger(visual.width) && visual.width > 0);
+      assert.ok(Number.isInteger(visual.height) && visual.height > 0);
       break;
     default:
       assert.fail(`Unknown geometry shape: ${visual.shape}`);
@@ -90,14 +101,14 @@ function validateQuestion(question, route) {
   }
 }
 
-test("every advertised route returns ten complete, valid questions", () => {
+test("every advertised route returns twelve complete, valid questions", () => {
   const config = loadConfig();
   assert.equal(config.chapterId, "chapter4");
   assert.equal(config.chapterTitle, "Figury geometryczne");
   assert.equal(Object.keys(config.routeLabels).length, 11);
   for (const route of Object.keys(config.routeLabels)) {
     const questions = config.buildQuestions(route);
-    assert.equal(questions.length, 10, route);
+    assert.equal(questions.length, 12, route);
     questions.forEach((question) => validateQuestion(question, route));
   }
 });
@@ -204,18 +215,15 @@ test("circle diameter rules and scale factors produce integer answers", () => {
   }
 });
 
-test("mixed rounds sample each station exactly once", () => {
+test("mixed rounds cover all stations and add two from different stations", () => {
   const config = loadConfig(51);
-  const labels = new Set([
-    "Figury liniowe", "Położenie prostych", "Jednostki długości", "Rodzaje kątów",
-    "Do kąta prostego", "Nazwy wielokątów", "Prostokąty", "Obwód kwadratu",
-    "Promień i średnica", "Pomniejszenie"
-  ]);
   for (let round = 0; round < 100; round += 1) {
     const questions = config.buildQuestions("mix");
-    assert.equal(questions.length, 10);
+    assert.equal(questions.length, 12);
+    const stationCounts = Object.keys(config.routeLabels).filter((id) => id !== "mix").map((id) => questions.filter((question) => question.station === id).length);
+    assert.equal(stationCounts.filter((count) => count === 1).length, 8);
+    assert.equal(stationCounts.filter((count) => count === 2).length, 2);
     assert.equal(new Set(questions.map((question) => question.label)).size >= 7, true);
-    assert.equal(questions.filter((question) => labels.has(question.label)).length >= 1, true);
     questions.forEach((question) => validateQuestion(question, "mix"));
   }
 });
@@ -224,7 +232,46 @@ test("geometry visual objects are serializable for saved-round persistence", () 
   const config = loadConfig(61);
   for (const route of Object.keys(config.routeLabels)) {
     const saved = plain(config.buildQuestions(route));
-    assert.equal(saved.length, 10);
+    assert.equal(saved.length, 12);
     saved.filter((question) => question.visual?.type === "geometry").forEach((question) => validateGeometry(question.visual));
+  }
+});
+
+test("new measurement, perimeter and scale questions keep exact answers", () => {
+  const config = loadConfig(20260928);
+  for (let round = 0; round < 200; round += 1) {
+    const length = config.buildQuestions("dlugosci");
+    assert.equal(length[10].visual.shape, "ruler");
+    assert.equal(length[10].answer, length[10].visual.end - length[10].visual.start);
+    assert.match(length[11].prompt, /m \d+ cm/);
+    assert.ok(Number.isInteger(length[11].answer));
+
+    const angles = config.buildQuestions("mierzenie-katow");
+    assert.equal(angles[10].visual.shape, "protractor");
+    assert.equal(angles[10].answer, angles[10].visual.degrees);
+    const turn = Number(angles[11].prompt.match(/o (\d+)°/)[1]);
+    assert.equal(angles[11].answer * 6, turn);
+
+    const perimeter = config.buildQuestions("obwody");
+    assert.equal(perimeter[10].answer, 2 * (perimeter[10].visual.width + perimeter[10].visual.height));
+    const lapValues = [...perimeter[11].prompt.matchAll(/\d+/g)].map((match) => Number(match[0]));
+    assert.equal(perimeter[11].answer, 2 * (lapValues[0] + lapValues[1]) * lapValues[2]);
+
+    const scale = config.buildQuestions("skala");
+    const dimensions = [...scale[10].prompt.matchAll(/\d+/g)].map((match) => Number(match[0]));
+    assert.equal(scale[10].answer, `${dimensions[0] / dimensions[3]} cm × ${dimensions[1] / dimensions[3]} cm`);
+    assert.equal(scale[11].answer, "1:1");
+  }
+});
+
+test("new visual classifications match their diagram data", () => {
+  const config = loadConfig(20260929);
+  for (let round = 0; round < 100; round += 1) {
+    const angle = config.buildQuestions("katy")[10];
+    const degrees = angle.visual.degrees;
+    assert.equal(angle.answer, degrees < 90 ? "ostry" : degrees === 90 ? "prosty" : "rozwarty");
+    assert.equal(config.buildQuestions("wielokaty")[11].visual.markedPoint, "inside");
+    assert.equal(config.buildQuestions("prostokaty")[10].visual.rotation, 25);
+    assert.equal(config.buildQuestions("kola")[10].visual.feature, "points");
   }
 });
