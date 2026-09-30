@@ -65,7 +65,7 @@ short interactive challenges. A child chooses a maths chapter, selects a
 focused practice station or a mixed round, and completes a predictable round
 of questions with immediate teaching feedback. Ten questions is the usual
 length. In Chapter 1, nine stations have twelve questions; the funfair, the
-number line and the mixed ride stay at ten. All Chapter 3, 4 and 8 rounds have
+number line and the mixed ride stay at ten. All Chapter 3, 4, 7 and 8 rounds have
 twelve.
 
 The curriculum sources determine topic order, terminology and age-appropriate
@@ -296,7 +296,7 @@ chapters, plus one mixed station per chapter (**85 playable stations in all**).
 | 4. Figury geometryczne | Available now | twelve-question rounds across points, lines, segments, rays and broken lines, including point membership; parallel/perpendicular relations and notation; length conversions and ruler readings; angle types and protractor readings; polygons; rotated rectangles and squares; perimeter including stepped outlines and repeated laps; circles and point positions; scale |
 | 5. Ułamki zwykłe | Available now | equal parts of a whole; mixed numbers; fraction number line; comparison; equivalent/simplified fractions; improper fractions and wholes; fraction as quotient; addition; subtraction; fraction problems |
 | 6. Ułamki dziesiętne | Available now | decimal notation and place value; decimal number line; length and mass conversions; equivalent decimal notation; comparison; addition; subtraction; shopping/money; decimal problems |
-| 7. Pola figur | Available now | unit squares; area units; rectangle and square area; missing side; composite figures; area-unit conversions; ares and hectares; cutting/rearranging shapes; practical area problems |
+| 7. Pola figur | Available now | twelve-question rounds; unit squares and alternative grid units (domino, half-triangle); area units; rectangle area with uniform and mixed units (cm/dm/mm); square area and multi-step perimeter-area problems; missing side and perimeter recovery; composite shapes, cutouts and two-rectangle decomposition; area-unit conversions; ares and hectares with sports pitch and orchard word problems; cutting/rearranging shapes with grid silhouettes; practical area problems |
 | 8. Prostopadłościany i sześciany | Available now | recognising cuboids and cubes; faces, edges and vertices; dimensions and edge totals; parallel and perpendicular faces; cube nets and opposite faces; reading a cuboid net; buildings made of unit cubes; total surface area; wrapping, painting and tiling selected faces |
 
 ## Product rules that new feature ideas must respect

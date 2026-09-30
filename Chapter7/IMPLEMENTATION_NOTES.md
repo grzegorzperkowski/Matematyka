@@ -177,3 +177,90 @@ optional subtraction game on `page_0228.png` is omitted as off-topic.
   questions from that route are replaced on reload without affecting other
   saved stations or best scores. Chapter 7 remains 16/16 passing and the full
   suite remains 63/64 with the same unrelated Chapter 1 failure.
+
+## Curriculum expansion — zeszyt ćwiczeń (page_0118.png – page_0123.png)
+
+### 1. Przeanalizowane strony zeszytu ćwiczeń (grupy tematyczne)
+
+Wszystkie 6 nowych stron zeszytu ćwiczeń (`page_0118.png` – `page_0123.png`, w druku s. 116–121) zostało szczegółowo obejrzanych i przeanalizowanych:
+
+1. **Grupa 1 — `page_0118.png` (s. 116): Wprowadzenie do pojęcia pola i jednostki miary**
+   - *Zadania*: Porównanie powierzchni dwóch desek (A i B) przez pokrycie kwadratami; liczenie pól figur na siatce (prostokąt, schodki, pies, litera H) z wyznaczaniem figury o najmniejszym i największym polu; mierzenie pola tego samego prostokąta (3×6) różnymi jednostkami: kwadratem jednostkowym (18), kostką domina o polu 2 (9), trójkątem o polu 1/2 (36) oraz narożnikiem L o polu 3 (6).
+   - *Nauczana umiejętność*: Zrozumienie, że pole to miara powierzchni zależna od wybranej jednostki — im większa jednostka, tym mniejsza liczba jednostek pokrywających figurę; porównywanie figur pod kątem wielkości powierzchni.
+   - *Opublikowana stacja*: `kwadraty-jednostkowe` ("Mozaika jednostek").
+   - *Czego stacji brakuje*: Dotychczas stacja mierzyła pole wyłącznie pojedynczą kratką o polu 1 oraz standardowymi połówkami. Brakuje zadań ze zmianą jednostki (np. "Jednostką jest płytka z 2 kratek — ile wynosi pole?") oraz bezpośredniego porównania dwóch figur na siatce (wskazanie figury o większym polu).
+
+2. **Grupa 2 — `page_0119.png` (s. 117): Kwadraty centymetrowe i pole prostokąta**
+   - *Zadania*: Liczenie kwadratów 1 cm w prostokątach (2×4, 3×3, 3×4 — z hasłem "zakaz rysowania kratek", zachęcającym do mnożenia); odczytywanie pól prostokątów narysowanych na siatce centymetrowej.
+   - *Nauczana umiejętność*: Przejście od liczenia kratek do mnożenia liczby rzędów przez liczbę kolumn ($a \cdot b$); powiązanie siatki 1 cm z jednostką 1 cm².
+   - *Opublikowana stacja*: `pole-prostokata` ("Plan prostokątów").
+   - *Czego stacji brakuje*: Obecna stacja realizuje już ten schemat bardzo dobrze, ale zyskuje na bogatszym zróżnicowaniu losowanych wymiarów i wariantów wizualnych siatki z etykietami.
+
+3. **Grupa 3 — `page_0120.png` (s. 118): Związek między polem a obwodem, różne jednostki boków, zadania wieloetapowe**
+   - *Zadania*: Pola prostokątów w różnych jednostkach (cm, mm); tabelka łącząca długość, szerokość, pole i obwód prostokąta (w tym boki w różnych jednostkach: 13 cm i 1 dm; obliczanie drugiego boku i obwodu z danego pola i jednego boku; odzyskiwanie wymiaru i pola ze znanego obwodu); krzyżówka liczbowa sprawdzająca pole kwadratu, pole prostokąta, obwód ze znanych boków, bok kwadratu ze znanego obwodu ($Obw = 44 \implies a = 11 \implies P = 121$).
+   - *Nauczana umiejętność*: Zrozumienie różnicy i ścisłego związku między polem a obwodem; ujednolicanie jednostek długości przed mnożeniem (np. dm i cm); zadania dwuetapowe: obliczanie pola kwadratu ze znanego obwodu lub obliczanie obwodu prostokąta, gdy znamy pole i jeden bok.
+   - *Opublikowane stacje*: `pole-prostokata`, `pole-kwadratu`, `brakujacy-bok`.
+   - *Czego stacjom brakuje*: Żadna stacja w rozdziale nie ćwiczyła dotąd pełnego cyklu dwuetapowego: znany obwód $\to$ bok $\to$ pole kwadratu (lub odwrotnie), ani wymiarów o mieszanych jednostkach (np. $1\text{ dm}$ i $15\text{ cm}$) przed obliczeniem pola. To kluczowa luka dydaktyczna z zeszytu ćwiczeń.
+
+4. **Grupa 4 — `page_0121.png` (s. 119): Zależności między jednostkami pola i model siatki decymetrowej**
+   - *Zadania*: Model siatkowy kwadratu $1\text{ dm} \times 1\text{ dm}$ podzielonego na $10 \times 10 = 100$ kwadratów $1\text{ cm} \times 1\text{ cm}$; ile kwadratów $1\text{ mm}$ mieści się w kwadracie $2\text{ cm} \times 2\text{ cm}$; uzupełnianie zależności $1\text{ cm} = 10\text{ mm} \implies 1\text{ cm}^2 = 100\text{ mm}^2$, $1\text{ m} = 100\text{ cm} \implies 1\text{ m}^2 = 10\,000\text{ cm}^2$.
+   - *Nauczana umiejętność*: Wizualne i geometryczne uzasadnienie kwadratowego mnożnika skali; obliczanie pól kwadratów po konwersji boku na mniejszą jednostkę (np. bok $2\text{ cm} = 20\text{ mm} \implies P = 400\text{ mm}^2$).
+   - *Opublikowana stacja*: `zamiana-jednostek` ("Winda jednostek pola").
+   - *Czego stacji brakuje*: Dotychczas stacja zadawała głównie suche przeliczenia; brakowało pytań o liczbę kratek $1\text{ mm}^2$ w kwadracie o boku kilku centymetrów oraz pogłębionego wyjaśnienia opartego na modelu $10 \times 10$.
+
+5. **Grupa 5 — `page_0122.png` (s. 120): Konwersje jednostek, ary, hektary i zadania realistyczne**
+   - *Zadania*: Tabelka z wymiarami i polami (np. $20\text{ mm} \times 40\text{ mm} = 800\text{ mm}^2 \to 2\text{ cm} \times 4\text{ cm} = 8\text{ cm}^2$); konwersje wielokrotności ($7\text{ cm}^2 = 700\text{ mm}^2$, $2\text{ m}^2 = 20\,000\text{ cm}^2$); definicje ara ($10\text{ m} \times 10\text{ m} = 100\text{ m}^2$) i hektara ($100\text{ m} \times 100\text{ m} = 10\,000\text{ m}^2$); zadania z treścią: boisko $50\text{ m} \times 20\text{ m}$ (ile $\text{m}^2$? ile arów?), ogród $8000\text{ m}^2$ (ile arów?), sad o boku $300\text{ m}$ (ile $\text{m}^2$? ile hektarów?), działka $2\text{ ha}$ (ile $\text{m}^2$? ile arów?).
+   - *Nauczana umiejętność*: Dwuetapowe zadania terenowe: obliczenie pola w metrach kwadratowych, a następnie przeliczenie na ary lub hektary; konwersje między arami a hektarami.
+   - *Opublikowane stacje*: `ary-hektary` ("Mierniczy terenów") oraz `pola-w-praktyce` ("Ekipa planistów").
+   - *Czego stacjom brakuje*: W `ary-hektary` brakowało zadań ze zliczaniem ara/hektara z wymiarów działki w metrach (np. działka $50\text{ m} \times 40\text{ m} = 2000\text{ m}^2 = 20\text{ a}$ lub kwadrat $300\text{ m} \to 9\text{ ha}$).
+
+6. **Grupa 6 — `page_0123.png` (s. 121): Wycinanki i układanki — figury z kratek i połówek kratek**
+   - *Zadania*: Pola figur na siatce zbudowanych z całych kratek oraz trójkątnych połówek (trapezy, równoległoboki, strzałki, klucze, kielichy, sylwetki zwierząt jak kaczka, samolot).
+   - *Nauczana umiejętność*: Rozkładanie złożonych wielokątów na siatce na kwadraty jednostkowe i trójkątne połówki; łączenie par połówek w całości.
+   - *Opublikowana stacja*: `wycinanki` ("Warsztat wycinanek") oraz `figury-zlozone` ("Pracownia figur złożonych").
+   - *Czego stacjom brakuje*: Dotychczas `wycinanki` zawierały głównie pytania koncepcyjne i pojedynczą przekątną prostokąta, a `figury-zlozone` losowały wyłącznie całe komórki (poliomina bez trójkątnych ścięć). Brakowało atrakcyjnych, rozpoznawalnych sylwetek złożonych z pełnych kratek i trójkątów.
+
+### 2. Zadania pominięte i powody
+- **Ręczne rysowanie kratek lub mierzenie linijką na papierze** (`page_0120.png`, zad. 3) — gra w przeglądarce podaje wymiary na schemacie geometrycznym; uczeń rozwiązuje zadania na ekranie bez fizycznej linijki.
+- **Krzyżówka jako interaktywna siatka słowno-liczbowa** (`page_0120.png`, zad. 5) — zachowano wszystkie zależności matematyczne (zadania dwuetapowe pole-obwód), ale w formie pytań wejściowych/wyboru zgodnych z silnikiem gry, zamiast mechanizmu krzyżówki.
+
+### 3. Zbieżność i integracja ze stacjami
+- Wszystkie tematy z zeszytu ćwiczeń naturalnie kontynuują i pogłębiają 10 istniejących stacji rozdziału.
+- Żadna nowa stacja nie jest bezwzględnie wymagana, ponieważ istniejące stacje idealnie pokrywają te obszary, wzbogacone o zadania wieloetapowe, alternatywne jednostki i figury z połówkami.
+
+### 4. Decyzja projektowa — rundy 12-pytaniowe
+Zgodnie z wyborem użytkownika, Rozdział 7 został rozszerzony do rund 12-pytaniowych (analogicznie do Rozdziałów 3, 4 i 8):
+- Wszystkie 10 stacji tematycznych zwraca po 12 pytań w rundzie.
+- Wielki obchód (`mix`) zwraca 12 pytań: po jednym pytaniu z każdej z 10 stacji oraz dwa dodatkowe pytania z losowo wybranych różnych stacji.
+- Zachowano pełną zgodność wsteczną dla zapisanych rund i najlepszych wyników; istniejące rozpoczęte rundy 10-pytaniowe pozostają wznawialne.
+- Komunikat motywacyjny w połowie rundy pojawia się automatycznie po 6. pytaniu.
+
+### 5. Zrealizowane rozszerzenia generatorów w stacjach
+1. `kwadraty-jednostkowe` (12 pytań):
+   - Dodano mierzenie powierzchni alternatywnymi jednostkami: płytką domina (z 2 kratek) oraz trójkątną połówką kratki (`page_0118.png`, zad. 3).
+2. `jednostki-pola` (12 pytań):
+   - Dodano pytanie o liczbę kwadratów $1\text{ cm}^2$ w $1\text{ dm}^2$ (100) z modelem siatki $10 \times 10$ (`page_0121.png`) oraz dobór ara do działki $800\text{ m}^2$.
+3. `pole-prostokata` (12 pytań):
+   - Dodano prostokąty o bokach w różnych jednostkach: $\text{dm}$ i $\text{cm}$ oraz $\text{cm}$ i $\text{mm}$ wymagające ujednolicenia jednostek przed obliczeniem pola (`page_0120.png`), a także zadanie odróżniające pole od obwodu.
+4. `pole-kwadratu` (12 pytań):
+   - Dodano dwuetapowe zadania: obliczanie pola ze znanego obwodu ($Obw \to a \to P$) oraz obwodu ze znanego pola ($P \to a \to Obw$) (`page_0120.png` krzyżówka zad. 5).
+5. `brakujacy-bok` (12 pytań):
+   - Poza odzyskiwaniem drugiego boku z pola, dodano zadania dwuetapowe: obliczanie obwodu przy danym polu i jednym boku, oraz obliczanie pola przy danym obwodzie i jednym boku (`page_0120.png` tabelka zad. 4).
+6. `figury-zlozone` (12 pytań):
+   - 4 losowe zacienione poliomina, 4 figury z odejmowaniem narożnego wycięcia oraz 4 figury złożone z dwóch przylegających prostokątów ($P = P_1 + P_2$).
+7. `zamiana-jednostek` (12 pytań):
+   - Dodano zadanie geometryczne: ile kwadracików $1\text{ mm}$ mieści się w kwadracie $2\text{ cm} \times 2\text{ cm}$ ($400\text{ mm}^2$) oraz konwersje wielokrotności $\text{cm}^2 \to \text{mm}^2$.
+8. `ary-hektary` (12 pytań):
+   - Dodano realistyczne zadania z treścią: boisko szkolne o wymiarach w metrach przeliczane na ary oraz kwadratowy sad o boku $200\text{–}400\text{ m}$ przeliczany na hektary (`page_0122.png` zad. 7).
+9. `wycinanki` (12 pytań):
+   - Dodano atrakcyjne sylwetki na siatce złożone z całych kratek i trójkątnych połówek: strzałkę ($4 + 2 \cdot 0{,}5 = 5$) oraz żaglówkę ($5 + 4 \cdot 0{,}5 = 7$) (`page_0123.png`).
+10. `pola-w-praktyce` (12 pytań):
+    - Dodano zadania o koszcie kafelkowania ściany oraz podziale działki na równe ogródki.
+
+### 6. Weryfikacja
+- `Chapter7/tests/questions.test.cjs`: 13/13 testów przeszło (w tym losowe rundy z ziarnem, weryfikacja kontraktów, kompletność 12 pytań w każdej stacji i w mixie).
+- Wszystkie testy Rozdziału 7: 17/17 testów przeszło pomyślnie.
+- `npm run check`: składnia poprawna we wszystkich plikach repozytorium.
+- Cały zestaw testów repozytorium: 131/131 testów przeszło.
+- `git diff --check`: brak błędów formatowania i białych znaków.
+- Aktualizacja `CHAPTER_TEMPLATE.md` oraz `PRODUCT_FEATURE_BRIEF.md`: udokumentowano Rozdział 7 jako opublikowany wyjątek z rundami 12-pytaniowymi.

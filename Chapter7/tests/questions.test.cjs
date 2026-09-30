@@ -97,7 +97,7 @@ function validateQuestion(question, route, stationIds) {
   validateVisual(question.visual, route);
 }
 
-test("every advertised route returns ten complete questions", () => {
+test("every advertised route returns twelve complete questions", () => {
   const config = loadConfig();
   assert.equal(config.chapterId, "chapter7");
   assert.equal(config.chapterTitle, "Pola figur");
@@ -108,7 +108,7 @@ test("every advertised route returns ten complete questions", () => {
   const stationIds = Object.keys(config.routeLabels).filter((route) => route !== "mix");
   for (const route of Object.keys(config.routeLabels)) {
     const questions = config.buildQuestions(route);
-    assert.equal(questions.length, 10, route);
+    assert.equal(questions.length, 12, route);
     questions.forEach((question) => validateQuestion(question, route, stationIds));
   }
 });
@@ -151,14 +151,19 @@ test("unit-square and composite answers equal their explicit cell data", () => {
   }
 });
 
-test("shaded-grid games generate varied connected non-rectangular shapes", () => {
+test("shaded-grid games generate varied connected non-rectangular shapes and composite parts", () => {
   const config = loadConfig(26);
   const signatures = new Set();
   for (let round = 0; round < 100; round += 1) {
     const questions = config.buildQuestions("figury-zlozone");
-    assert.ok(questions.slice(0, 5).every((question) => question.label === "Odejmowanie wycięcia"));
-    for (const question of questions.slice(5)) {
-      assert.equal(question.label, "Zacieniona figura");
+    assert.equal(questions.length, 12);
+    const cutouts = questions.filter((question) => question.label === "Odejmowanie wycięcia");
+    const polyominoes = questions.filter((question) => question.label === "Zacieniona figura");
+    const twoRectangles = questions.filter((question) => question.label === "Dwa połączone prostokąty");
+    assert.equal(cutouts.length, 4);
+    assert.equal(polyominoes.length, 4);
+    assert.equal(twoRectangles.length, 4);
+    for (const question of polyominoes) {
       assert.equal(question.visual.outlineShape, true);
       assert.equal(question.answer, areaOf(question.visual));
       assert.match(question.visual.alt, /w kolejnych niepustych wierszach/);
@@ -168,6 +173,10 @@ test("shaded-grid games generate varied connected non-rectangular shapes", () =>
       assert.equal(isSolidRectangle(question.visual), false);
       signatures.add(`${question.visual.rows}x${question.visual.columns}:${question.visual.cells.join("")}`);
     }
+    twoRectangles.forEach((question) => {
+      assert.equal(question.answer, areaOf(question.visual));
+      assert.ok(question.prompt.includes("dwóch połączonych prostokątów"));
+    });
   }
   assert.ok(signatures.size > 100, `expected varied shapes, got ${signatures.size}`);
 });
@@ -176,11 +185,17 @@ test("rectangle and square areas multiply the generated side lengths", () => {
   const config = loadConfig(31);
   for (let round = 0; round < 300; round += 1) {
     const rectangles = config.buildQuestions("pole-prostokata");
+    assert.equal(rectangles.length, 12);
     rectangles.forEach((question) => {
-      assert.equal(question.answer, question.visual.rows * question.visual.columns);
+      if (question.visual.type === "area-model") {
+        assert.equal(question.answer, question.visual.rows * question.visual.columns);
+      } else if (question.visual.type === "geometry") {
+        assert.equal(question.answer, question.visual.width * question.visual.height);
+      }
     });
-    const squares = config.buildQuestions("pole-kwadratu").slice(0, 7);
-    squares.forEach((question) => {
+    const squares = config.buildQuestions("pole-kwadratu");
+    assert.equal(squares.length, 12);
+    squares.slice(0, 6).forEach((question) => {
       const side = Number(question.prompt.match(/bok (\d+)/)[1]);
       assert.equal(question.answer, side ** 2);
       if (side <= 8) {
@@ -200,23 +215,39 @@ test("rectangle and square areas multiply the generated side lengths", () => {
   }
 });
 
-test("inverse rectangle questions divide area by the known side exactly", () => {
+test("inverse rectangle questions divide area by the known side exactly and bridge perimeter", () => {
   const config = loadConfig(41);
   for (let round = 0; round < 500; round += 1) {
-    for (const question of config.buildQuestions("brakujacy-bok")) {
-      const match = question.prompt.match(/wynosi (\d+) \w+².+ma (\d+) \w+/);
-      assert.ok(match, question.prompt);
-      assert.equal(question.answer, Number(match[1]) / Number(match[2]));
-      assert.ok(Number.isInteger(question.answer) && question.answer > 0);
-      assert.equal(question.visual.type, "geometry");
-      assert.equal(question.visual.shape, "rectangle");
-      assert.equal(question.visual.width, Number(match[2]));
-      assert.equal(question.visual.height, question.answer);
-      assert.match(question.visual.widthLabel, new RegExp(`^${match[2]} \\w+$`));
-      assert.match(question.visual.heightLabel, /^\? \w+$/);
-      assert.equal(question.visual.areaLabel.startsWith(`P = ${match[1]} `), true);
-      assert.equal(question.visual.proportional, true);
-      assert.doesNotMatch(question.visual.alt, new RegExp(`pionowy bok ma ${question.answer} `));
+    const questions = config.buildQuestions("brakujacy-bok");
+    assert.equal(questions.length, 12);
+    for (const question of questions) {
+      if (question.label === "Brakujący bok" || question.label === "Sprawdzenie dzielenia") {
+        const match = question.prompt.match(/wynosi (\d+) \w+².+ma (\d+) \w+/);
+        assert.ok(match, question.prompt);
+        assert.equal(question.answer, Number(match[1]) / Number(match[2]));
+        assert.ok(Number.isInteger(question.answer) && question.answer > 0);
+        assert.equal(question.visual.type, "geometry");
+        assert.equal(question.visual.shape, "rectangle");
+        assert.equal(question.visual.width, Number(match[2]));
+        assert.equal(question.visual.height, question.answer);
+        assert.match(question.visual.widthLabel, new RegExp(`^${match[2]} \\w+$`));
+        assert.match(question.visual.heightLabel, /^\? \w+$/);
+        assert.equal(question.visual.areaLabel.startsWith(`P = ${match[1]} `), true);
+        assert.equal(question.visual.proportional, true);
+        assert.doesNotMatch(question.visual.alt, new RegExp(`pionowy bok ma ${question.answer} `));
+      } else if (question.label === "Obwód z pola i boku") {
+        const match = question.prompt.match(/wynosi (\d+) \w+², a jeden bok ma (\d+) \w+/);
+        assert.ok(match, question.prompt);
+        const area = Number(match[1]), known = Number(match[2]);
+        const missing = area / known;
+        assert.equal(question.answer, 2 * (known + missing));
+      } else if (question.label === "Pole z obwodu i boku") {
+        const match = question.prompt.match(/obwód (\d+) \w+ i jeden bok (\d+) \w+/);
+        assert.ok(match, question.prompt);
+        const perim = Number(match[1]), known = Number(match[2]);
+        const missing = perim / 2 - known;
+        assert.equal(question.answer, known * missing);
+      }
     }
   }
 });
@@ -225,6 +256,7 @@ test("square-unit conversions use squared scale factors", () => {
   const config = loadConfig(51);
   for (let round = 0; round < 400; round += 1) {
     const questions = config.buildQuestions("zamiana-jednostek");
+    assert.equal(questions.length, 12);
     let value = Number(questions[0].prompt.match(/(\d+) cm²/)[1]);
     assert.equal(questions[0].answer, value * 100);
     value = Number(questions[1].prompt.match(/(\d+) dm²/)[1]);
@@ -246,6 +278,7 @@ test("ares and hectares follow exact land-unit relationships", () => {
   const config = loadConfig(61);
   for (let round = 0; round < 400; round += 1) {
     const questions = config.buildQuestions("ary-hektary");
+    assert.equal(questions.length, 12);
     let value = Number(questions[0].prompt.match(/(\d+) a/)[1]);
     assert.equal(questions[0].answer, value * 100);
     value = Number(questions[1].prompt.match(/(\d+) ha/)[1]);
@@ -257,6 +290,8 @@ test("ares and hectares follow exact land-unit relationships", () => {
     value = Number(questions[4].prompt.match(/(\d+) a/)[1]);
     assert.equal(questions[4].answer, value / 100);
     assert.ok(questions.slice(0, 7).every((question) => Number.isInteger(question.answer) && question.answer > 0));
+    assert.equal(questions[10].label, "Boisko w arach");
+    assert.equal(questions[11].label, "Sad w hektarach");
   }
 });
 
@@ -264,6 +299,7 @@ test("cutting and rearranging preserve or halve area as stated", () => {
   const config = loadConfig(71);
   for (let round = 0; round < 300; round += 1) {
     const questions = config.buildQuestions("wycinanki");
+    assert.equal(questions.length, 12);
     const rectangleArea = Number(questions[0].prompt.match(/polu (\d+) cm²/)[1]);
     assert.equal(questions[0].answer, rectangleArea / 2);
     assert.equal(areaOf(questions[0].visual), rectangleArea / 2);
@@ -273,6 +309,8 @@ test("cutting and rearranging preserve or halve area as stated", () => {
     assert.equal(questions[2].answer, areaOf(questions[2].visual));
     assert.equal(questions[5].answer, areaOf(questions[5].visual));
     assert.equal(questions[8].answer, 24);
+    assert.equal(questions[10].answer, areaOf(questions[10].visual));
+    assert.equal(questions[11].answer, areaOf(questions[11].visual));
   }
 });
 
@@ -280,6 +318,7 @@ test("practical tiling and map-area calculations use both dimensions", () => {
   const config = loadConfig(81);
   for (let round = 0; round < 300; round += 1) {
     const questions = config.buildQuestions("pola-w-praktyce");
+    assert.equal(questions.length, 12);
     assert.equal(questions[3].answer, questions[3].visual.rows * questions[3].visual.columns);
     const mapSquares = questions[4].visual.cells.length;
     assert.equal(questions[4].answer, mapSquares * 25);
@@ -287,11 +326,13 @@ test("practical tiling and map-area calculations use both dimensions", () => {
   }
 });
 
-test("mixed rounds contain exactly one question from every station", () => {
+test("mixed rounds contain twelve questions and cover every station", () => {
   const config = loadConfig(91);
   const stationIds = Object.keys(config.routeLabels).filter((route) => route !== "mix").sort();
   for (let round = 0; round < 300; round += 1) {
-    const actual = Array.from(config.buildQuestions("mix"), (question) => question.routeId).sort();
+    const questions = config.buildQuestions("mix");
+    assert.equal(questions.length, 12);
+    const actual = Array.from(new Set(questions.map((question) => question.routeId))).sort();
     assert.deepEqual(actual, stationIds);
   }
 });
@@ -301,7 +342,7 @@ test("all rounds are JSON serializable and the shared engine registers the area 
   const stationIds = Object.keys(config.routeLabels).filter((route) => route !== "mix");
   for (const route of Object.keys(config.routeLabels)) {
     const restored = JSON.parse(JSON.stringify(config.buildQuestions(route)));
-    assert.equal(restored.length, 10);
+    assert.equal(restored.length, 12);
     restored.forEach((question) => validateQuestion(question, route, stationIds));
   }
   assert.match(engineSource, /function renderAreaModel\(visual, panel\)/);
