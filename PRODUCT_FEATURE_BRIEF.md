@@ -65,7 +65,8 @@ short interactive challenges. A child chooses a maths chapter, selects a
 focused practice station or a mixed round, and completes a predictable round
 of questions with immediate teaching feedback. Ten questions is the usual
 length. In Chapter 1, nine stations have twelve questions; the funfair, the
-number line and the mixed ride stay at ten. All Chapter 3 rounds have twelve.
+number line and the mixed ride stay at ten. All Chapter 3, 4 and 8 rounds have
+twelve.
 
 The curriculum sources determine topic order, terminology and age-appropriate
 limits, while the playable questions and visuals are original rather than
@@ -185,8 +186,8 @@ These answers would materially improve feature proposals:
 ### Practice and learning
 
 - Fixed, predictable rounds. Ten questions is the usual length. Chapter 1's
-  deepened stations and every Chapter 3 route have twelve questions; Chapter 1's
-  funfair, number line and mixed ride stay at ten.
+  deepened stations and every Chapter 3, 4 and 8 route have twelve questions;
+  Chapter 1's funfair, number line and mixed ride stay at ten.
 - Procedurally generated question values, allowing a station to be replayed
   with fresh examples.
 - Two main response formats: typed answers and multiple choice.

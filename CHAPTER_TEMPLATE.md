@@ -87,6 +87,11 @@ questions. Existing unfinished ten-question rounds remain valid and resumable;
 new rounds use 12. The mix includes one question from every focused station
 and two more from different stations.
 
+Chapter 8 is also a published exception: all ten focused routes and `mix` return
+12 questions. Existing unfinished ten-question rounds remain valid and
+resumable; new rounds use 12. The mix includes one question from every focused
+station and two more from different stations.
+
 When a published generator change makes already serialized questions visually
 or mathematically incompatible, keep the route ID stable and set a larger
 positive integer in `roundRevisions`, for example

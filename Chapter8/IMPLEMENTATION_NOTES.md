@@ -148,3 +148,72 @@ open at both ends; the game instead leaves a square unpapered on one face.
   previously unused exercise URL after the device is taken offline. The
   service-worker test does cover that direct URL falling back to the cached
   chapter document.
+
+## Curriculum expansion — workbook sources (pages 124–128)
+
+Five new workbook pages (`page_0124.png` to `page_0128.png`, corresponding to workbook pages 122–126) were visually inspected.
+
+### 1. Pages read, grouped by topic
+- **Opis prostopadłościanu i relacje w bryle**: `page_0124.png` (s. 122, zad. 1–5) oraz `page_0125.png` (s. 123, zad. 6).
+- **Budowanie z kostek i widoki z różnych stron**: `page_0125.png` (s. 123, zad. 7–8).
+- **Siatki prostopadłościanów i relacje ścian**: `page_0126.png` (s. 124, zad. 1–2) oraz `page_0127.png` (s. 125, zad. 3–4).
+- **Pole powierzchni z siatki**: `page_0128.png` (s. 126, zad. 1–2).
+
+### 2. Skills each group teaches (in own words)
+- **Opis i relacje w prostopadłościanie**:
+  - Identyfikacja wierzchołków, krawędzi i ścian na rysunku bryły;
+  - Grupowanie krawędzi o tej samej długości według trzech wymiarów bryły;
+  - Rozpoznawanie ścian i krawędzi wzajemnie równoległych oraz prostopadłych na modelu bryły;
+  - Rekonstrukcja pełnego zestawu 6 ścian na podstawie dwóch podanych ścian (np. prostokąt 3×6 i kwadrat 3×3 oznaczają prostopadłościan o podstawie kwadratowej: 2 kwadraty 3×3 i 4 prostokąty 3×6).
+- **Kostki i rzuty bryły**:
+  - Rozkład danej liczby kostek (np. 8 kostek) na możliwe wymiary prostopadłościanu (8×1×1, 4×2×1, 2×2×2);
+  - Rozpoznawanie i odróżnianie trzech widoków budowli z klocków: widok z przodu, widok z góry oraz widok z boku.
+- **Siatki prostopadłościanów**:
+  - Rozpoznawanie rodzajów ścian na siatce: sześcian (6 jednakowych kwadratów), prostopadłościan o podstawie kwadratowej (2 kwadraty i 4 jednakowe prostokąty), prostopadłościan o 3 różnych wymiarach (3 pary jednakowych prostokątów);
+  - Analiza relacji ścian po złożeniu siatki: ściany naprzeciwległe są równoległe, a ściany sąsiadujące ze sobą są prostopadłe.
+- **Pole powierzchni z siatki**:
+  - Obliczanie pola powierzchni prostopadłościanu z siatki krok po kroku: obliczanie pól poszczególnych ścian (1 do 6) i sumowanie ich do pola całkowitego.
+
+### 3. Which published station already teaches it and what is missing
+- `elementy` i `wymiary`: uczą liczby wierzchołków, krawędzi i sum krawędzi, ale brakowało odtwarzania zestawu 6 ścian z 2 podanych ścian oraz rozpoznawania ile ścian ma dany wymiar w prostopadłościanie o podstawie kwadratowej.
+- `pary`: uczy par ścian równoległych/prostopadłych w bryle, ale nie łączy tego bezpośrednio z relacjami ścian po złożeniu siatki.
+- `kostki`: ma sumowanie wysokości kolumn i widok z góry oraz lewą kolumnę widoku z przodu, ale brakuje widoku z boku (bocznego rzutu) oraz rozkładu N kostek na możliwe prostopadłościany.
+- `siatki`: skupia się obecnie wyłącznie na siatkach sześcianu (11 siatek, ściany przeciwległe), brakowało siatek prostopadłościanów o podstawie kwadratowej i prostokątnej (ile par jednakowych ścian) oraz ścian prostopadłych po złożeniu siatki.
+- `siatka-wymiary` / `pole-powierzchni`: liczy pole podstawy, boku i Pc z D, S, W, ale brakowało zadania sprawdzającego sumowanie pól wszystkich 6 ponumerowanych ścian.
+
+### 4. Skills worth adding
+- Rekonstrukcja zestawu 6 ścian na podstawie 2 znanych ścian (`wymiary`/`pary`).
+- Rozkład N kostek na prostopadłościan (np. 8 kostek = jakie wymiary lub jaka wysokość przy podanej podstawie) (`kostki`).
+- Widok z boku budowli z kostek (`kostki`).
+- Identyfikacja struktury ścian na siatce prostopadłościanu (ile kwadratów, ile prostokątów) (`siatki`).
+- Ściany prostopadłe po złożeniu siatki (`siatki`).
+- Sumowanie pól ponumerowanych ścian siatki (`siatka-wymiary`).
+
+### 5. Pages and tasks skipped, and why
+- `page_0124.png` zad. 2: dokańczanie rysunku prostopadłościanu w rzucie ukośnym na kratkach (rysowanie odręczne na siatce).
+- `page_0124.png` zad. 1: wpisywanie długiego łańcucha liter wierzchołków/krawędzi/ścian (otwarte zadanie tekstowe podatne na formatowanie na telefonie; zamienione na konkretne pytania o elementy).
+- `page_0126.png` zad. 2 oraz `page_0127.png` zad. 3: rysowanie siatek prostopadłościanów na siatce kwadratowej (zadania czysto rysunkowe).
+- `page_0127.png` zad. 4: postacie komiksowe (świnki) – rysunki czysto dekoracyjne, esencja zadania (ściany prostopadłe/równoległe na siatce) zachowana w generatorze.
+
+### 6. Station mapping and expansion decisions
+- **User decision**: The user chose longer rounds (12 questions per route and in `mix`), following Chapters 1, 3, and 4.
+- All 10 focused routes now return 12 questions:
+  - `bryly`: added questions about number of edge lengths in a square prism (2) and number of unit cubes needed to build a 2 cm cube (8).
+  - `elementy`: added questions about the number of edges meeting at vertex A (3) and vertices outside a selected base (4).
+  - `wymiary`: added questions about counting faces of a given size in a square prism (4) and the combined edge count of two dimensions (4 + 4 = 8).
+  - `suma-krawedzi`: added questions about edge sum of a square prism (8·a + 4·h) and leftover wire when building a cube frame.
+  - `pary`: added questions about faces not containing a selected edge (6 − 2 = 4) and that opposite folded faces are parallel.
+  - `siatki`: added questions about rectangles in a square-prism net (4) and faces perpendicular to a selected face in a folded cube (4).
+  - `siatka-wymiary`: added questions about the area of a pair of opposite faces (2·D·W) and the total surface area from three known face areas (2·(f1 + f2 + f3)).
+  - `kostki`: added questions about finding cuboid height given total cubes and base dimensions, and the longest edge of a 1-row cube block.
+  - `pole-powierzchni`: added questions about the total surface area of a square prism and total surface area calculated from three known face areas.
+  - `oklejanie`: added questions about wrapping an open box without a lid (bottom + 4 walls) and the combined area of the two smallest faces.
+- `mix`: generates 12 questions — 1 question sampled from each of the 10 stations plus 2 additional questions sampled from two different stations, ensuring full chapter coverage in every mixed round.
+- `index.html`: updated hero, route progress ("Wyzwanie 1 z 12"), question card ("01 / 12"), result screen ("0/12") and description text.
+- `CHAPTER_TEMPLATE.md` and `PRODUCT_FEATURE_BRIEF.md`: updated to document Chapter 8's 12-question structure.
+
+### 7. Verification
+- `node --test Chapter8/tests/offline.test.cjs Chapter8/tests/questions.test.cjs`: 6/6 tests passed across 12 random seeds.
+- `node --test shared/solid-visual.test.cjs`: 2/2 tests passed.
+- `npm run check`: all files passed syntax check.
+- `git diff --check`: passed without whitespace or formatting warnings.

@@ -395,6 +395,23 @@
         explanation: "Nie, nie jest sześcianem, bo wymiary nie są wszystkie równe.",
         visual: cuboidVisual(length, width, height, "Wymiary z jednego wierzchołka."),
         model: { kind: "is-cube", dimensions: [length, width, height] }
+      }),
+      choice("2", ["2", "3", "6"], {
+        label: "Różne krawędzie",
+        prompt: "Dwie ściany prostopadłościanu są kwadratami, a pozostałe cztery prostokątami. Ile różnych długości mają krawędzie tej bryły?",
+        hint: "Kwadratowa podstawa ma jednakowe boki, a wysokość bryły ma inną długość.",
+        explanation: "Krawędzie mają 2 różne długości: bok podstawy kwadratowej oraz wysokość bryły.",
+        visual: cuboidVisual(3, 3, 6, "Dwie ściany są kwadratami, a cztery prostokątami."),
+        model: { kind: "choice-fixed", rule: "square-prism-faces" }
+      }),
+      question({
+        label: "Sześcian z kostek",
+        prompt: "Ile jednakowych sześcianów o krawędzi 1 cm potrzeba, aby ułożyć sześcian o krawędzi 2 cm?",
+        answer: 8,
+        hint: "Sześcian ma wymiary 2 cm × 2 cm × 2 cm. Pomnóż trzy wymiary.",
+        explanation: "2 · 2 · 2 = 8 sześcianów.",
+        visual: cuboidVisual(2, 2, 2, "Sześcian 2 × 2 × 2 ułożony z mniejszych kostek.", { unit: "kostki" }),
+        model: { kind: "cubes-for-cube", edge: 2 }
       })
     ];
   }
@@ -429,7 +446,25 @@
         visual: box,
         model: { kind: "edges-left", have: sticks }
       }),
-      fact("cube-faces", "Ile kwadratowych ścian ma sześcian?", "W sześcianie kwadratowa jest każda ściana.", "Sześcian ma 6 kwadratowych ścian.", cuboidVisual(3, 3, 3, "Wszystkie ściany sześcianu są kwadratami."), "Ściany sześcianu")
+      fact("cube-faces", "Ile kwadratowych ścian ma sześcian?", "W sześcianie kwadratowa jest każda ściana.", "Sześcian ma 6 kwadratowych ścian.", cuboidVisual(3, 3, 3, "Wszystkie ściany sześcianu są kwadratami."), "Ściany sześcianu"),
+      question({
+        label: "Krawędzie z wierzchołka A",
+        prompt: "Wierzchołki prostopadłościanu oznaczono literami od A do H. Ile krawędzi łączy wierzchołek A bezpośrednio z innymi wierzchołkami?",
+        answer: 3,
+        hint: "Z każdego wierzchołka prostopadłościanu wychodzą dokładnie 3 krawędzie.",
+        explanation: "Z każdego wierzchołka prostopadłościanu wychodzą 3 krawędzie (długość, szerokość i wysokość).",
+        visual: box,
+        model: { kind: "fact", rule: "from-vertex" }
+      }),
+      question({
+        label: "Wierzchołki poza podstawą",
+        prompt: "Prostopadłościan ma 8 wierzchołków. Na dolnej podstawie leżą 4 wierzchołki. Ile wierzchołków leży poza tą podstawą?",
+        answer: 4,
+        hint: "Odejmij 4 wierzchołki dolnej podstawy od wszystkich 8 wierzchołków bryły.",
+        explanation: "8 − 4 = 4 wierzchołki leżą na górnej podstawie.",
+        visual: cuboidVisual(4, 3, 2, "Cztery wierzchołki na dole i cztery na górze.", { highlight: "top" }),
+        model: { kind: "vertices-off-face" }
+      })
     ];
   }
 
@@ -490,6 +525,24 @@
         explanation: `Najkrótsza z liczb ${ranged.join(", ")} to ${Math.min(...ranged)} cm.`,
         visual: cuboidVisual(ranged[0], ranged[1], ranged[2], "Najkrótsza krawędź jest jednym z trzech wymiarów."),
         model: { kind: "shortest", dimensions: ranged }
+      }),
+      question({
+        label: "Ściany prostopadłościanu",
+        prompt: `Dwie przeciwległe ściany prostopadłościanu to kwadraty ${prism[0]} cm × ${prism[0]} cm, a pozostałe to prostokąty ${prism[0]} cm × ${prism[2]} cm. Ile ścian ma wymiary ${prism[0]} cm × ${prism[2]} cm?`,
+        answer: 4,
+        hint: "Prostopadłościan ma 6 ścian. Dwie to kwadratowe podstawy, a pozostałe to ściany boczne.",
+        explanation: `Prostopadłościan ma 6 ścian. 6 − 2 = 4 ściany mają wymiary ${prism[0]} cm × ${prism[2]} cm.`,
+        visual: cuboidVisual(prism[0], prism[0], prism[2], "Dwie podstawy są kwadratami, a 4 ściany boczne prostokątami."),
+        model: { kind: "prism-face-count", a: prism[0], b: prism[2] }
+      }),
+      question({
+        label: "Dwa wymiary",
+        prompt: `Prostopadłościan ma wymiary ${dimText(ranged)}. Ile łącznie krawędzi mają odcinki o długościach ${ranged[0]} cm i ${ranged[1]} cm?`,
+        answer: 8,
+        hint: "Każdy wymiar powtarza się na 4 krawędziach.",
+        explanation: `Długość ${ranged[0]} cm ma 4 krawędzie i długość ${ranged[1]} cm ma 4 krawędzie. Razem 4 + 4 = 8 krawędzi.`,
+        visual: cuboidVisual(ranged[0], ranged[1], ranged[2], "Każdy z trzech wymiarów występuje na czterech krawędziach."),
+        model: { kind: "two-dimension-edges-sum", dimensions: ranged }
       })
     ];
   }
@@ -558,7 +611,36 @@
         explanation: `Sumy wynoszą ${edgeSum(first)} cm i ${edgeSum(second)} cm, więc różnica to ${Math.abs(edgeSum(first) - edgeSum(second))} cm.`,
         visual: equation(`${edgeSum(first)} cm  i  ${edgeSum(second)} cm`, "Porównaj całe szkielety, nie pojedyncze krawędzie."),
         model: { kind: "edge-sum-diff", first, second }
-      })
+      }),
+      (() => {
+        const side = rand(2, 7);
+        let height = rand(2, 8);
+        while (height === side) height = rand(2, 8);
+        return question({
+          label: "Szkielet z kwadratową podstawą",
+          prompt: `Szkielet prostopadłościanu ma kwadratową podstawę o boku ${side} cm i wysokość ${height} cm. Jaka jest łączna długość wszystkich krawędzi w cm?`,
+          answer: 8 * side + 4 * height,
+          hint: `W dwóch podstawach jest łącznie 8 krawędzi o długości ${side} cm, a krawędzi bocznych jest 4 o długości ${height} cm.`,
+          explanation: `8 · ${side} + 4 · ${height} = ${8 * side} + ${4 * height} = ${8 * side + 4 * height} cm.`,
+          visual: cuboidVisual(side, side, height, "Dwie podstawy mają razem 8 krawędzi, a wysokość powtarza się 4 razy."),
+          model: { kind: "square-prism-edge-sum", side, height }
+        });
+      })(),
+      (() => {
+        const edge = rand(3, 8);
+        const total = 12 * edge;
+        const surplus = rand(5, 20);
+        const wire = total + surplus;
+        return question({
+          label: "Zapas drutu",
+          prompt: `Na szkielet sześcianu o krawędzi ${edge} cm przygotowano ${wire} cm drutu. Ile cm drutu zostanie po wykonaniu szkieletu?`,
+          answer: surplus,
+          hint: `Sześcian ma 12 krawędzi po ${edge} cm. Oblicz 12 · ${edge} i odejmij od ${wire} cm.`,
+          explanation: `12 · ${edge} = ${total} cm. Zostanie ${wire} − ${total} = ${surplus} cm drutu.`,
+          visual: cuboidVisual(edge, edge, edge, "Szkielet sześcianu potrzebuje 12 jednakowych krawędzi."),
+          model: { kind: "wire-leftover", edge, wire }
+        });
+      })()
     ];
   }
 
@@ -611,6 +693,23 @@
         explanation: "Nie. Krawędź leżąca na ścianie nie jest do tej ściany równoległa.",
         visual: box,
         model: { kind: "choice-fixed", rule: "edge-on-face-parallel" }
+      }),
+      question({
+        label: "Ściany bez krawędzi",
+        prompt: "Każda krawędź prostopadłościanu jest wspólnym bokiem 2 ścian. Na ilu ścianach bryły ta krawędź NIE leży?",
+        answer: 4,
+        hint: "Prostopadłościan ma 6 ścian. Odejmij 2 ściany, do których ta krawędź należy.",
+        explanation: "6 − 2 = 4 ściany nie zawierają wybranej krawędzi.",
+        visual: box,
+        model: { kind: "faces-not-containing-edge" }
+      }),
+      choice("równoległe", ["równoległe", "prostopadłe"], {
+        label: "Ściany naprzeciw siebie",
+        prompt: "Po złożeniu pudełka ściany leżące naprzeciwko siebie są: równoległe czy prostopadłe?",
+        hint: "Ściany naprzeciw siebie nie przecinają się i mają jednakowe wymiary.",
+        explanation: "Ściany leżące naprzeciwko siebie w prostopadłościanie są równoległe.",
+        visual: cuboidVisual(4, 3, 2, "Ściana przednia i tylna leżą naprzeciw siebie i są równoległe.", { highlight: "front" }),
+        model: { kind: "choice-fixed", rule: "opposite-face-parallel" }
       })
     ];
   }
@@ -683,7 +782,25 @@
         visual: equation("6 ścian + języczki", "Języczek to pasek doklejony do brzegu ściany."),
         model: { kind: "choice-fixed", rule: "tab-is-face" }
       }),
-      fact("net-squares", "Ile kwadratów ma siatka sześcianu?", "Każdy kwadrat siatki staje się jedną ścianą.", "Siatka sześcianu ma 6 kwadratów.", cubeNetVisual(randomNet(cubeNets), "Po jednym kwadracie na każdą ścianę."), "Liczba ścian siatki")
+      fact("net-squares", "Ile kwadratów ma siatka sześcianu?", "Każdy kwadrat siatki staje się jedną ścianą.", "Siatka sześcianu ma 6 kwadratów.", cubeNetVisual(randomNet(cubeNets), "Po jednym kwadracie na każdą ścianę."), "Liczba ścian siatki"),
+      question({
+        label: "Prostokąty na siatce",
+        prompt: "Na siatce prostopadłościanu o podstawie kwadratowej widać 2 kwadraty. Ile prostokątów tworzy pozostałe ściany tej siatki?",
+        answer: 4,
+        hint: "Siatka prostopadłościanu składa się łącznie z 6 ścian.",
+        explanation: "6 − 2 = 4 prostokąty tworzą ściany boczne.",
+        visual: dimensionNet(3, 3, 5),
+        model: { kind: "square-prism-net-rectangles" }
+      }),
+      question({
+        label: "Ściany prostopadłe na siatce",
+        prompt: "Siatka sześcianu ma 6 ścian ponumerowanych od 1 do 6. Po złożeniu ściana 6 leży naprzeciw ściany 1. Ile ścian jest prostopadłych do ściany 1?",
+        answer: 4,
+        hint: "Jedna ściana leży naprzeciwko (jest równoległa), a wszystkie pozostałe 4 ściany są do niej prostopadłe.",
+        explanation: "6 ścian − 1 (ściana 1) − 1 (ściana naprzeciwko) = 4 ściany prostopadłe.",
+        visual: cubeNetVisual(randomNet(cubeNets), "Każda ściana sześcianu ma 1 ścianę naprzeciwległą i 4 ściany prostopadłe."),
+        model: { kind: "net-perpendicular-count" }
+      })
     ];
   }
 
@@ -752,7 +869,35 @@
         explanation: `2 · (${whole[0] * whole[1]} + ${whole[1] * whole[2]} + ${whole[2] * whole[0]}) = ${surfaceArea(whole[0], whole[1], whole[2])} cm².`,
         model: { kind: "surface" }
       }),
-      fact("net-squares", "Ile ścian widać na tej siatce prostopadłościanu?", "Siatka pokazuje każdą ścianę dokładnie raz.", "Na siatce widać 6 ścian.", dimensionNet(4, 3, 2), "Ściany siatki")
+      fact("net-squares", "Ile ścian widać na tej siatce prostopadłościanu?", "Siatka pokazuje każdą ścianę dokładnie raz.", "Na siatce widać 6 ścian.", dimensionNet(4, 3, 2), "Ściany siatki"),
+      (() => {
+        const [l, d, h] = distinctTriple(2, 6);
+        return question({
+          label: "Dwie przeciwległe ściany",
+          prompt: `Dwie przeciwległe ściany na siatce mają wymiary D = ${l} cm i W = ${h} cm. Jakie jest łączne pole tej jednej pary ścian w cm²?`,
+          answer: 2 * l * h,
+          hint: `Oblicz pole jednej ściany: ${l} · ${h}, a potem pomnóż przez 2.`,
+          explanation: `2 · (${l} · ${h}) = 2 · ${l * h} = ${2 * l * h} cm².`,
+          visual: dimensionNet(l, d, h),
+          model: { kind: "pair-faces-area", length: l, height: h }
+        });
+      })(),
+      (() => {
+        const [l, d, h] = distinctTriple(2, 5);
+        const f1 = l * d;
+        const f2 = d * h;
+        const f3 = h * l;
+        const total = 2 * (f1 + f2 + f3);
+        return question({
+          label: "Pola trzech ścian",
+          prompt: `Trzy różne ściany na siatce prostopadłościanu mają pola ${f1} cm², ${f2} cm² i ${f3} cm². Jakie jest pole powierzchni całej bryły w cm²?`,
+          answer: total,
+          hint: "Każda z tych trzech ścian występuje na siatce dwa razy. Dodaj te trzy liczby i pomnóż sumę przez 2.",
+          explanation: `2 · (${f1} + ${f2} + ${f3}) = 2 · ${f1 + f2 + f3} = ${total} cm².`,
+          visual: dimensionNet(l, d, h),
+          model: { kind: "sum-three-face-areas", faces: [f1, f2, f3] }
+        });
+      })()
     ];
   }
 
@@ -840,7 +985,37 @@
         hint: "Z góry widać prostokąt o bokach równych długości i szerokości, bez wysokości.",
         explanation: `${roof[0]} · ${roof[1]} = ${roof[0] * roof[1]} kostek.`,
         model: { kind: "box-top" }
-      })
+      }),
+      (() => {
+        const set = pick([
+          { cubes: 8, a: 2, b: 2, h: 2 },
+          { cubes: 8, a: 4, b: 2, h: 1 },
+          { cubes: 12, a: 3, b: 2, h: 2 },
+          { cubes: 12, a: 2, b: 2, h: 3 },
+          { cubes: 16, a: 4, b: 2, h: 2 }
+        ]);
+        return question({
+          label: "Wysokość z kostek",
+          prompt: `Z ${set.cubes} jednakowych kostek o krawędzi 1 cm ułożono prostopadłościan o podstawie ${set.a} cm × ${set.b} cm. Jaka jest jego wysokość w cm?`,
+          answer: set.h,
+          hint: `W jednej warstwie mieści się ${set.a} · ${set.b} = ${set.a * set.b} kostek. Podziel ${set.cubes} przez tę liczbę.`,
+          explanation: `Jedna warstwa to ${set.a} · ${set.b} = ${set.a * set.b} kostek. ${set.cubes} : ${set.a * set.b} = ${set.h} cm wysokości.`,
+          visual: cuboidVisual(set.a, set.b, set.h, "Prostopadłościan ułożony z jednakowych kostek.", { unit: "kostki" }),
+          model: { kind: "cuboid-from-cubes-height", cubes: set.cubes, a: set.a, b: set.b, h: set.h }
+        });
+      })(),
+      (() => {
+        const count = pick([6, 8, 10, 12]);
+        return question({
+          label: "Długi rząd kostek",
+          prompt: `Z ${count} jednakowych kostek o krawędzi 1 cm ułożono prostopadłościan w jednym rzędzie: ${count} cm × 1 cm × 1 cm. Ile cm ma najdłuższa krawędź tej bryły?`,
+          answer: count,
+          hint: `Rząd ${count} kostek po 1 cm ma długość ${count} cm.`,
+          explanation: `Wymiary bryły to ${count} cm × 1 cm × 1 cm, więc najdłuższa krawędź ma ${count} cm.`,
+          visual: cuboidVisual(count, 1, 1, `Rząd z ${count} kostek o krawędzi 1 cm.`, { unit: "kostki" }),
+          model: { kind: "longest-row-cubes", count }
+        });
+      })()
     ];
   }
 
@@ -906,7 +1081,38 @@
         explanation: "Pola wynoszą 50 cm², 40 cm² i 32 cm². Najmniejsze pole ma prostopadłościan 3 × 2 × 2.",
         visual: equation("12×1×1 ,  6×2×1 ,  3×2×2", "Ta sama liczba kostek, inne pola powierzchni."),
         model: { kind: "choice-fixed", rule: "smallest-12" }
-      })
+      }),
+      (() => {
+        const side = rand(2, 6);
+        let height = rand(2, 8);
+        while (height === side) height = rand(2, 8);
+        const pc = 2 * side * side + 4 * side * height;
+        return question({
+          label: "Powierzchnia podstawy kwadratowej",
+          prompt: `Prostopadłościan ma kwadratową podstawę o boku ${side} cm i wysokość ${height} cm. Jakie jest jego pole powierzchni w cm²?`,
+          answer: pc,
+          hint: `Dodaj pole dwóch kwadratowych podstaw (2 · ${side} · ${side}) i czterech ścian bocznych (4 · ${side} · ${height}).`,
+          explanation: `2 · (${side} · ${side}) + 4 · (${side} · ${height}) = ${2 * side * side} + ${4 * side * height} = ${pc} cm².`,
+          visual: cuboidVisual(side, side, height, "Dwie podstawy to kwadraty, cztery ściany boczne to prostokąty."),
+          model: { kind: "square-prism-surface", side, height }
+        });
+      })(),
+      (() => {
+        const [a, b, c] = distinctTriple(2, 5);
+        const p1 = a * b;
+        const p2 = b * c;
+        const p3 = c * a;
+        const total = 2 * (p1 + p2 + p3);
+        return question({
+          label: "Suma z trzech ścian",
+          prompt: `Pola trzech różnych ścian prostopadłościanu wynoszą ${p1} cm², ${p2} cm² i ${p3} cm². Jakie jest pole powierzchni całej bryły w cm²?`,
+          answer: total,
+          hint: "Każda z tych trzech ścian występuje w prostopadłościanie dwa razy. Dodaj je i pomnóż przez 2.",
+          explanation: `2 · (${p1} + ${p2} + ${p3}) = 2 · ${p1 + p2 + p3} = ${total} cm².`,
+          visual: equation(`2 · (${p1} + ${p2} + ${p3})`, "Dodaj pola trzech różnych ścian i pomnóż przez 2."),
+          model: { kind: "surface-from-three-faces", faces: [p1, p2, p3] }
+        });
+      })()
     ];
   }
 
@@ -1014,7 +1220,34 @@
         explanation: `6 · ${present} · ${present} = ${6 * present * present} cm².`,
         visual: cuboidVisual(present, present, present, "Papier pokrywa sześć jednakowych ścian."),
         model: { kind: "cube-surface", edge: present }
-      })
+      }),
+      (() => {
+        const [l, w, h] = distinctTriple(2, 6);
+        const openBoxArea = l * w + 2 * (l + w) * h;
+        return question({
+          label: "Pudełko bez wieka",
+          prompt: `Otwarte pudełko bez wieka ma wymiary dna ${l} cm × ${w} cm i wysokość ${h} cm. Ile cm² kartonu zużyto na dno i cztery ściany boczne?`,
+          answer: openBoxArea,
+          hint: `Oblicz pole dna (${l} · ${w}) i dodaj pole czterech ścian bocznych: 2 · (${l} + ${w}) · ${h}.`,
+          explanation: `${l} · ${w} + 2 · (${l} + ${w}) · ${h} = ${l * w} + ${2 * (l + w) * h} = ${openBoxArea} cm².`,
+          visual: cuboidVisual(l, w, h, "Pudełko ma dno i cztery ściany boczne, bez górnego wieka.", { highlight: "front" }),
+          model: { kind: "open-box", dimensions: [l, w, h] }
+        });
+      })(),
+      (() => {
+        const smallDims = distinctTriple(2, 7);
+        const pSmall = [smallDims[0] * smallDims[1], smallDims[1] * smallDims[2], smallDims[2] * smallDims[0]];
+        const minFace = Math.min(...pSmall);
+        return question({
+          label: "Dwie najmniejsze ściany",
+          prompt: `Dwie najmniejsze ściany prostopadłościanu ${dimText(smallDims)} pomalowano na żółto. Ile cm² pomalowano?`,
+          answer: 2 * minFace,
+          hint: `Pola trzech różnych ścian to ${pSmall.join(", ")} cm². Wybierz najmniejsze i pomnóż przez 2.`,
+          explanation: `Najmniejsza ściana ma pole ${minFace} cm², a dwie takie ściany mają razem 2 · ${minFace} = ${2 * minFace} cm².`,
+          visual: cuboidVisual(smallDims[0], smallDims[1], smallDims[2], "Dwie najmniejsze ściany leżą naprzeciwko siebie."),
+          model: { kind: "two-smallest-faces", dimensions: smallDims }
+        });
+      })()
     ];
   }
 
@@ -1034,7 +1267,17 @@
   function buildQuestions(mode) {
     const stamp = (routeId, item) => ({ ...item, routeId, method: methods[routeId] });
     if (builders[mode]) return shuffle(builders[mode]()).map((item) => stamp(mode, item));
-    return shuffle(Object.entries(builders).map(([routeId, build]) => stamp(routeId, pick(build()))));
+    const stationEntries = Object.entries(builders);
+    const selected = stationEntries.map(([routeId, build]) => stamp(routeId, pick(build())));
+    const extraIndices = shuffle(stationEntries.map((_, i) => i)).slice(0, 2);
+    const extras = extraIndices.map((i) => {
+      const [routeId, build] = stationEntries[i];
+      const allQuestions = build();
+      const existing = selected[i];
+      const pool = allQuestions.filter((q) => q.prompt !== existing.prompt);
+      return stamp(routeId, pick(pool.length > 0 ? pool : allQuestions));
+    });
+    return shuffle([...selected, ...extras]);
   }
 
   MathTownGame.start({

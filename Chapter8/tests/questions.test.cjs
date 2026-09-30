@@ -122,7 +122,9 @@ const fixedAnswers = {
   "square-bases": "jednakowymi kwadratami",
   "edge-on-face-parallel": "nie",
   "tab-is-face": "nie",
-  "smallest-12": "3 × 2 × 2"
+  "smallest-12": "3 × 2 × 2",
+  "square-prism-faces": "2",
+  "opposite-face-parallel": "równoległe"
 };
 
 const factAnswers = {
@@ -148,27 +150,40 @@ function expectedAnswer(question) {
   if (model.kind === "fact") return factAnswers[model.rule];
   if (model.kind === "choice-fixed") return fixedAnswers[model.rule];
   if (model.kind === "is-cube") return model.dimensions.every((value) => value === model.dimensions[0]) ? "tak" : "nie";
+  if (model.kind === "cubes-for-cube") return model.edge ** 3;
   if (model.kind === "vertices-left") return 8 - model.have;
   if (model.kind === "edges-left") return 12 - model.have;
+  if (model.kind === "vertices-off-face") return 4;
   if (model.kind === "edge-count") return model.dimensions.filter((value) => value === model.target).length * 4;
+  if (model.kind === "prism-face-count") return 4;
+  if (model.kind === "two-dimension-edges-sum") return 8;
   if (model.kind === "edge-sum") return 4 * model.dimensions.reduce((total, value) => total + value, 0);
   if (model.kind === "vertex-sum") return model.dimensions.reduce((total, value) => total + value, 0);
   if (model.kind === "longest") return Math.max(...model.dimensions);
   if (model.kind === "shortest") return Math.min(...model.dimensions);
   if (model.kind === "cube-edge") return model.total / 12;
   if (model.kind === "missing-edge") return model.total / 4 - model.known[0] - model.known[1];
+  if (model.kind === "square-prism-edge-sum") return 8 * model.side + 4 * model.height;
+  if (model.kind === "wire-leftover") return model.wire - 12 * model.edge;
   if (model.kind === "ribbon") return 2 * (a + b) + 2 * (a + c) + model.bow;
   if (model.kind === "edge-sum-diff") {
     const total = (values) => 4 * values.reduce((sum, value) => sum + value, 0);
     return Math.abs(total(model.first) - total(model.second));
   }
+  if (model.kind === "faces-not-containing-edge") return 4;
   if (model.kind === "third-face") return `${Math.min(a, c)} cm × ${Math.max(a, c)} cm`;
   if (model.kind === "net-valid") return foldCube(model.cells) ? "tak" : "nie";
   if (model.kind === "net-opposite") return Number(oppositeLabel(model.cells, model.face));
   if (model.kind === "net-neighbors") return neighborCount(model.cells, model.face);
+  if (model.kind === "square-prism-net-rectangles") return 4;
+  if (model.kind === "net-perpendicular-count") return 4;
   if (model.kind === "base-area") return a * b;
   if (model.kind === "side-area") return a * c;
+  if (model.kind === "pair-faces-area") return 2 * model.length * model.height;
+  if (model.kind === "sum-three-face-areas") return 2 * model.faces.reduce((sum, v) => sum + v, 0);
   if (model.kind === "surface") return 2 * (a * b + b * c + c * a);
+  if (model.kind === "square-prism-surface") return 2 * model.side * model.side + 4 * model.side * model.height;
+  if (model.kind === "surface-from-three-faces") return 2 * model.faces.reduce((sum, v) => sum + v, 0);
   if (model.kind === "cube-surface") return 6 * model.edge * model.edge;
   if (model.kind === "cube-face") return model.edge * model.edge;
   if (model.kind === "cube-edge-from-surface") {
@@ -177,6 +192,8 @@ function expectedAnswer(question) {
   }
   if (model.kind === "walls") return 2 * (a + b) * c;
   if (model.kind === "walls-ceiling") return 2 * (a + b) * c + a * b;
+  if (model.kind === "open-box") return a * b + 2 * (a + b) * c;
+  if (model.kind === "two-smallest-faces") return 2 * Math.min(a * b, b * c, c * a);
   if (model.kind === "cube-extra") return 5 * model.edge * model.edge;
   if (model.kind === "largest-faces") return 2 * Math.max(a * b, b * c, c * a);
   if (model.kind === "window") return model.face[0] * model.face[1] - model.hole * model.hole;
@@ -196,6 +213,8 @@ function expectedAnswer(question) {
   }
   if (model.kind === "box-count") return a * b * c;
   if (model.kind === "box-top") return a * b;
+  if (model.kind === "cuboid-from-cubes-height") return model.h;
+  if (model.kind === "longest-row-cubes") return model.count;
   return undefined;
 }
 
@@ -281,19 +300,20 @@ test("the eleven canonical cube nets fold and the rejected figures do not", () =
   assert.equal(helpers.edgeCount([4, 4, 4], 4), 12);
 });
 
-test("every Chapter 8 route returns 10 solved questions and mix covers every station", () => {
+test("every Chapter 8 route returns 12 solved questions and mix covers every station", () => {
   for (let seed = 1; seed <= 12; seed += 1) {
     const config = loadConfig(seed);
     const focused = Object.keys(config.routeLabels).filter((route) => route !== "mix");
     assert.equal(focused.length, 10);
     focused.forEach((route) => {
       const questions = config.buildQuestions(route);
-      assert.equal(questions.length, 10, route);
+      assert.equal(questions.length, 12, route);
       questions.forEach((question) => validateQuestion(question, route));
     });
     const mix = config.buildQuestions("mix");
-    assert.equal(mix.length, 10);
-    assert.equal([...mix.map((question) => question.routeId)].sort().join("|"), [...focused].sort().join("|"));
+    assert.equal(mix.length, 12);
+    const mixRoutes = new Set(mix.map((question) => question.routeId));
+    assert.equal(mixRoutes.size, focused.length);
     mix.forEach((question) => validateQuestion(question, "mix"));
   }
 });
